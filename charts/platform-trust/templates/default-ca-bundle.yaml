@@ -1,0 +1,17 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: platform-default-ca-bundle
+spec:
+  sources:
+    - useDefaultCAs: true
+  target:
+    configMap:
+      key: "ca.crt"
+    namespaceSelector:
+      matchLabels:
+        cluster.podplane.dev/bundles-default-ca: from-platform-trust

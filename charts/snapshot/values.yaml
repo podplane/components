@@ -1,0 +1,13 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+---
+# https://github.com/piraeusdatastore/helm-charts/blob/main/charts/snapshot-controller/values.yaml
+snapshot-controller:
+  controller:
+    fullnameOverride: platform-snapshot-controller
+    args:
+      leaderElection: true
+      leaderElectionNamespace: "$(NAMESPACE)"
+      httpEndpoint: ":8080"
+      featureGates: "CSIVolumeGroupSnapshot=true"

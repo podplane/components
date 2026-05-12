@@ -1,0 +1,22 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+{{- if .Values.platform.traefik.ingress.enabled }}
+{{- $ingress := .Values.platform.traefik.ingress -}}
+{{- range $ingress.domains }}
+{{- $zone := include "podplane.traefik.domainName" . }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "podplane.traefik.certificateName" . }}
+spec:
+  secretName: {{ include "podplane.traefik.secretName" . }}
+  issuerRef:
+    kind: {{ $ingress.issuerRef.kind }}
+    name: {{ $ingress.issuerRef.name }}
+  dnsNames:
+    - {{ $zone | quote }}
+    - {{ printf "*.%s" $zone | quote }}
+{{- end }}
+{{- end }}

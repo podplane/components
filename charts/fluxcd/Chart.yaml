@@ -1,0 +1,14 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: fluxcd
+description: Podplane Flux CD chart (source-controller + helm-controller only)
+type: application
+version: "1.0.0"
+appVersion: "2.8.5"
+dependencies:
+  - name: flux2
+    version: "2.18.3"
+    repository: "https://fluxcd-community.github.io/helm-charts"

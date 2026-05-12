@@ -1,0 +1,126 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+---
+platform:
+  components:
+    # Default reconciliation interval for component HelmReleases.
+    reconcileInterval: 10m
+
+    registry:
+      # Component image mirror settings. When enabled, platform injects explicit
+      # chart values so component images are pulled from
+      # <hostname>/<original-registry>/<repository>.
+      mirror:
+        enabled: false
+        hostname: ""
+
+    # CRDs - shipped as separate Helm charts per Helm best practices.
+    crds:
+      cilium-crds:
+        enabled: true
+      gateway-api-crds:
+        enabled: true
+      fluxcd-crds:
+        enabled: true
+      # Addon CRDs (default disabled; enable together with the matching app)
+      cert-manager-crds:
+        enabled: false
+      trust-manager-crds:
+        enabled: false
+      traefik-crds:
+        enabled: false
+      snapshot-crds:
+        enabled: false
+
+    # Apps
+    apps:
+      # Core
+      platform-rbac:
+        enabled: true
+        namespace: platform-cluster
+      cilium:
+        enabled: true
+        namespace: platform-cilium
+        # Namespace pre-created by bootstrap.sh (helm install --create-namespace).
+        manageNamespace: false
+        dependsOn:
+          - cilium-crds
+      coredns:
+        enabled: true
+        namespace: platform-coredns
+        dependsOn:
+          - cilium
+      fluxcd:
+        enabled: true
+        namespace: platform-fluxcd
+        # Namespace pre-created by bootstrap.sh (helm install --create-namespace).
+        manageNamespace: false
+        dependsOn:
+          - fluxcd-crds
+      # Provider-specific core components (default disabled unless selected by cluster configuration)
+      csi-aws-ebs:
+        enabled: false
+        namespace: platform-csi-aws-ebs
+      # Addons (default disabled)
+      cert-manager:
+        enabled: false
+        namespace: platform-cert-manager
+        dependsOn:
+          - cert-manager-crds
+      platform-certs:
+        enabled: false
+        namespace: platform-certs
+        dependsOn:
+          - cert-manager
+      trust-manager:
+        enabled: false
+        namespace: platform-trust-manager
+        dependsOn:
+          - trust-manager-crds
+          - platform-certs
+      platform-trust:
+        enabled: false
+        namespace: platform-trust
+        dependsOn:
+          - trust-manager
+      traefik:
+        enabled: false
+        namespace: platform-traefik
+        dependsOn:
+          - platform-certs
+          - traefik-crds
+          - gateway-api-crds
+      snapshot:
+        enabled: false
+        namespace: platform-snapshot
+        dependsOn:
+          - snapshot-crds
+
+    # Per-component values overrides merged into each HelmRelease's `values:`.
+    # Keys must match the entries in `platform.components.{apps,crds}` above.
+    valuesObject: {}
+    # Example:
+    # valuesObject:
+    #   platform-certs:
+    #     platform:
+    #       certs:
+    #         domains:
+    #           - zone: example.com
+    #         acme:
+    #           enabled: true
+    #           server: https://acme-v02.api.letsencrypt.org/directory
+    #           email: ops@example.com
+    #           solvers:
+    #             - dnsZones:
+    #                 - example.com
+    #               route53:
+    #                 hostedZoneID: Z123456789
+    #                 roleArn: arn:aws:iam::123456789012:role/podplane-cert-manager-dns01
+    #   traefik:
+    #     platform:
+    #       traefik:
+    #         ingress:
+    #           enabled: true
+    #           domains:
+    #             - zone: example.com

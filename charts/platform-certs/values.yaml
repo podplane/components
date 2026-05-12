@@ -1,0 +1,24 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+---
+platform:
+  certs:
+    clusterCA:
+      commonName: "podplane.local"
+    domains: []
+    acme:
+      enabled: false
+      issuerName: platform-acme-clusterissuer
+      server: ""
+      email: ""
+      privateKeySecretName: platform-acme-account-key
+      solvers: []
+    local:
+      issuerName: platform-selfsigned-clusterissuer
+    secretSync:
+      enabled: false
+      image:
+        repository: docker.io/library/golang
+        tag: alpine
+      mounts: []

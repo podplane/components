@@ -1,0 +1,32 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+{{- if ne false (((((.Values.platform).rbac).admissionPolicies).denyCiliumExec).enabled) }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: platform-deny-cilium-exec-vap
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - operations: ["CONNECT"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods/exec"]
+  validations:
+    - expression: >
+        !(request.namespace == "platform-cilium")
+      message: "Exec into Cilium pods is not permitted for security reasons"
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: platform-deny-cilium-exec-vapb
+spec:
+  policyName: platform-deny-cilium-exec-vap
+  validationActions: ["Deny", "Audit"]
+  matchResources:
+    namespaceSelector: {}
+{{- end }}

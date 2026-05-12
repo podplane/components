@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "certs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "clusterCA": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commonName": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": ["commonName"]
+            },
+            "domains": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "zone": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": ["zone"]
+              }
+            },
+            "acme": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "issuerName": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "server": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "privateKeySecretName": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "solvers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "dnsZones": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "route53": {
+                        "$ref": "#/definitions/route53Solver"
+                      },
+                      "cloudflare": {
+                        "$ref": "#/definitions/cloudflareSolver"
+                      },
+                      "cloudDNS": {
+                        "$ref": "#/definitions/cloudDNSSolver"
+                      }
+                    },
+                    "required": ["dnsZones"]
+                  }
+                }
+              },
+              "required": ["enabled", "issuerName", "server", "email", "privateKeySecretName", "solvers"]
+            },
+            "local": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "issuerName": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": ["issuerName"]
+            },
+            "secretSync": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "image": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "repository": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "tag": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": ["repository", "tag"]
+                },
+                "mounts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "secretProviderClassName": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "mountPath": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": ["name", "secretProviderClassName", "mountPath"]
+                  }
+                }
+              },
+              "required": ["enabled", "image", "mounts"]
+            }
+          },
+          "required": ["clusterCA", "domains", "acme", "local", "secretSync"]
+        }
+      },
+      "required": ["certs"]
+    }
+  },
+  "required": ["platform"],
+  "definitions": {
+    "secretKeyRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["name", "key"]
+    },
+    "route53Solver": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "region": {
+          "type": "string"
+        },
+        "hostedZoneID": {
+          "type": "string"
+        },
+        "roleArn": {
+          "type": "string"
+        }
+      }
+    },
+    "cloudflareSolver": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "apiKeySecretRef": {
+          "$ref": "#/definitions/secretKeyRef"
+        },
+        "apiTokenSecretRef": {
+          "$ref": "#/definitions/secretKeyRef"
+        }
+      }
+    },
+    "cloudDNSSolver": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "project": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hostedZoneName": {
+          "type": "string"
+        },
+        "serviceAccountSecretRef": {
+          "$ref": "#/definitions/secretKeyRef"
+        }
+      },
+      "required": ["project"]
+    }
+  }
+}

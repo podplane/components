@@ -1,0 +1,12 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: fluxcd-crds
+description: Podplane Flux CD CRDs chart
+type: application
+version: "1.0.0"
+# Tracks the appVersion of the fluxcd-community/flux2 chart pinned in
+# scripts/crds (FLUXCD_CHART_VERSION).
+appVersion: "2.8.5"

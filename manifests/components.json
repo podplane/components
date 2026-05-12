@@ -1,0 +1,421 @@
+{
+  "components": {
+    "version": "dev",
+    "images": [
+      {
+        "image": "docker.io/library/caddy:2",
+        "digest": "sha256:3739ea4f0c877259a693d932693cf8f3408e9a9497c004f031b0e830e93e1546",
+        "size": 23993905,
+        "platform": "linux/amd64",
+        "index": "sha256:ec18ee54aab3315c22e25f3b2babda73ff8007d39b13b3bd1bfffa2f0444c7d9"
+      },
+      {
+        "image": "docker.io/library/caddy:2",
+        "digest": "sha256:780ae38d5cc9674696bfec2dd7a20ea5495a2653d788ee39bff6aaf1007f8dd8",
+        "size": 22809535,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:ec18ee54aab3315c22e25f3b2babda73ff8007d39b13b3bd1bfffa2f0444c7d9"
+      },
+      {
+        "image": "docker.io/library/golang:alpine",
+        "digest": "sha256:f44b851aa23dfa219d18db6eab743203245429d355cb619cf96a2ffe2a84ba7a",
+        "size": 71443781,
+        "platform": "linux/amd64",
+        "index": "sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d"
+      },
+      {
+        "image": "docker.io/library/golang:alpine",
+        "digest": "sha256:91dea08171115da4e00f7a5c74753c4e56f4e83e20b1e4065530b5d51d93742c",
+        "size": 68664800,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d"
+      },
+      {
+        "image": "ghcr.io/podplane/hello:latest",
+        "digest": "sha256:eec074d6209d2686a1b3828562591b6d1ce6aaa06724429dd41372bb6530520b",
+        "size": 3511200,
+        "platform": "linux/amd64",
+        "index": "sha256:b16d7a0ea90a4b715a220c5e4d28ca7c0f7ce060b282155b6cb055c2c567f3d7"
+      },
+      {
+        "image": "ghcr.io/podplane/hello:latest",
+        "digest": "sha256:8f326a6ed2654719bc1ae0528564d7654dc404a4c76cd4b1c1fb64f627c17d55",
+        "size": 3186179,
+        "platform": "linux/arm64",
+        "index": "sha256:b16d7a0ea90a4b715a220c5e4d28ca7c0f7ce060b282155b6cb055c2c567f3d7"
+      },
+      {
+        "component": "cert-manager",
+        "image": "quay.io/jetstack/cert-manager-approver-policy:v0.21.0",
+        "digest": "sha256:a4aae6050f663c00d6342e4c8e21b878050d00a7a95cbd61c768857f383382d0",
+        "size": 21169646,
+        "platform": "linux/amd64",
+        "index": "sha256:b5b83719ee3093e59db0f778f143eab9c28828f239073e20695c0f2a3175a104",
+        "addon": true
+      },
+      {
+        "component": "cert-manager",
+        "image": "quay.io/jetstack/cert-manager-approver-policy:v0.21.0",
+        "digest": "sha256:da08a1fa898ea499c3fa74ad84987c45ab68692ae1f2e1c0b63cfe5debc58544",
+        "size": 19027104,
+        "platform": "linux/arm64",
+        "index": "sha256:b5b83719ee3093e59db0f778f143eab9c28828f239073e20695c0f2a3175a104",
+        "addon": true
+      },
+      {
+        "component": "cert-manager",
+        "image": "quay.io/jetstack/cert-manager-cainjector:v1.16.2",
+        "digest": "sha256:0a1f62ea3390a73239c0b4214e0ada1fb89c52d30677aebcdc3ca54508996511",
+        "size": 15426291,
+        "platform": "linux/amd64",
+        "index": "sha256:593abc7bf8b926d6fcb9c63b91504ad85e1379b25056aa5dee90b35505ab3211",
+        "addon": true
+      },
+      {
+        "component": "cert-manager",
+        "image": "quay.io/jetstack/cert-manager-cainjector:v1.16.2",
+        "digest": "sha256:a858ac7d3ea0f54c71b0db1e4b12f34013d6fafe0e364c663aa900049402c5fb",
+        "size": 14072803,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:593abc7bf8b926d6fcb9c63b91504ad85e1379b25056aa5dee90b35505ab3211",
+        "addon": true
+      },
+      {
+        "component": "cert-manager",
+        "image": "quay.io/jetstack/cert-manager-controller:v1.16.2",
+        "digest": "sha256:de97c3767802e33d3096ad9b276598ceee3ed92a0c67907221581b36c8ad055f",
+        "size": 21191532,
+        "platform": "linux/amd64",
+        "index": "sha256:0eec9c89554011c9aa16eea88ab89a91b32dc8d6eb96307b7fc2dcd6bbbc7fcf",
+        "addon": true
+      },
+      {
+        "component": "cert-manager",
+        "image": "quay.io/jetstack/cert-manager-controller:v1.16.2",
+        "digest": "sha256:8b958c43c97cd0b90125ca6166e7b07428a8b75a0feb39932c940e5bf18f2beb",
+        "size": 19405152,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:0eec9c89554011c9aa16eea88ab89a91b32dc8d6eb96307b7fc2dcd6bbbc7fcf",
+        "addon": true
+      },
+      {
+        "component": "cert-manager",
+        "image": "quay.io/jetstack/cert-manager-webhook:v1.16.2",
+        "digest": "sha256:25d87dff68f00587a3e76a1e5d530d40b6f0f7872e6d634db01a593047849109",
+        "size": 18191549,
+        "platform": "linux/amd64",
+        "index": "sha256:64c4d5dd55d7d00e5b162e21887f9bffbf1e531ee0668eaf801fae9bd54e536d",
+        "addon": true
+      },
+      {
+        "component": "cert-manager",
+        "image": "quay.io/jetstack/cert-manager-webhook:v1.16.2",
+        "digest": "sha256:abd7c347c84e2bb09db9618cfb0951f678b7c4378c2626b3f75d268e79813f85",
+        "size": 16643155,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:64c4d5dd55d7d00e5b162e21887f9bffbf1e531ee0668eaf801fae9bd54e536d",
+        "addon": true
+      },
+      {
+        "component": "cilium",
+        "image": "quay.io/cilium/cilium:v1.16.3@sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28",
+        "digest": "sha256:a2a37ab3ea769b85703478f1f46c3fd9696fc7037b73b0a3ba5c53821f4791a7",
+        "size": 223180302,
+        "platform": "linux/amd64",
+        "index": "sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28"
+      },
+      {
+        "component": "cilium",
+        "image": "quay.io/cilium/cilium:v1.16.3@sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28",
+        "digest": "sha256:51fc82a040039e68bb9735aed20cc719c869ae57aeef3e2cb985132fe5f44321",
+        "size": 210788644,
+        "platform": "linux/arm64",
+        "index": "sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28"
+      },
+      {
+        "component": "cilium",
+        "image": "quay.io/cilium/operator-generic:v1.16.3@sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b",
+        "digest": "sha256:cfcb0eec380a91542e062e8849c41e64729df1226146edd47eb74e81c88408ed",
+        "size": 31096285,
+        "platform": "linux/amd64",
+        "index": "sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b"
+      },
+      {
+        "component": "cilium",
+        "image": "quay.io/cilium/operator-generic:v1.16.3@sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b",
+        "digest": "sha256:980398f7a1c869df9e971130fae8998af4ce549a4258dcb29bcd12244ec4d5f6",
+        "size": 28544744,
+        "platform": "linux/arm64",
+        "index": "sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b"
+      },
+      {
+        "component": "coredns",
+        "image": "docker.io/coredns/coredns:1.11.3",
+        "digest": "sha256:f0b8c589314ed010a0c326e987a52b50801f0145ac9b75423af1b5c66dbd6d50",
+        "size": 18560030,
+        "platform": "linux/amd64",
+        "index": "sha256:9caabbf6238b189a65d0d6e6ac138de60d6a1c419e5a341fbbb7c78382559c6e"
+      },
+      {
+        "component": "coredns",
+        "image": "docker.io/coredns/coredns:1.11.3",
+        "digest": "sha256:31440a2bef59e2f1ffb600113b557103740ff851e27b0aef5b849f6e3ab994a6",
+        "size": 16946411,
+        "platform": "linux/arm64",
+        "index": "sha256:9caabbf6238b189a65d0d6e6ac138de60d6a1c419e5a341fbbb7c78382559c6e"
+      },
+      {
+        "component": "csi-aws-ebs",
+        "image": "public.ecr.aws/csi-components/csi-attacher:v4.9.0-eksbuild.3",
+        "digest": "sha256:43fb02723ec1ae932fcc49b9f64aa22df05a730876da9523b7c4883e40f4db60",
+        "size": 35624561,
+        "platform": "linux/amd64",
+        "index": "sha256:a22796761babe75129ce1265a3b0dd07c3052e3b18130c1782dfe2a001ffc7ff",
+        "providers": [
+          "aws"
+        ]
+      },
+      {
+        "component": "csi-aws-ebs",
+        "image": "public.ecr.aws/csi-components/csi-attacher:v4.9.0-eksbuild.3",
+        "digest": "sha256:e6b5ccff54af09640dc353b12ac143ffbde751ddea3792ee341aeb336e7c4b9a",
+        "size": 33714293,
+        "platform": "linux/arm64",
+        "index": "sha256:a22796761babe75129ce1265a3b0dd07c3052e3b18130c1782dfe2a001ffc7ff",
+        "providers": [
+          "aws"
+        ]
+      },
+      {
+        "component": "csi-aws-ebs",
+        "image": "public.ecr.aws/csi-components/csi-node-driver-registrar:v2.14.0-eksbuild.4",
+        "digest": "sha256:6b5eb44989be420cd748e111946834c0888a5dd01e2dc90d6ec07bcb683c941a",
+        "size": 17493386,
+        "platform": "linux/amd64",
+        "index": "sha256:e5ee2d0232d23929605b3428f5fb6427964d01506b79194355398fb52ebd1769",
+        "providers": [
+          "aws"
+        ]
+      },
+      {
+        "component": "csi-aws-ebs",
+        "image": "public.ecr.aws/csi-components/csi-node-driver-registrar:v2.14.0-eksbuild.4",
+        "digest": "sha256:65d0fd8cd818bd6787167d67fef6c6efd286ffdcfa3e5561d1e55668c68f484a",
+        "size": 16533001,
+        "platform": "linux/arm64",
+        "index": "sha256:e5ee2d0232d23929605b3428f5fb6427964d01506b79194355398fb52ebd1769",
+        "providers": [
+          "aws"
+        ]
+      },
+      {
+        "component": "csi-aws-ebs",
+        "image": "public.ecr.aws/csi-components/csi-provisioner:v5.3.0-eksbuild.3",
+        "digest": "sha256:f046337226f438e7d0fb94a1faee2e7121ef8c84561f86a77c2c167d0c99057c",
+        "size": 37661457,
+        "platform": "linux/amd64",
+        "index": "sha256:9d6297a814c08a9744ced608d1d591997df38de832ec1ebdecc36e57b2a20714",
+        "providers": [
+          "aws"
+        ]
+      },
+      {
+        "component": "csi-aws-ebs",
+        "image": "public.ecr.aws/csi-components/csi-provisioner:v5.3.0-eksbuild.3",
+        "digest": "sha256:e7bbf29048880b344d399072e811ccb69190a54ba70206cf4118760f89a4b461",
+        "size": 35657438,
+        "platform": "linux/arm64",
+        "index": "sha256:9d6297a814c08a9744ced608d1d591997df38de832ec1ebdecc36e57b2a20714",
+        "providers": [
+          "aws"
+        ]
+      },
+      {
+        "component": "csi-aws-ebs",
+        "image": "public.ecr.aws/csi-components/csi-resizer:v1.14.0-eksbuild.3",
+        "digest": "sha256:9957e746920d982668f858ee045c4d70a574951a2d587ee1b424a1d42cb2ab02",
+        "size": 35652422,
+        "platform": "linux/amd64",
+        "index": "sha256:1901acf704e1b863e4e6fd4cbca7d1b210bc769e59bcc1d32cce870f7f504fa4",
+        "providers": [
+          "aws"
+        ]
+      },
+      {
+        "component": "csi-aws-ebs",
+        "image": "public.ecr.aws/csi-components/csi-resizer:v1.14.0-eksbuild.3",
+        "digest": "sha256:da6590a619b666e2968605a93c1227d0bad78c15277cf873b64195cf18765eae",
+        "size": 33718513,
+        "platform": "linux/arm64",
+        "index": "sha256:1901acf704e1b863e4e6fd4cbca7d1b210bc769e59bcc1d32cce870f7f504fa4",
+        "providers": [
+          "aws"
+        ]
+      },
+      {
+        "component": "csi-aws-ebs",
+        "image": "public.ecr.aws/csi-components/livenessprobe:v2.16.0-eksbuild.4",
+        "digest": "sha256:f625c4b68cf5a991e6d736d91102da7e00fa7ef3398c76d21f4d058dc4984d4e",
+        "size": 17474164,
+        "platform": "linux/amd64",
+        "index": "sha256:593f23b6905e0072c85f76df39ab88e48f2ececfa0c40c47465dbf1f535115a7",
+        "providers": [
+          "aws"
+        ]
+      },
+      {
+        "component": "csi-aws-ebs",
+        "image": "public.ecr.aws/csi-components/livenessprobe:v2.16.0-eksbuild.4",
+        "digest": "sha256:2fe47b516f23856d9f98552a6271533698a2090f4ceb6a210c1402083b52f3dd",
+        "size": 16513343,
+        "platform": "linux/arm64",
+        "index": "sha256:593f23b6905e0072c85f76df39ab88e48f2ececfa0c40c47465dbf1f535115a7",
+        "providers": [
+          "aws"
+        ]
+      },
+      {
+        "component": "csi-aws-ebs",
+        "image": "public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.47.0",
+        "digest": "sha256:e5f82fa48d6d8e0d378978cba4586393f6ee6ffbb72b78f940496526d5a93f61",
+        "size": 35941677,
+        "platform": "linux/amd64",
+        "index": "sha256:8d51e59e7b9860f2090f2cd32f3b6ec354efb1f4b29c3455ff0361d03a334880",
+        "providers": [
+          "aws"
+        ]
+      },
+      {
+        "component": "csi-aws-ebs",
+        "image": "public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.47.0",
+        "digest": "sha256:d7abd41a1fc272c131a8dc09ddd689a12e280c661ea5277506da9147fdab3561",
+        "size": 32811299,
+        "platform": "linux/arm64",
+        "index": "sha256:8d51e59e7b9860f2090f2cd32f3b6ec354efb1f4b29c3455ff0361d03a334880",
+        "providers": [
+          "aws"
+        ]
+      },
+      {
+        "component": "fluxcd",
+        "image": "ghcr.io/fluxcd/flux-cli:v2.8.5",
+        "digest": "sha256:f3f27e59943d98c32fc1cbe6a02bb042063ba6f37e4ddc67515606ec27f4de39",
+        "size": 46155840,
+        "platform": "linux/amd64",
+        "index": "sha256:f1947272d998247ce959adf8ffe13626f153e8b373ccd0322a18b4f7aad132f1"
+      },
+      {
+        "component": "fluxcd",
+        "image": "ghcr.io/fluxcd/flux-cli:v2.8.5",
+        "digest": "sha256:8ec33a6691d77be52276ed51174a2c702771e430fc871fc6718bfbd22b00f8c5",
+        "size": 42162043,
+        "platform": "linux/arm64",
+        "index": "sha256:f1947272d998247ce959adf8ffe13626f153e8b373ccd0322a18b4f7aad132f1"
+      },
+      {
+        "component": "fluxcd",
+        "image": "ghcr.io/fluxcd/helm-controller:v1.5.3",
+        "digest": "sha256:e9bf3dec37e7da581466d4b11f95e8723fc0494c88d3ce4116cdf4a341bcf249",
+        "size": 50825343,
+        "platform": "linux/amd64",
+        "index": "sha256:b150af0cd7a501dafe2374b1d22c39abf0572465df4fa1fb99b37927b0d95d75"
+      },
+      {
+        "component": "fluxcd",
+        "image": "ghcr.io/fluxcd/helm-controller:v1.5.3",
+        "digest": "sha256:fed9b381e0484fac43897e603a6025e3af56fe4abe590488a76e2ed711f5525b",
+        "size": 47372802,
+        "platform": "linux/arm64",
+        "index": "sha256:b150af0cd7a501dafe2374b1d22c39abf0572465df4fa1fb99b37927b0d95d75"
+      },
+      {
+        "component": "fluxcd",
+        "image": "ghcr.io/fluxcd/source-controller:v1.8.2",
+        "digest": "sha256:d8632c80aa18a671fd0a1584f7b3814e5686fcd4c79c5e66f18ea7145fb26653",
+        "size": 63541334,
+        "platform": "linux/amd64",
+        "index": "sha256:f2f6fd483b9a8b8c69f8ebe9f2277be23093a2b552b3578a6db15710d736bb0e"
+      },
+      {
+        "component": "fluxcd",
+        "image": "ghcr.io/fluxcd/source-controller:v1.8.2",
+        "digest": "sha256:dab42ea9a5fad078113fe3b0cf7e0984725034353c2ab91d0f311a30736081e7",
+        "size": 59131493,
+        "platform": "linux/arm64",
+        "index": "sha256:f2f6fd483b9a8b8c69f8ebe9f2277be23093a2b552b3578a6db15710d736bb0e"
+      },
+      {
+        "component": "snapshot",
+        "image": "registry.k8s.io/sig-storage/snapshot-controller:v8.3.0",
+        "digest": "sha256:f75bd457baf7a76fdf2f0caf1ffc338404f72fc4bcf7836663fefa74fd7fd5a9",
+        "size": 31588582,
+        "platform": "linux/amd64",
+        "index": "sha256:12c2da094b02ffa8fa249e17b943b755b464604880cc2cfd85977088c1a2c458",
+        "addon": true
+      },
+      {
+        "component": "snapshot",
+        "image": "registry.k8s.io/sig-storage/snapshot-controller:v8.3.0",
+        "digest": "sha256:af0dc0d831ecf564dfb0079ecf44f03a66e4913eb776ce7f9ad968e3bb673279",
+        "size": 29778307,
+        "platform": "linux/arm64",
+        "index": "sha256:12c2da094b02ffa8fa249e17b943b755b464604880cc2cfd85977088c1a2c458",
+        "addon": true
+      },
+      {
+        "component": "traefik",
+        "image": "docker.io/traefik:v3.4.3",
+        "digest": "sha256:46f40f4c0c00282ea15748b57753fdaa47d719ab29ee3a121bab5296e0dc6898",
+        "size": 58904678,
+        "platform": "linux/amd64",
+        "index": "sha256:f3de2b96ec6b1cc987619c4d1d65d7e8140862eb0bbfc5f0e2e563691e8787d8",
+        "addon": true
+      },
+      {
+        "component": "traefik",
+        "image": "docker.io/traefik:v3.4.3",
+        "digest": "sha256:8985115bfddf985a210548f04c296aeb1f985ed8439166ed2dc34506ef970437",
+        "size": 54768381,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:f3de2b96ec6b1cc987619c4d1d65d7e8140862eb0bbfc5f0e2e563691e8787d8",
+        "addon": true
+      },
+      {
+        "component": "trust-manager",
+        "image": "quay.io/jetstack/trust-manager:v0.18.0",
+        "digest": "sha256:0f864cbc5acd3feba519fadfb6b9e9e23486ffc28b256903c4783ab52267de2c",
+        "size": 17270428,
+        "platform": "linux/amd64",
+        "index": "sha256:ef7c0ce7525066c3bf91cfc0bae6ec822b0ff9a1f6336f5a7517257f0b4e9d0d",
+        "addon": true
+      },
+      {
+        "component": "trust-manager",
+        "image": "quay.io/jetstack/trust-manager:v0.18.0",
+        "digest": "sha256:f0df4aebfda790d67c5e4c644eaf0f3a49ccefed5582a6e02d4b93ad5022e584",
+        "size": 15453054,
+        "platform": "linux/arm64",
+        "index": "sha256:ef7c0ce7525066c3bf91cfc0bae6ec822b0ff9a1f6336f5a7517257f0b4e9d0d",
+        "addon": true
+      },
+      {
+        "component": "trust-manager",
+        "image": "quay.io/jetstack/trust-pkg-debian-bookworm:20230311.0",
+        "digest": "sha256:24153e2ec523ff82c8f0cd352b9da68ee6652396f0adb04dd924884ea6d230b5",
+        "size": 1442349,
+        "platform": "linux/amd64",
+        "index": "sha256:f5b80f469b8c777881a35ad60590a10cd7686c2dc74011af13aac86aae3dfb0c",
+        "addon": true
+      },
+      {
+        "component": "trust-manager",
+        "image": "quay.io/jetstack/trust-pkg-debian-bookworm:20230311.0",
+        "digest": "sha256:21a38824736533bad9341b8f477d0b7db513a58d53b0289e0b53683be076f14e",
+        "size": 1394629,
+        "platform": "linux/arm64",
+        "index": "sha256:f5b80f469b8c777881a35ad60590a10cd7686c2dc74011af13aac86aae3dfb0c",
+        "addon": true
+      }
+    ]
+  }
+}

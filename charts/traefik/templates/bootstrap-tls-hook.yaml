@@ -1,0 +1,269 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+{{- if and .Values.platform.traefik.ingress.enabled .Values.platform.traefik.ingress.bootstrapTLS.enabled }}
+{{- $ingress := .Values.platform.traefik.ingress -}}
+{{- if not $ingress.domains }}{{ fail "platform.traefik.ingress.domains must contain at least one domain when bootstrap TLS is enabled" }}{{- end }}
+{{- $domains := list -}}
+{{- range $ingress.domains }}
+{{- $zone := include "podplane.traefik.domainName" . -}}
+{{- $domains = append $domains (dict "zone" $zone "secretName" (include "podplane.traefik.secretName" .) "dnsNames" (list $zone (printf "*.%s" $zone))) -}}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-traefik-bootstrap-tls-source
+data:
+  main.go: |
+    package main
+
+    import (
+      "bytes"
+      "context"
+      "crypto/ecdsa"
+      "crypto/elliptic"
+      "crypto/rand"
+      "crypto/tls"
+      "crypto/x509"
+      "crypto/x509/pkix"
+      "encoding/base64"
+      "encoding/json"
+      "encoding/pem"
+      "errors"
+      "flag"
+      "fmt"
+      "io"
+      "math/big"
+      "net/http"
+      "net/url"
+      "os"
+      "strings"
+      "time"
+    )
+
+    type config struct {
+      Namespace    string   `json:"namespace"`
+      ValidityDays int      `json:"validityDays"`
+      Domains      []domain `json:"domains"`
+    }
+
+    type domain struct {
+      Zone       string   `json:"zone"`
+      SecretName string   `json:"secretName"`
+      DNSNames   []string `json:"dnsNames"`
+    }
+
+    func main() {
+      path := flag.String("config", "/config/domains.json", "Path to bootstrap TLS config JSON.")
+      flag.Parse()
+      if err := run(*path); err != nil {
+        fmt.Fprintln(os.Stderr, err)
+        os.Exit(1)
+      }
+    }
+
+    func run(path string) error {
+      body, err := os.ReadFile(path)
+      if err != nil {
+        return fmt.Errorf("read config: %w", err)
+      }
+      var cfg config
+      if err := json.Unmarshal(body, &cfg); err != nil {
+        return fmt.Errorf("parse config: %w", err)
+      }
+      if cfg.Namespace == "" {
+        return errors.New("namespace is required")
+      }
+      if cfg.ValidityDays <= 0 {
+        return errors.New("validityDays must be greater than zero")
+      }
+      if len(cfg.Domains) == 0 {
+        return errors.New("at least one domain is required")
+      }
+
+      client, apiServer, token, err := kubernetesClient()
+      if err != nil {
+        return err
+      }
+      for _, domain := range cfg.Domains {
+        if err := createBootstrapSecret(context.Background(), client, apiServer, token, cfg.Namespace, cfg.ValidityDays, domain); err != nil {
+          return err
+        }
+      }
+      return nil
+    }
+
+    func kubernetesClient() (*http.Client, string, string, error) {
+      host := os.Getenv("KUBERNETES_SERVICE_HOST")
+      port := os.Getenv("KUBERNETES_SERVICE_PORT")
+      if host == "" || port == "" {
+        return nil, "", "", errors.New("KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT are required")
+      }
+      tokenBytes, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
+      if err != nil {
+        return nil, "", "", fmt.Errorf("read service account token: %w", err)
+      }
+      caBytes, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+      if err != nil {
+        return nil, "", "", fmt.Errorf("read service account CA: %w", err)
+      }
+      pool := x509.NewCertPool()
+      if !pool.AppendCertsFromPEM(caBytes) {
+        return nil, "", "", errors.New("service account CA did not contain PEM certificates")
+      }
+      client := &http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{RootCAs: pool}}}
+      return client, "https://" + host + ":" + port, strings.TrimSpace(string(tokenBytes)), nil
+    }
+
+    func createBootstrapSecret(ctx context.Context, client *http.Client, apiServer, token, namespace string, validityDays int, domain domain) error {
+      if domain.SecretName == "" {
+        return fmt.Errorf("secretName is required for domain %q", domain.Zone)
+      }
+      if len(domain.DNSNames) == 0 {
+        return fmt.Errorf("dnsNames are required for domain %q", domain.Zone)
+      }
+      certPEM, keyPEM, err := selfSignedCertificate(domain.DNSNames, validityDays)
+      if err != nil {
+        return fmt.Errorf("generate certificate for %s: %w", domain.Zone, err)
+      }
+      payload := map[string]any{
+        "apiVersion": "v1",
+        "kind":       "Secret",
+        "metadata": map[string]string{
+          "name": domain.SecretName,
+        },
+        "type": "kubernetes.io/tls",
+        "data": map[string]string{
+          "tls.crt": base64.StdEncoding.EncodeToString(certPEM),
+          "tls.key": base64.StdEncoding.EncodeToString(keyPEM),
+        },
+      }
+      body, err := json.Marshal(payload)
+      if err != nil {
+        return err
+      }
+      endpoint := apiServer + "/api/v1/namespaces/" + url.PathEscape(namespace) + "/secrets"
+      req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
+      if err != nil {
+        return err
+      }
+      req.Header.Set("Authorization", "Bearer "+token)
+      req.Header.Set("Content-Type", "application/json")
+      resp, err := client.Do(req)
+      if err != nil {
+        return fmt.Errorf("create secret %s: %w", domain.SecretName, err)
+      }
+      defer resp.Body.Close()
+      if resp.StatusCode == http.StatusCreated {
+        fmt.Printf("created bootstrap TLS secret %s/%s\n", namespace, domain.SecretName)
+        return nil
+      }
+      if resp.StatusCode == http.StatusConflict {
+        fmt.Printf("bootstrap TLS secret %s/%s already exists\n", namespace, domain.SecretName)
+        return nil
+      }
+      responseBody, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+      return fmt.Errorf("create secret %s/%s: %s: %s", namespace, domain.SecretName, resp.Status, strings.TrimSpace(string(responseBody)))
+    }
+
+    func selfSignedCertificate(dnsNames []string, validityDays int) ([]byte, []byte, error) {
+      key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+      if err != nil {
+        return nil, nil, err
+      }
+      serialLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+      serial, err := rand.Int(rand.Reader, serialLimit)
+      if err != nil {
+        return nil, nil, err
+      }
+      now := time.Now()
+      template := x509.Certificate{
+        SerialNumber: serial,
+        Subject: pkix.Name{CommonName: dnsNames[0]},
+        NotBefore: now.Add(-5 * time.Minute),
+        NotAfter: now.Add(time.Duration(validityDays) * 24 * time.Hour),
+        KeyUsage: x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+        ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+        DNSNames: dnsNames,
+        BasicConstraintsValid: true,
+      }
+      certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
+      if err != nil {
+        return nil, nil, err
+      }
+      keyDER, err := x509.MarshalECPrivateKey(key)
+      if err != nil {
+        return nil, nil, err
+      }
+      certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+      keyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER})
+      return certPEM, keyPEM, nil
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-traefik-bootstrap-tls-config
+data:
+  domains.json: |
+{{ dict "namespace" .Release.Namespace "validityDays" $ingress.bootstrapTLS.validityDays "domains" $domains | toPrettyJson | indent 4 }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: platform-traefik-bootstrap-tls
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: platform-traefik-bootstrap-tls
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: platform-traefik-bootstrap-tls
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: platform-traefik-bootstrap-tls
+subjects:
+  - kind: ServiceAccount
+    name: platform-traefik-bootstrap-tls
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: platform-traefik-bootstrap-tls
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: platform-traefik-bootstrap-tls
+      containers:
+        - name: bootstrap-tls
+          image: {{ printf "%s:%s" $ingress.bootstrapTLS.image.repository $ingress.bootstrapTLS.image.tag | quote }}
+          command: ["go", "run", "/workspace/main.go", "-config", "/config/domains.json"]
+          volumeMounts:
+            - name: source
+              mountPath: /workspace
+              readOnly: true
+            - name: config
+              mountPath: /config
+              readOnly: true
+      volumes:
+        - name: source
+          configMap:
+            name: platform-traefik-bootstrap-tls-source
+        - name: config
+          configMap:
+            name: platform-traefik-bootstrap-tls-config
+{{- end }}

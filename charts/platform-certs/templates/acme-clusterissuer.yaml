@@ -1,0 +1,76 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+{{- if .Values.platform.certs.acme.enabled }}
+{{- $acme := .Values.platform.certs.acme -}}
+{{- if not $acme.server }}{{ fail "platform.certs.acme.server is required when ACME is enabled" }}{{- end }}
+{{- if not $acme.email }}{{ fail "platform.certs.acme.email is required when ACME is enabled" }}{{- end }}
+{{- if not $acme.solvers }}{{ fail "platform.certs.acme.solvers must contain at least one solver when ACME is enabled" }}{{- end }}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ $acme.issuerName }}
+spec:
+  acme:
+    server: {{ $acme.server | quote }}
+    email: {{ $acme.email | quote }}
+    privateKeySecretRef:
+      name: {{ $acme.privateKeySecretName }}
+    solvers:
+{{- range $index, $solver := $acme.solvers }}
+{{- if not $solver.dnsZones }}{{ fail "platform.certs.acme.solvers[].dnsZones must contain at least one zone" }}{{- end }}
+{{- $providerCount := 0 -}}
+{{- if $solver.route53 }}{{ $providerCount = add1 $providerCount }}{{- end }}
+{{- if $solver.cloudflare }}{{ $providerCount = add1 $providerCount }}{{- end }}
+{{- if $solver.cloudDNS }}{{ $providerCount = add1 $providerCount }}{{- end }}
+{{- if ne $providerCount 1 }}{{ fail "each platform.certs.acme.solvers[] entry must configure exactly one DNS provider" }}{{- end }}
+      - selector:
+          dnsZones:
+{{- range $solver.dnsZones }}
+            - {{ . | quote }}
+{{- end }}
+        dns01:
+{{- with $solver.route53 }}
+          route53:
+{{- if .region }}
+            region: {{ .region | quote }}
+{{- end }}
+{{- if .hostedZoneID }}
+            hostedZoneID: {{ .hostedZoneID | quote }}
+{{- end }}
+{{- if .roleArn }}
+            role: {{ .roleArn | quote }}
+{{- end }}
+{{- end }}
+{{- with $solver.cloudflare }}
+{{- if and (not .apiTokenSecretRef) (not .apiKeySecretRef) }}{{ fail "cloudflare solvers require apiTokenSecretRef or apiKeySecretRef" }}{{- end }}
+          cloudflare:
+{{- if .email }}
+            email: {{ .email | quote }}
+{{- end }}
+{{- with .apiTokenSecretRef }}
+            apiTokenSecretRef:
+              name: {{ .name }}
+              key: {{ .key }}
+{{- end }}
+{{- with .apiKeySecretRef }}
+            apiKeySecretRef:
+              name: {{ .name }}
+              key: {{ .key }}
+{{- end }}
+{{- end }}
+{{- with $solver.cloudDNS }}
+          cloudDNS:
+            project: {{ required "cloudDNS solvers require project" .project | quote }}
+{{- if .hostedZoneName }}
+            hostedZoneName: {{ .hostedZoneName | quote }}
+{{- end }}
+{{- with .serviceAccountSecretRef }}
+            serviceAccountSecretRef:
+              name: {{ .name }}
+              key: {{ .key }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,10 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: platform-certs
+description: Podplane certificate issuers and approval policies
+type: application
+version: "1.0.0"
+appVersion: "1.0.0"

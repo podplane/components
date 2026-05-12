@@ -1,0 +1,53 @@
+{{/*
+Podplane <https://podplane.dev>
+Copyright 2026 Nadrama Pty Ltd
+SPDX-License-Identifier: Apache-2.0
+*/}}
+{{- $apps := .Values.platform.components.apps -}}
+{{- $tb := index $apps "platform-trust" -}}
+{{- $tbEnabled := and $tb $tb.enabled -}}
+{{- $tbNamespace := "" -}}
+{{- if and $tb $tb.namespace -}}{{- $tbNamespace = $tb.namespace -}}{{- end -}}
+---
+# Cluster-wide namespace used as the target for cluster-scoped Helm releases (e.g. CRDs).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: platform-cluster
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+    app.kubernetes.io/managed-by: Helm
+---
+# Default namespace - relabelled so platform-trust can target it when enabled.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: default
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+    app.kubernetes.io/managed-by: Helm
+{{- if $tbEnabled }}
+    cluster.podplane.dev/bundles-selfsigned-ca: from-platform-trust
+{{- end }}
+{{ range $name, $app := $apps }}
+{{- $manage := true -}}
+{{- if hasKey $app "manageNamespace" -}}{{- $manage = $app.manageNamespace -}}{{- end -}}
+{{- if and $app.enabled $manage $app.namespace (ne $app.namespace "platform-cluster") }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $app.namespace }}
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+    app.kubernetes.io/managed-by: Helm
+{{- if and $tbEnabled (eq $app.namespace $tbNamespace) }}
+    cluster.podplane.dev/bundles-default-ca: from-platform-trust
+    cluster.podplane.dev/bundles-selfsigned-ca: from-platform-trust
+    cluster.podplane.dev/bundles-selfsigned-and-default-ca: from-platform-trust
+{{- end }}
+{{- end }}
+{{- end }}

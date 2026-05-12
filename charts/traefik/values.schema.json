@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "traefik": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "ingress": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "gateway": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "className": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": ["name", "className"]
+                },
+                "issuerRef": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": ["kind", "name"]
+                },
+                "domains": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "zone": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "default": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": ["zone"]
+                  }
+                },
+                "bootstrapTLS": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "validityDays": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "image": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "repository": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "tag": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": ["repository", "tag"]
+                    }
+                  },
+                  "required": ["enabled", "validityDays", "image"]
+                }
+              },
+              "required": ["enabled", "gateway", "issuerRef", "domains", "bootstrapTLS"]
+            }
+          }
+        }
+      },
+      "required": ["traefik"]
+    }
+  },
+  "required": ["platform"]
+}

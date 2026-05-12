@@ -1,0 +1,12 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+---
+# ClusterIssuer for self-signed certificates
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Values.platform.certs.local.issuerName }}
+spec:
+  ca:
+    secretName: platform-selfsigned-ca-certificate-secret

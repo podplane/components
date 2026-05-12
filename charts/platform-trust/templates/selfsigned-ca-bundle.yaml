@@ -1,0 +1,19 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: platform-selfsigned-ca-bundle
+spec:
+  sources:
+    - secret:
+        name: "platform-selfsigned-ca-certificate-secret"
+        key: "tls.crt"
+  target:
+    configMap:
+      key: "ca.crt"
+    namespaceSelector:
+      matchLabels:
+        cluster.podplane.dev/bundles-selfsigned-ca: from-platform-trust

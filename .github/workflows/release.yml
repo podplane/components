@@ -1,0 +1,78 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+#
+# Release workflow: attaches a signed components manifest to the GitHub Release.
+#
+# For tag vX.Y.Z (or vX.Y.Z-rcN for pre-releases), this:
+#   1. Reads manifests/components.json as the checked-in development manifest.
+#   2. Renders components_X.Y.Z.json with components.version set to X.Y.Z.
+#   3. Writes components_X.Y.Z_checksums.txt (sha512) covering release assets
+#      and signs it keyless with cosign, producing a self-contained bundle.
+#   4. Creates a GitHub Release and uploads the manifest, checksums, and bundle.
+
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Derive VERSION and pre-release flag
+        id: meta
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          if [[ "$VERSION" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Render release manifest
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: make release-manifest
+
+      - name: Generate checksums file
+        working-directory: dist/release
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          sha512sum "components_${VERSION}.json" | sort -k2 > "components_${VERSION}_checksums.txt"
+          cat "components_${VERSION}_checksums.txt"
+
+      - name: Sign checksums file with cosign
+        working-directory: dist/release
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          cosign sign-blob \
+            --yes \
+            --bundle="components_${VERSION}_checksums.txt.bundle" \
+            "components_${VERSION}_checksums.txt"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/release/components_*.json
+            dist/release/components_*_checksums.txt
+            dist/release/components_*_checksums.txt.bundle
+          generate_release_notes: true
+          prerelease: ${{ steps.meta.outputs.prerelease }}
+          fail_on_unmatched_files: true

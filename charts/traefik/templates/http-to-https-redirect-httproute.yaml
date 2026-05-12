@@ -1,0 +1,28 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+{{- if .Values.platform.traefik.ingress.enabled }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: platform-http-to-https-redirect-httproute
+  annotations:
+    # Lowest priority catch-all route - allows users to override
+    traefik.io/priority: "1"
+spec:
+  parentRefs:
+    - name: {{ .Values.platform.traefik.ingress.gateway.name }}
+      namespace: {{ .Release.Namespace }}
+      sectionName: http
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: "/"
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+{{- end }}

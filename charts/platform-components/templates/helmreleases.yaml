@@ -1,0 +1,203 @@
+{{/*
+Podplane <https://podplane.dev>
+Copyright 2026 Nadrama Pty Ltd
+SPDX-License-Identifier: Apache-2.0
+
+Renders one Flux HelmRelease per enabled CRD chart and per enabled app chart.
+Each HelmRelease pulls its chart from the podplane-components GitRepository.
+*/}}
+{{- $components := .Values.platform.components -}}
+{{- $reconcileInterval := $components.reconcileInterval | default "10m" -}}
+{{- $valuesObject := $components.valuesObject | default dict -}}
+{{- $registry := $components.registry | default dict -}}
+{{- $mirror := $registry.mirror | default dict -}}
+{{- $mirrorEnabled := $mirror.enabled | default false -}}
+{{- $mirrorHostname := $mirror.hostname | default "" -}}
+{{- $sourceNs := .Release.Namespace -}}
+
+{{- define "podplane.platform.releaseName" -}}
+{{- $name := . -}}
+{{- if hasPrefix "platform-" $name -}}{{ $name }}{{- else -}}platform-{{ $name }}{{- end -}}
+{{- end -}}
+
+{{- define "podplane.platform.mirrorValues" -}}
+{{- $name := .name -}}
+{{- $hostname := .hostname -}}
+{{- if eq $name "cert-manager" -}}
+cert-manager:
+  image:
+    repository: {{ printf "%s/quay.io/jetstack/cert-manager-controller" $hostname | quote }}
+  webhook:
+    image:
+      repository: {{ printf "%s/quay.io/jetstack/cert-manager-webhook" $hostname | quote }}
+  cainjector:
+    image:
+      repository: {{ printf "%s/quay.io/jetstack/cert-manager-cainjector" $hostname | quote }}
+cert-manager-approver-policy:
+  image:
+    repository: {{ printf "%s/quay.io/jetstack/cert-manager-approver-policy" $hostname | quote }}
+{{- else if eq $name "platform-certs" -}}
+platform:
+  certs:
+    secretSync:
+      image:
+        repository: {{ printf "%s/docker.io/library/golang" $hostname | quote }}
+{{- else if eq $name "cilium" -}}
+cilium:
+  image:
+    repository: {{ printf "%s/quay.io/cilium/cilium" $hostname | quote }}
+  operator:
+    image:
+      repository: {{ printf "%s/quay.io/cilium/operator" $hostname | quote }}
+{{- else if eq $name "coredns" -}}
+coredns:
+  image:
+    repository: {{ printf "%s/docker.io/coredns/coredns" $hostname | quote }}
+{{- else if eq $name "csi-aws-ebs" -}}
+aws-ebs-csi-driver:
+  image:
+    repository: {{ printf "%s/public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver" $hostname | quote }}
+  sidecars:
+    provisioner:
+      image:
+        repository: {{ printf "%s/public.ecr.aws/csi-components/csi-provisioner" $hostname | quote }}
+    attacher:
+      image:
+        repository: {{ printf "%s/public.ecr.aws/csi-components/csi-attacher" $hostname | quote }}
+    livenessProbe:
+      image:
+        repository: {{ printf "%s/public.ecr.aws/csi-components/livenessprobe" $hostname | quote }}
+    resizer:
+      image:
+        repository: {{ printf "%s/public.ecr.aws/csi-components/csi-resizer" $hostname | quote }}
+    nodeDriverRegistrar:
+      image:
+        repository: {{ printf "%s/public.ecr.aws/csi-components/csi-node-driver-registrar" $hostname | quote }}
+{{- else if eq $name "fluxcd" -}}
+flux2:
+  cli:
+    image: {{ printf "%s/ghcr.io/fluxcd/flux-cli" $hostname | quote }}
+  helmController:
+    image: {{ printf "%s/ghcr.io/fluxcd/helm-controller" $hostname | quote }}
+  sourceController:
+    image: {{ printf "%s/ghcr.io/fluxcd/source-controller" $hostname | quote }}
+{{- else if eq $name "snapshot" -}}
+snapshot-controller:
+  controller:
+    image:
+      repository: {{ printf "%s/registry.k8s.io/sig-storage/snapshot-controller" $hostname | quote }}
+{{- else if eq $name "traefik" -}}
+traefik:
+  image:
+    registry: {{ printf "%s/docker.io" $hostname | quote }}
+    repository: traefik
+platform:
+  traefik:
+    ingress:
+      bootstrapTLS:
+        image:
+          repository: {{ printf "%s/docker.io/library/golang" $hostname | quote }}
+{{- else if eq $name "trust-manager" -}}
+trust-manager:
+  image:
+    repository: {{ printf "%s/quay.io/jetstack/trust-manager" $hostname | quote }}
+  defaultPackage:
+    image:
+      repository: {{ printf "%s/quay.io/jetstack/trust-pkg-debian-bookworm" $hostname | quote }}
+{{- end -}}
+{{- end -}}
+
+{{- define "podplane.platform.values" -}}
+{{- $name := .name -}}
+{{- $valuesObject := .valuesObject -}}
+{{- $userValues := index $valuesObject $name | default dict -}}
+{{- $mirrorValues := dict -}}
+{{- if and .mirrorEnabled .mirrorHostname -}}
+{{- $rendered := include "podplane.platform.mirrorValues" (dict "name" $name "hostname" .mirrorHostname) -}}
+{{- if $rendered -}}
+{{- $mirrorValues = fromYaml $rendered | default dict -}}
+{{- end -}}
+{{- end -}}
+{{- $merged := mergeOverwrite (deepCopy $mirrorValues) $userValues -}}
+{{- if $merged }}
+  values:
+{{ toYaml $merged | indent 4 }}
+{{- end -}}
+{{- end -}}
+
+{{- /* CRDs */ -}}
+{{ range $name, $entry := $components.crds }}
+{{- if $entry.enabled }}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: {{ $name }}
+  namespace: platform-cluster
+spec:
+  interval: {{ $reconcileInterval }}
+  maxHistory: 3
+  releaseName: {{ include "podplane.platform.releaseName" $name }}
+  chart:
+    spec:
+      chart: ./charts/{{ $name }}
+      sourceRef:
+        kind: GitRepository
+        name: podplane-components
+        namespace: {{ $sourceNs }}
+{{- with $entry.dependsOn }}
+  dependsOn:
+{{- range . }}
+    - name: {{ . }}
+      namespace: platform-cluster
+{{- end }}
+{{- end }}
+{{ include "podplane.platform.values" (dict "name" $name "valuesObject" $valuesObject "mirrorEnabled" false "mirrorHostname" "") }}
+{{- end }}
+{{- end }}
+
+{{- /* Apps */ -}}
+{{ range $name, $entry := $components.apps }}
+{{- if $entry.enabled }}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: {{ $name }}
+  namespace: {{ $entry.namespace }}
+spec:
+  interval: {{ $reconcileInterval }}
+  maxHistory: 3
+  releaseName: {{ include "podplane.platform.releaseName" $name }}
+  chart:
+    spec:
+      chart: ./charts/{{ $name }}
+      sourceRef:
+        kind: GitRepository
+        name: podplane-components
+        namespace: {{ $sourceNs }}
+  install:
+    crds: Skip
+    remediation:
+      retries: 10
+  upgrade:
+    crds: Skip
+    remediation:
+      retries: 3
+{{- with $entry.dependsOn }}
+  dependsOn:
+{{- range . }}
+    - name: {{ . }}
+{{- /* CRDs live in platform-cluster; apps live in their own namespace; default to source namespace if unknown */ -}}
+{{- $depCrd := index $components.crds . }}
+{{- $depApp := index $components.apps . }}
+{{- if $depCrd }}
+      namespace: platform-cluster
+{{- else if $depApp }}
+      namespace: {{ $depApp.namespace }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{ include "podplane.platform.values" (dict "name" $name "valuesObject" $valuesObject "mirrorEnabled" $mirrorEnabled "mirrorHostname" $mirrorHostname) }}
+{{- end }}
+{{- end }}

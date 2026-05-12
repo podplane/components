@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "components": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "reconcileInterval": {
+              "type": "string",
+              "minLength": 1
+            },
+            "registry": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mirror": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "hostname": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["enabled", "hostname"]
+                }
+              },
+              "required": ["mirror"]
+            },
+            "crds": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/componentEntry"
+              }
+            },
+            "apps": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/componentEntry"
+              }
+            },
+            "valuesObject": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "required": ["reconcileInterval", "registry", "crds", "apps", "valuesObject"]
+        }
+      },
+      "required": ["components"]
+    }
+  },
+  "required": ["platform"],
+  "definitions": {
+    "componentEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "namespace": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manageNamespace": {
+          "type": "boolean"
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": ["enabled"]
+    }
+  }
+}

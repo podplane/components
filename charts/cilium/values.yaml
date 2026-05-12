@@ -1,0 +1,21 @@
+# Podplane <https://podplane.dev>
+# Copyright 2026 Nadrama Pty Ltd
+# SPDX-License-Identifier: Apache-2.0
+---
+# https://docs.cilium.io/en/stable/helm-reference/
+# https://github.com/cilium/cilium/blob/main/install/kubernetes/cilium/values.yaml
+cilium:
+  operator:
+    skipCRDCreation: true
+    replicas: 1
+  envoy:
+    enabled: false
+  hubble:
+    enabled: false
+  kubeProxyReplacement: true
+  k8sServiceHost: kube-apiserver.podplane.internal
+  k8sServicePort: 6443
+  ipv4:
+    enabled: true
+  ipv6:
+    enabled: false
