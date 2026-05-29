@@ -1,5 +1,5 @@
 # Podplane <https://podplane.dev>
-# Copyright 2026 Nadrama Pty Ltd
+# Copyright The Podplane Authors
 # SPDX-License-Identifier: Apache-2.0
 
 CURRENT_DIR := $(abspath $(dir $(firstword $(MAKEFILE_LIST))))

@@ -1,6 +1,6 @@
 # https://kind.sigs.k8s.io/docs/user/configuration/
 # Podplane <https://podplane.dev>
-# Copyright 2026 Nadrama Pty Ltd
+# Copyright The Podplane Authors
 # SPDX-License-Identifier: Apache-2.0
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
