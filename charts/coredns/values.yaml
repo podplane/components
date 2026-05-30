@@ -12,6 +12,35 @@ coredns:
     - key: "node.kubernetes.io/not-ready"
       operator: "Exists"
       effect: "NoExecute"
+  # Pin the Service to Podplane's well-known cluster DNS IPs so kubelets
+  # (configured with --cluster-dns=198.19.255.254,fdc6::ffff) resolve via
+  # CoreDNS from the moment the Service exists. PreferDualStack (rather
+  # than Require) so the chart still renders on IPv4-only clusters
+  # (e.g. EKS, where the bootstrap.sh override points to a v4-only IP).
+  service:
+    clusterIP: "198.19.255.254"
+    clusterIPs:
+      - "198.19.255.254"
+      - "fdc6::ffff"
+    ipFamilyPolicy: "PreferDualStack"
+    ipFamilies:
+      - "IPv4"
+      - "IPv6"
+  # Mount the host's systemd-resolved upstream resolv.conf into the CoreDNS
+  # pod so the `forward . /etc/resolv.conf` plugin reads real upstream
+  # nameservers rather than the systemd-resolved stub (127.0.0.53), which
+  # on a node configured with --cluster-dns=<CoreDNS Service IP> can loop
+  # back through CoreDNS and trip the loop plugin. See:
+  # https://coredns.io/plugins/loop/#troubleshooting-loops-in-kubernetes-clusters
+  extraVolumes:
+    - name: systemd-resolve
+      hostPath:
+        path: /run/systemd/resolve/resolv.conf
+        type: File
+  extraVolumeMounts:
+    - name: systemd-resolve
+      mountPath: /etc/resolv.conf
+      readOnly: true
   servers:
     - zones:
         - zone: .

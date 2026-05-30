@@ -10,9 +10,12 @@
 #
 #   1. cilium-crds      - so cilium can install its CRs
 #   2. cilium           - CNI; nodes go Ready after this
-#   3. fluxcd-crds      - so Flux can install GitRepository / HelmRelease CRs
-#   4. fluxcd           - source-controller + helm-controller
-#   5. platform-components - Flux-managed chart that reconciles all HelmReleases
+#   3. coredns          - cluster DNS at the well-known ClusterIP so Flux
+#                         source-controller can resolve external Git hosts
+#                         before it has cloned the components repo
+#   4. fluxcd-crds      - so Flux can install GitRepository / HelmRelease CRs
+#   5. fluxcd           - source-controller + helm-controller
+#   6. platform-components - Flux-managed chart that reconciles all HelmReleases
 #
 # After this script, all further component installs / upgrades are reconciled
 # by Flux from the `charts/platform-components` chart's values.
@@ -31,7 +34,7 @@ done
 
 step() {
     echo
-    echo "==> [$1/5] $2"
+    echo "==> [$1/6] $2"
 }
 
 deploy_kind_git_server() {
@@ -113,12 +116,14 @@ spec:
 YAML
 }
 
-# Update chart dependencies so subcharts (cilium, flux2, etc.) are available.
-echo "==> [0/5] helm dependency update"
+# Update chart dependencies so subcharts (cilium, coredns, flux2, etc.) are available.
+echo "==> [0/6] helm dependency update"
 helm dependency update "${REPO_DIR}/charts/cilium" >/dev/null
+helm dependency update "${REPO_DIR}/charts/coredns" >/dev/null
 helm dependency update "${REPO_DIR}/charts/fluxcd" >/dev/null
 
 cilium_args=()
+coredns_args=()
 fluxcd_args=()
 platform_values=""
 
@@ -139,6 +144,9 @@ if [[ -n "${REGISTRY_HOSTNAME:-}" ]]; then
     cilium_args+=(
         --set-string "cilium.image.repository=${REGISTRY_HOSTNAME}/quay.io/cilium/cilium"
         --set-string "cilium.operator.image.repository=${REGISTRY_HOSTNAME}/quay.io/cilium/operator"
+    )
+    coredns_args+=(
+        --set-string "coredns.image.repository=${REGISTRY_HOSTNAME}/docker.io/coredns/coredns"
     )
     fluxcd_args+=(
         --set-string "flux2.sourceController.image=${REGISTRY_HOSTNAME}/ghcr.io/fluxcd/source-controller"
@@ -199,11 +207,16 @@ helm upgrade --install platform-cilium "${REPO_DIR}/charts/cilium" \
     --namespace platform-cilium --create-namespace --wait \
     "${cilium_args[@]}"
 
-step 3 "Installing Flux CRDs (platform-cluster) ..."
+step 3 "Installing CoreDNS (platform-coredns) -- waiting for cluster DNS to be Ready ..."
+helm upgrade --install platform-coredns "${REPO_DIR}/charts/coredns" \
+    --namespace platform-coredns --create-namespace --wait \
+    "${coredns_args[@]}"
+
+step 4 "Installing Flux CRDs (platform-cluster) ..."
 helm upgrade --install platform-fluxcd-crds "${REPO_DIR}/charts/fluxcd-crds" \
     --namespace platform-cluster --create-namespace --wait
 
-step 4 "Installing Flux source-controller + helm-controller (platform-fluxcd) -- waiting for controllers to be Ready ..."
+step 5 "Installing Flux source-controller + helm-controller (platform-fluxcd) -- waiting for controllers to be Ready ..."
 helm upgrade --install platform-fluxcd "${REPO_DIR}/charts/fluxcd" \
     --namespace platform-fluxcd --create-namespace --wait \
     "${fluxcd_args[@]}"
@@ -215,7 +228,7 @@ if [[ -n "${KIND_LOCAL_GIT:-}" ]]; then
     kubectl rollout status deployment/components-git --namespace platform-fluxcd --timeout=60s
 fi
 
-step 5 "Installing platform components (platform-components) via Flux CD..."
+step 6 "Installing platform components (platform-components) via Flux CD..."
 platform_manifest=$(mktemp)
 trap 'rm -f "${platform_manifest}"' EXIT
 cat >"${platform_manifest}" <<YAML
