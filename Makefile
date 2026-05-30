@@ -113,6 +113,13 @@ kind-create: ## Create the local Kind cluster and mount temp/kind-git
 	@mkdir -p temp/kind-git
 	kind create cluster --config kind.yaml
 	kubectl config use-context kind-podplane
+	@# CoreDNS chart mounts /run/systemd/resolve/resolv.conf as hostPath type: File
+	@# (correct for production nodes running systemd-resolved). Kind nodes don't run
+	@# systemd-resolved, so symlink that path to the node's own /etc/resolv.conf,
+	@# which Docker populates with valid upstream nameservers.
+	@for node in $$(kind get nodes --name podplane); do \
+		docker exec $$node sh -c 'mkdir -p /run/systemd/resolve && ln -sf /etc/resolv.conf /run/systemd/resolve/resolv.conf'; \
+	done
 
 bootstrap: ## Run bootstrap.sh against the current kubectl context
 	@./bootstrap.sh
