@@ -18,4 +18,8 @@ cilium:
   ipv4:
     enabled: true
   ipv6:
-    enabled: false
+    enabled: true
+  ipam:
+    mode: "kubernetes"
+  routingMode: "tunnel"
+  tunnelProtocol: "vxlan"
