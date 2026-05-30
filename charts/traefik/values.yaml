@@ -42,6 +42,10 @@ traefik:
       maxSurge: 0
   service:
     type: NodePort
+    ipFamilyPolicy: "PreferDualStack"
+    ipFamilies:
+      - "IPv4"
+      - "IPv6"
   providers:
     kubernetesIngress:
       enabled: false

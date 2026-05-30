@@ -18,6 +18,15 @@ cert-manager:
     enabled: false
   # use approver-policy instead of built-in auto-approver
   disableAutoApproval: true
+  serviceIPFamilyPolicy: "PreferDualStack"
+  serviceIPFamilies:
+    - "IPv4"
+    - "IPv6"
+  webhook:
+    serviceIPFamilyPolicy: "PreferDualStack"
+    serviceIPFamilies:
+      - "IPv4"
+      - "IPv6"
 
 # https://github.com/cert-manager/approver-policy/blob/main/deploy/charts/approver-policy/values.yaml
 cert-manager-approver-policy:

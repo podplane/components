@@ -26,3 +26,14 @@ trust-manager:
           enabled: true
           certManagerNamespace: "platform-cert-manager"
           certManagerServiceAccount: "platform-cert-manager"
+      service:
+        ipFamilyPolicy: "PreferDualStack"
+        ipFamilies:
+          - "IPv4"
+          - "IPv6"
+    metrics:
+      service:
+        ipFamilyPolicy: "PreferDualStack"
+        ipFamilies:
+          - "IPv4"
+          - "IPv6"
