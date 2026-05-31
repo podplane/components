@@ -16,13 +16,17 @@ platform:
         hostname: ""
 
     # CRDs - shipped as separate Helm charts per Helm best practices.
+    # `core: true` marks entries so that the Podplane CLI will refuse to uninstall them.
     crds:
       cilium-crds:
         enabled: true
+        core: true
       gateway-api-crds:
         enabled: true
+        core: true
       fluxcd-crds:
         enabled: true
+        core: true
       # Addon CRDs (default disabled; enable together with the matching app)
       cert-manager-crds:
         enabled: false
@@ -34,13 +38,16 @@ platform:
         enabled: false
 
     # Apps
+    # `core: true` marks entries so that the Podplane CLI will refuse to uninstall them.
     apps:
       # Core
       platform-rbac:
         enabled: true
+        core: true
         namespace: platform-cluster
       cilium:
         enabled: true
+        core: true
         namespace: platform-cilium
         # Namespace pre-created by bootstrap.sh (helm install --create-namespace).
         manageNamespace: false
@@ -48,11 +55,13 @@ platform:
           - cilium-crds
       coredns:
         enabled: true
+        core: true
         namespace: platform-coredns
         dependsOn:
           - cilium
       fluxcd:
         enabled: true
+        core: true
         namespace: platform-fluxcd
         # Namespace pre-created by bootstrap.sh (helm install --create-namespace).
         manageNamespace: false
@@ -61,6 +70,7 @@ platform:
       # Provider-specific core components (default disabled unless selected by cluster configuration)
       csi-aws-ebs:
         enabled: false
+        core: true
         namespace: platform-csi-aws-ebs
       # Addons (default disabled)
       cert-manager:

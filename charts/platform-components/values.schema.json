@@ -74,6 +74,10 @@
         "manageNamespace": {
           "type": "boolean"
         },
+        "core": {
+          "type": "boolean",
+          "description": "When true, the Podplane CLI treats this component as core and will refuse to uninstall it."
+        },
         "dependsOn": {
           "type": "array",
           "items": {
