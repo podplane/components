@@ -8,7 +8,7 @@ JSON_FILES := $(shell find manifests -name '*.json' -type f 2>/dev/null | sort)
 
 .DEFAULT_GOAL := help
 
-.PHONY: help fmt check deps lint render validate test check-crds update-crds update-manifests release-manifest precommit ci kind-create bootstrap dev-bootstrap dev-sync dev-watch kind-delete clean
+.PHONY: help fmt check deps lint render validate test check-crds update-crds update-manifests release-manifest precommit ci kind-create bootstrap recommended dev-bootstrap dev-sync dev-watch kind-delete clean
 
 help: ## Show available targets
 	@echo "Podplane Kubernetes PaaS Components"
@@ -121,8 +121,11 @@ kind-create: ## Create the local Kind cluster and mount temp/kind-git
 		docker exec $$node sh -c 'mkdir -p /run/systemd/resolve && ln -sf /etc/resolv.conf /run/systemd/resolve/resolv.conf'; \
 	done
 
-bootstrap: ## Run bootstrap.sh against the current kubectl context
+bootstrap: ## Run bootstrap.sh against the current kubectl context (minimal/core components only)
 	@./bootstrap.sh
+
+recommended: ## Run bootstrap.sh with the recommended components (core + curated addons such as traefik)
+	@PLATFORM_INSTALL=recommended ./bootstrap.sh
 
 dev-bootstrap: ## Run bootstrap.sh with Flux pointed at the local development Git source and all components enabled
 	@KIND_NODE_IP=$$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null | awk '{print $$1}'); \
@@ -131,7 +134,7 @@ dev-bootstrap: ## Run bootstrap.sh with Flux pointed at the local development Gi
 		exit 1; \
 	fi; \
 	KIND_LOCAL_GIT=1 \
-		PLATFORM_INSTALL_ALL=1 \
+		PLATFORM_INSTALL=all \
 		PLATFORM_GIT_REPOSITORY_URL=http://components-git.platform-fluxcd.svc.cluster.local/components.git \
 		PLATFORM_GIT_REPOSITORY_BRANCH=local-dev \
 		CILIUM_K8S_SERVICE_HOST=$$KIND_NODE_IP \

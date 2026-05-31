@@ -162,10 +162,37 @@ YAML
 )
 fi
 
-case "${PLATFORM_INSTALL_ALL:-0}" in
-    0)
+# PLATFORM_INSTALL selects the platform-components CRD & app installation set:
+#   minimal     - core only (default for this script)
+#   recommended - core + curated addons (cert-manager, trust-manager, traefik)
+#   all         - every app & CRD in this repo
+case "${PLATFORM_INSTALL:-minimal}" in
+    minimal)
         ;;
-    1)
+    recommended)
+        platform_values+=$(cat <<'YAML'
+        crds:
+          cert-manager-crds:
+            enabled: true
+          trust-manager-crds:
+            enabled: true
+          traefik-crds:
+            enabled: true
+        apps:
+          cert-manager:
+            enabled: true
+          platform-certs:
+            enabled: true
+          trust-manager:
+            enabled: true
+          platform-trust:
+            enabled: true
+          traefik:
+            enabled: true
+YAML
+)
+        ;;
+    all)
         platform_values+=$(cat <<'YAML'
         crds:
           cert-manager-crds:
@@ -193,7 +220,7 @@ YAML
 )
         ;;
     *)
-        echo "Error: PLATFORM_INSTALL_ALL must be 0 or 1." >&2
+        echo "Error: PLATFORM_INSTALL value must be minimal, recommended, or all." >&2
         exit 1
         ;;
 esac
