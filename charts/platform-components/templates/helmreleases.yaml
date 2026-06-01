@@ -8,7 +8,7 @@ Each HelmRelease pulls its chart from the podplane-components GitRepository.
 */}}
 {{- $components := .Values.platform.components -}}
 {{- $reconcileInterval := $components.reconcileInterval | default "10m" -}}
-{{- $valuesObject := $components.valuesObject | default dict -}}
+{{- $values := $components.values | default dict -}}
 {{- $registry := $components.registry | default dict -}}
 {{- $mirror := $registry.mirror | default dict -}}
 {{- $mirrorEnabled := $mirror.enabled | default false -}}
@@ -109,8 +109,8 @@ trust-manager:
 
 {{- define "podplane.platform.values" -}}
 {{- $name := .name -}}
-{{- $valuesObject := .valuesObject -}}
-{{- $userValues := index $valuesObject $name | default dict -}}
+{{- $values := .values -}}
+{{- $userValues := index $values $name | default dict -}}
 {{- $mirrorValues := dict -}}
 {{- if and .mirrorEnabled .mirrorHostname -}}
 {{- $rendered := include "podplane.platform.mirrorValues" (dict "name" $name "hostname" .mirrorHostname) -}}
@@ -152,7 +152,7 @@ spec:
       namespace: platform-cluster
 {{- end }}
 {{- end }}
-{{ include "podplane.platform.values" (dict "name" $name "valuesObject" $valuesObject "mirrorEnabled" false "mirrorHostname" "") }}
+{{ include "podplane.platform.values" (dict "name" $name "values" $values "mirrorEnabled" false "mirrorHostname" "") }}
 {{- end }}
 {{- end }}
 
@@ -198,6 +198,6 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
-{{ include "podplane.platform.values" (dict "name" $name "valuesObject" $valuesObject "mirrorEnabled" $mirrorEnabled "mirrorHostname" $mirrorHostname) }}
+{{ include "podplane.platform.values" (dict "name" $name "values" $values "mirrorEnabled" $mirrorEnabled "mirrorHostname" $mirrorHostname) }}
 {{- end }}
 {{- end }}

@@ -122,10 +122,42 @@ helm dependency update "${REPO_DIR}/charts/cilium" >/dev/null
 helm dependency update "${REPO_DIR}/charts/coredns" >/dev/null
 helm dependency update "${REPO_DIR}/charts/fluxcd" >/dev/null
 
+platform_registry=""
+platform_crds=""
+platform_apps=""
+platform_values=""
 cilium_args=()
 coredns_args=()
 fluxcd_args=()
-platform_values=""
+
+# DOMAIN, when set, wires the platform-components values so the included
+# Traefik ingress + platform-certs domain match a real cluster domain. This
+# matches what `podplane hooks netsy-seed` derives from cluster.domains and
+# is what makes `make recommended DOMAIN=...` produce a usable cluster
+# straight out of bare bootstrap. The selfsigned ClusterIssuer is shipped by
+# the platform-certs chart so it works without ACME credentials.
+if [[ -n "${DOMAIN:-}" ]]; then
+    platform_values+=$(cat <<YAML
+          traefik:
+            platform:
+              traefik:
+                ingress:
+                  enabled: true
+                  issuerRef:
+                    kind: ClusterIssuer
+                    name: platform-selfsigned-clusterissuer
+                  domains:
+                    - zone: ${DOMAIN}
+                      default: true
+          platform-certs:
+            platform:
+              certs:
+                domains:
+                  - zone: ${DOMAIN}
+YAML
+)
+    platform_values+=$'\n'
+fi
 
 # Override the Cilium Kubernetes API server hostname config param, set when using kind
 if [[ -n "${CILIUM_K8S_SERVICE_HOST:-}" ]]; then
@@ -133,7 +165,6 @@ if [[ -n "${CILIUM_K8S_SERVICE_HOST:-}" ]]; then
     # We also need to mirror the override into the platform-components values file,
     # so when Flux takes over the cilium HelmRelease it doesn't re-render with the
     # chart defaults
-    platform_values+="        valuesObject:"$'\n'
     platform_values+="          cilium:"$'\n'
     platform_values+="            cilium:"$'\n'
     platform_values+="              k8sServiceHost: ${CILIUM_K8S_SERVICE_HOST}"$'\n'
@@ -153,13 +184,13 @@ if [[ -n "${REGISTRY_HOSTNAME:-}" ]]; then
         --set-string "flux2.helmController.image=${REGISTRY_HOSTNAME}/ghcr.io/fluxcd/helm-controller"
         --set-string "flux2.cli.image=${REGISTRY_HOSTNAME}/ghcr.io/fluxcd/flux-cli"
     )
-    platform_values+=$(cat <<YAML
-        registry:
+    platform_registry+=$(cat <<YAML
           mirror:
             enabled: true
             hostname: ${REGISTRY_HOSTNAME}
 YAML
 )
+    platform_registry+=$'\n'
 fi
 
 # PLATFORM_INSTALL selects the platform-components CRD & app installation set:
@@ -170,15 +201,17 @@ case "${PLATFORM_INSTALL:-minimal}" in
     minimal)
         ;;
     recommended)
-        platform_values+=$(cat <<'YAML'
-        crds:
+        platform_crds+=$(cat <<'YAML'
           cert-manager-crds:
             enabled: true
           trust-manager-crds:
             enabled: true
           traefik-crds:
             enabled: true
-        apps:
+YAML
+)
+        platform_crds+=$'\n'
+        platform_apps+=$(cat <<'YAML'
           cert-manager:
             enabled: true
           platform-certs:
@@ -191,10 +224,10 @@ case "${PLATFORM_INSTALL:-minimal}" in
             enabled: true
 YAML
 )
+        platform_apps+=$'\n'
         ;;
     all)
-        platform_values+=$(cat <<'YAML'
-        crds:
+        platform_crds+=$(cat <<'YAML'
           cert-manager-crds:
             enabled: true
           trust-manager-crds:
@@ -203,7 +236,10 @@ YAML
             enabled: true
           snapshot-crds:
             enabled: true
-        apps:
+YAML
+)
+        platform_crds+=$'\n'
+        platform_apps+=$(cat <<'YAML'
           cert-manager:
             enabled: true
           platform-certs:
@@ -218,6 +254,7 @@ YAML
             enabled: true
 YAML
 )
+        platform_apps+=$'\n'
         ;;
     *)
         echo "Error: PLATFORM_INSTALL value must be minimal, recommended, or all." >&2
@@ -292,13 +329,36 @@ spec:
         name: podplane-components
         namespace: platform-components
 YAML
-if [[ -n "${platform_values}" ]]; then
+if [[ -n "${platform_registry}${platform_crds}${platform_apps}${platform_values}" ]]; then
     cat >>"${platform_manifest}" <<YAML
   values:
     platform:
       components:
+YAML
+    if [[ -n "${platform_registry}" ]]; then
+        cat >>"${platform_manifest}" <<YAML
+        registry:
+${platform_registry}
+YAML
+    fi
+    if [[ -n "${platform_crds}" ]]; then
+        cat >>"${platform_manifest}" <<YAML
+        crds:
+${platform_crds}
+YAML
+    fi
+    if [[ -n "${platform_apps}" ]]; then
+        cat >>"${platform_manifest}" <<YAML
+        apps:
+${platform_apps}
+YAML
+    fi
+    if [[ -n "${platform_values}" ]]; then
+        cat >>"${platform_manifest}" <<YAML
+        values:
 ${platform_values}
 YAML
+    fi
 fi
 kubectl apply -f "${platform_manifest}"
 kubectl wait --for=condition=Ready gitrepository/podplane-components --namespace platform-components --timeout=120s

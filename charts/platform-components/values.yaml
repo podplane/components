@@ -109,9 +109,9 @@ platform:
 
     # Per-component values overrides merged into each HelmRelease's `values:`.
     # Keys must match the entries in `platform.components.{apps,crds}` above.
-    valuesObject: {}
+    values: {}
     # Example:
-    # valuesObject:
+    # values:
     #   platform-certs:
     #     platform:
     #       certs:

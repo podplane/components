@@ -47,12 +47,12 @@
                 "$ref": "#/definitions/componentEntry"
               }
             },
-            "valuesObject": {
+            "values": {
               "type": "object",
               "additionalProperties": true
             }
           },
-          "required": ["reconcileInterval", "registry", "crds", "apps", "valuesObject"]
+          "required": ["reconcileInterval", "registry", "crds", "apps", "values"]
         }
       },
       "required": ["components"]
