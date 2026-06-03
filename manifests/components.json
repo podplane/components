@@ -18,31 +18,31 @@
       },
       {
         "image": "docker.io/library/golang:alpine",
-        "digest": "sha256:f44b851aa23dfa219d18db6eab743203245429d355cb619cf96a2ffe2a84ba7a",
-        "size": 71443781,
+        "digest": "sha256:103c743516b0d9dd69c203ed64f730eb342cae4b85d3f6c5cb376d91abbc6bcb",
+        "size": 71441739,
         "platform": "linux/amd64",
-        "index": "sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d"
+        "index": "sha256:376f4a381b112a7cfef541ecee0263ece432119fbbdad8d75f2f51fc197287f4"
       },
       {
         "image": "docker.io/library/golang:alpine",
-        "digest": "sha256:91dea08171115da4e00f7a5c74753c4e56f4e83e20b1e4065530b5d51d93742c",
-        "size": 68664800,
+        "digest": "sha256:5e5e60ea14e48d2039718813f156ed8ceaf1cee274d9930bde91dcb8cfd90103",
+        "size": 68663985,
         "platform": "linux/arm64/v8",
-        "index": "sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d"
+        "index": "sha256:376f4a381b112a7cfef541ecee0263ece432119fbbdad8d75f2f51fc197287f4"
       },
       {
         "image": "ghcr.io/podplane/hello:latest",
-        "digest": "sha256:eec074d6209d2686a1b3828562591b6d1ce6aaa06724429dd41372bb6530520b",
-        "size": 3511200,
+        "digest": "sha256:3ad1e1128a3ae69127dbe7cc2437262dfa0230368de2125f22e9940cf4986726",
+        "size": 3511400,
         "platform": "linux/amd64",
-        "index": "sha256:b16d7a0ea90a4b715a220c5e4d28ca7c0f7ce060b282155b6cb055c2c567f3d7"
+        "index": "sha256:285694288ffe8cf77989955a211420431dc1ff8f6d723316a6f59f0a2b7887ec"
       },
       {
         "image": "ghcr.io/podplane/hello:latest",
-        "digest": "sha256:8f326a6ed2654719bc1ae0528564d7654dc404a4c76cd4b1c1fb64f627c17d55",
-        "size": 3186179,
+        "digest": "sha256:9cd80da7f6c928ebf7e8b87748aad1e0efad452988ffb0afa34972e1173bceb9",
+        "size": 3186331,
         "platform": "linux/arm64",
-        "index": "sha256:b16d7a0ea90a4b715a220c5e4d28ca7c0f7ce060b282155b6cb055c2c567f3d7"
+        "index": "sha256:285694288ffe8cf77989955a211420431dc1ff8f6d723316a6f59f0a2b7887ec"
       },
       {
         "component": "cert-manager",
