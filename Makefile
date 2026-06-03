@@ -125,7 +125,7 @@ bootstrap: ## Run bootstrap.sh against the current kubectl context (minimal/core
 	@./bootstrap.sh
 
 recommended: ## Run bootstrap.sh with the recommended components (core + curated addons such as traefik)
-	@PLATFORM_INSTALL=recommended ./bootstrap.sh
+	@DOMAIN="$${DOMAIN:-default.localhost}" PLATFORM_INSTALL=recommended ./bootstrap.sh
 
 dev-bootstrap: ## Run bootstrap.sh with Flux pointed at the local development Git source and all components enabled
 	@KIND_NODE_IP=$$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null | awk '{print $$1}'); \
