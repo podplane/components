@@ -12,6 +12,10 @@ metadata:
   name: {{ include "podplane.traefik.certificateName" . }}
 spec:
   secretName: {{ include "podplane.traefik.secretName" . }}
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
   issuerRef:
     kind: {{ $ingress.issuerRef.kind }}
     name: {{ $ingress.issuerRef.name }}
