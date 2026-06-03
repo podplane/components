@@ -28,6 +28,8 @@ platform:
         enabled: true
         core: true
       # Addon CRDs (default disabled; enable together with the matching app)
+      agent-sandbox-crds:
+        enabled: false
       cert-manager-crds:
         enabled: false
       trust-manager-crds:
@@ -73,6 +75,11 @@ platform:
         core: true
         namespace: platform-csi-aws-ebs
       # Addons (default disabled)
+      agent-sandbox:
+        enabled: false
+        namespace: platform-agent-sandbox
+        dependsOn:
+          - agent-sandbox-crds
       cert-manager:
         enabled: false
         namespace: platform-cert-manager

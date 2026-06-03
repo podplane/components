@@ -47,6 +47,31 @@ type crdInfo struct {
 
 var charts = []crdChart{
 	{
+		Name: "agent-sandbox-crds",
+		Env:  "AGENT_SANDBOX_VERSION",
+		Update: func(ctx updateContext) error {
+			version := ctx.Version
+			if version == "" {
+				latest, err := githubLatestTag("kubernetes-sigs/agent-sandbox")
+				if err != nil {
+					return err
+				}
+				version = latest
+			}
+			files, err := githubYAMLFiles("kubernetes-sigs/agent-sandbox", "helm/crds", version)
+			if err != nil {
+				return err
+			}
+			baseURL := fmt.Sprintf("https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/refs/tags/%s/helm/crds", version)
+			for _, file := range files {
+				if err := downloadFile(baseURL+"/"+file, filepath.Join(ctx.OutDir, file)); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	},
+	{
 		Name: "cert-manager-crds",
 		Env:  "CERT_MANAGER_VERSION",
 		Update: func(ctx updateContext) error {

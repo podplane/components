@@ -195,13 +195,15 @@ fi
 
 # PLATFORM_INSTALL selects the platform-components CRD & app installation set:
 #   minimal     - core only (default for this script)
-#   recommended - core + curated addons (cert-manager, trust-manager, traefik)
+#   recommended - core + curated addons (agent-sandbox, cert-manager, trust-manager, traefik)
 #   all         - every app & CRD in this repo
 case "${PLATFORM_INSTALL:-minimal}" in
     minimal)
         ;;
     recommended)
         platform_crds+=$(cat <<'YAML'
+          agent-sandbox-crds:
+            enabled: true
           cert-manager-crds:
             enabled: true
           trust-manager-crds:
@@ -212,6 +214,8 @@ YAML
 )
         platform_crds+=$'\n'
         platform_apps+=$(cat <<'YAML'
+          agent-sandbox:
+            enabled: true
           cert-manager:
             enabled: true
           platform-certs:
@@ -228,6 +232,8 @@ YAML
         ;;
     all)
         platform_crds+=$(cat <<'YAML'
+          agent-sandbox-crds:
+            enabled: true
           cert-manager-crds:
             enabled: true
           trust-manager-crds:
@@ -240,6 +246,8 @@ YAML
 )
         platform_crds+=$'\n'
         platform_apps+=$(cat <<'YAML'
+          agent-sandbox:
+            enabled: true
           cert-manager:
             enabled: true
           platform-certs:
@@ -361,8 +369,17 @@ YAML
     fi
 fi
 kubectl apply -f "${platform_manifest}"
+echo "==> Waiting for podplane-components GitRepository to become Ready..."
 kubectl wait --for=condition=Ready gitrepository/podplane-components --namespace platform-components --timeout=120s
-kubectl wait --for=condition=Ready helmrelease/platform-components --namespace platform-components --timeout=300s
+echo "==> Waiting for platform-components HelmRelease to become Ready..."
+if ! kubectl wait --for=condition=Ready helmrelease/platform-components --namespace platform-components --timeout=300s; then
+    echo "Error: platform-components HelmRelease did not become Ready." >&2
+    echo >&2
+    kubectl get helmreleases -A >&2 || true
+    echo >&2
+    kubectl describe helmrelease/platform-components --namespace platform-components >&2 || true
+    exit 1
+fi
 
 echo
 echo "Bootstrap complete. Flux is now reconciling components."

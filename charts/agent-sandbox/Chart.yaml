@@ -1,0 +1,13 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: agent-sandbox
+description: Podplane Agent Sandbox controller chart
+type: application
+version: "1.0.0"
+appVersion: "v0.4.6"
+home: https://github.com/kubernetes-sigs/agent-sandbox
+sources:
+  - https://github.com/kubernetes-sigs/agent-sandbox

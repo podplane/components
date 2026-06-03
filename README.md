@@ -28,12 +28,14 @@ __Core (always installed):__
 
 __Addons (optional, installable via `podplane install <name>`):__
 
+- [Agent Sandbox](https://agent-sandbox.sigs.k8s.io/) for isolated,
+  stateful singleton workloads such as AI agent runtimes (_Apache 2.0_).
 - [cert-manager](https://cert-manager.io/) for TLS certificate management
   (_Apache 2.0_).
-- [trust-manager](https://cert-manager.io/docs/trust/trust-manager/) for
-  certificate trust store management (_Apache 2.0_).
 - `platform-trust` for Podplane trust bundles and trust policy resources.
 - [Traefik](https://traefik.io/) for ingress (_MIT_).
+- [trust-manager](https://cert-manager.io/docs/trust/trust-manager/) for
+  certificate trust store management (_Apache 2.0_).
 - [Snapshot Controller](https://github.com/kubernetes-csi/external-snapshotter)
   for persistent volume snapshotting (_Apache 2.0_).
 - [AWS EBS CSI Driver](https://github.com/kubernetes-sigs/aws-ebs-csi-driver)
@@ -68,7 +70,7 @@ kubectl get helmreleases -A
 
 Common environment variables to configure bootstrap:
 
-- `PLATFORM_INSTALL=minimal|recommended|all` — which platform-components install set to enable (default `minimal`). `recommended` adds cert-manager, trust-manager, and Traefik atop minimal.
+- `PLATFORM_INSTALL=minimal|recommended|all` — which platform-components install set to enable (default `minimal`). `recommended` adds Agent Sandbox, cert-manager, trust-manager, and Traefik atop minimal.
 - `DOMAIN=<zone>` — configures the included Traefik ingress and `platform-certs` to that domain using the platform self-signed `ClusterIssuer`. Use this when bootstrapping a bare cluster with `PLATFORM_INSTALL=recommended` (or `all`) so the cluster comes up with a working default ingress without needing ACME credentials.
 - `REGISTRY_HOSTNAME=<host>` — pull component images via the given registry mirror.
 - `CILIUM_K8S_SERVICE_HOST=<host>` — override the Cilium Kubernetes API server hostname (typically needed for Kind).

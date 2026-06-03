@@ -40,6 +40,7 @@ var (
 		"linux/arm64": true,
 	}
 	componentMetadata = map[string]metadata{
+		"agent-sandbox":  {Addon: true},
 		"cert-manager":   {Addon: true},
 		"platform-certs": {Addon: true},
 		"trust-manager":  {Addon: true},

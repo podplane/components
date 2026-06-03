@@ -21,14 +21,14 @@
         "digest": "sha256:103c743516b0d9dd69c203ed64f730eb342cae4b85d3f6c5cb376d91abbc6bcb",
         "size": 71441739,
         "platform": "linux/amd64",
-        "index": "sha256:376f4a381b112a7cfef541ecee0263ece432119fbbdad8d75f2f51fc197287f4"
+        "index": "sha256:f23e8b227fb4493eabe03bede4d5a32d04092da71962f1fb79b5f7d1e6c2a17f"
       },
       {
         "image": "docker.io/library/golang:alpine",
         "digest": "sha256:5e5e60ea14e48d2039718813f156ed8ceaf1cee274d9930bde91dcb8cfd90103",
         "size": 68663985,
         "platform": "linux/arm64/v8",
-        "index": "sha256:376f4a381b112a7cfef541ecee0263ece432119fbbdad8d75f2f51fc197287f4"
+        "index": "sha256:f23e8b227fb4493eabe03bede4d5a32d04092da71962f1fb79b5f7d1e6c2a17f"
       },
       {
         "image": "ghcr.io/podplane/hello:latest",
@@ -43,6 +43,24 @@
         "size": 3186331,
         "platform": "linux/arm64",
         "index": "sha256:285694288ffe8cf77989955a211420431dc1ff8f6d723316a6f59f0a2b7887ec"
+      },
+      {
+        "component": "agent-sandbox",
+        "image": "registry.k8s.io/agent-sandbox/agent-sandbox-controller:v0.4.6",
+        "digest": "sha256:9a44ed3856f2f5c01d1d95dc3dae0ed3aa7f144108ed11c68bb3b3e00147f888",
+        "size": 15607884,
+        "platform": "linux/amd64",
+        "index": "sha256:93c28f724f34845fcfbd58818959958fd877f9953698c920add3081f61a54429",
+        "addon": true
+      },
+      {
+        "component": "agent-sandbox",
+        "image": "registry.k8s.io/agent-sandbox/agent-sandbox-controller:v0.4.6",
+        "digest": "sha256:94c168a06f1db32ac453a1be049cddee6c89969667cf1a20551fd265acc5bb0f",
+        "size": 13935025,
+        "platform": "linux/arm64",
+        "index": "sha256:93c28f724f34845fcfbd58818959958fd877f9953698c920add3081f61a54429",
+        "addon": true
       },
       {
         "component": "cert-manager",

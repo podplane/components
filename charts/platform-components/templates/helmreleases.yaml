@@ -23,7 +23,10 @@ Each HelmRelease pulls its chart from the podplane-components GitRepository.
 {{- define "podplane.platform.mirrorValues" -}}
 {{- $name := .name -}}
 {{- $hostname := .hostname -}}
-{{- if eq $name "cert-manager" -}}
+{{- if eq $name "agent-sandbox" -}}
+image:
+  repository: {{ printf "%s/registry.k8s.io/agent-sandbox/agent-sandbox-controller" $hostname | quote }}
+{{- else if eq $name "cert-manager" -}}
 cert-manager:
   image:
     repository: {{ printf "%s/quay.io/jetstack/cert-manager-controller" $hostname | quote }}
