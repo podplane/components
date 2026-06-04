@@ -276,12 +276,12 @@ helm upgrade --install platform-cilium-crds "${REPO_DIR}/charts/cilium-crds" \
 
 step 2 "Installing cilium (platform-cilium) -- waiting for Nodes to go Ready ..."
 helm upgrade --install platform-cilium "${REPO_DIR}/charts/cilium" \
-    --namespace platform-cilium --create-namespace --wait \
+    --namespace platform-cilium --create-namespace --wait --skip-crds \
     "${cilium_args[@]}"
 
 step 3 "Installing CoreDNS (platform-coredns) -- waiting for cluster DNS to be Ready ..."
 helm upgrade --install platform-coredns "${REPO_DIR}/charts/coredns" \
-    --namespace platform-coredns --create-namespace --wait \
+    --namespace platform-coredns --create-namespace --wait --skip-crds \
     "${coredns_args[@]}"
 
 step 4 "Installing Flux CRDs (platform-cluster) ..."
@@ -290,7 +290,7 @@ helm upgrade --install platform-fluxcd-crds "${REPO_DIR}/charts/fluxcd-crds" \
 
 step 5 "Installing Flux source-controller + helm-controller (platform-fluxcd) -- waiting for controllers to be Ready ..."
 helm upgrade --install platform-fluxcd "${REPO_DIR}/charts/fluxcd" \
-    --namespace platform-fluxcd --create-namespace --wait \
+    --namespace platform-fluxcd --create-namespace --wait --skip-crds \
     "${fluxcd_args[@]}"
 
 if [[ -n "${KIND_LOCAL_GIT:-}" ]]; then
