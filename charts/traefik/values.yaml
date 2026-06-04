@@ -23,8 +23,6 @@ platform:
 # https://github.com/traefik/traefik-helm-chart/blob/master/traefik/VALUES.md#values
 # https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
 traefik:
-  crds:
-    enabled: false
   global:
     checkNewVersion: false
     sendAnonymousUsage: false

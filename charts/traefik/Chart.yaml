@@ -7,9 +7,9 @@ name: traefik
 description: Podplane traefik chart
 type: application
 version: "1.0.0"
-appVersion: "36.3.0"
+appVersion: "40.2.0"
 dependencies:
   - name: traefik
-    version: "v36.3.0"
+    version: "v40.2.0"
     # https://github.com/traefik/traefik-helm-chart
     repository: "https://traefik.github.io/charts"
