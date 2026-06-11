@@ -4,31 +4,31 @@
     "images": [
       {
         "image": "docker.io/library/caddy:2",
-        "digest": "sha256:3739ea4f0c877259a693d932693cf8f3408e9a9497c004f031b0e830e93e1546",
-        "size": 23993905,
+        "digest": "sha256:4679412ccd2114dca9f3017e2c460f76c9d8eb9e1850e72fb9ecda672e05c629",
+        "size": 23985139,
         "platform": "linux/amd64",
-        "index": "sha256:ec18ee54aab3315c22e25f3b2babda73ff8007d39b13b3bd1bfffa2f0444c7d9"
+        "index": "sha256:cfeb0b281bc44a5a51fecde39e9e577c60d863c0b6196e6bbdf58fd00960887f"
       },
       {
         "image": "docker.io/library/caddy:2",
-        "digest": "sha256:780ae38d5cc9674696bfec2dd7a20ea5495a2653d788ee39bff6aaf1007f8dd8",
-        "size": 22809535,
+        "digest": "sha256:ee97aec65dbdd1733fb12e719a392d2451fb06cc475f894ee45fb2e7d110db3e",
+        "size": 22793195,
         "platform": "linux/arm64/v8",
-        "index": "sha256:ec18ee54aab3315c22e25f3b2babda73ff8007d39b13b3bd1bfffa2f0444c7d9"
+        "index": "sha256:cfeb0b281bc44a5a51fecde39e9e577c60d863c0b6196e6bbdf58fd00960887f"
       },
       {
         "image": "docker.io/library/golang:alpine",
-        "digest": "sha256:103c743516b0d9dd69c203ed64f730eb342cae4b85d3f6c5cb376d91abbc6bcb",
-        "size": 71441739,
+        "digest": "sha256:9169234cc43b396435c64e45538fe6d4ffa237e7f988b9ab32abdfa0c3141979",
+        "size": 71444298,
         "platform": "linux/amd64",
-        "index": "sha256:f23e8b227fb4493eabe03bede4d5a32d04092da71962f1fb79b5f7d1e6c2a17f"
+        "index": "sha256:a6a091eac01ceac4b97496fe2957a49b6cdd83365337d5f46f6f73710424e805"
       },
       {
         "image": "docker.io/library/golang:alpine",
-        "digest": "sha256:5e5e60ea14e48d2039718813f156ed8ceaf1cee274d9930bde91dcb8cfd90103",
-        "size": 68663985,
+        "digest": "sha256:8a2c4b4fcc440d13bb95098763596ddcbff756342a0ea8df40dad60ed41efb4d",
+        "size": 68666441,
         "platform": "linux/arm64/v8",
-        "index": "sha256:f23e8b227fb4493eabe03bede4d5a32d04092da71962f1fb79b5f7d1e6c2a17f"
+        "index": "sha256:a6a091eac01ceac4b97496fe2957a49b6cdd83365337d5f46f6f73710424e805"
       },
       {
         "image": "ghcr.io/podplane/hello:latest",
@@ -382,20 +382,20 @@
       },
       {
         "component": "traefik",
-        "image": "docker.io/traefik:v3.4.3",
-        "digest": "sha256:46f40f4c0c00282ea15748b57753fdaa47d719ab29ee3a121bab5296e0dc6898",
-        "size": 58904678,
+        "image": "docker.io/traefik:v3.7.1",
+        "digest": "sha256:72ed9e98f2395fca5a9e1c67e131910c21ff06e694955da8e0eae0e5206fc27b",
+        "size": 52994705,
         "platform": "linux/amd64",
-        "index": "sha256:f3de2b96ec6b1cc987619c4d1d65d7e8140862eb0bbfc5f0e2e563691e8787d8",
+        "index": "sha256:6b9cbca6fac42ab0075f5437d8dc1685cfd188626d8d515839ea94f8b6271c42",
         "addon": true
       },
       {
         "component": "traefik",
-        "image": "docker.io/traefik:v3.4.3",
-        "digest": "sha256:8985115bfddf985a210548f04c296aeb1f985ed8439166ed2dc34506ef970437",
-        "size": 54768381,
+        "image": "docker.io/traefik:v3.7.1",
+        "digest": "sha256:1274bacf6552cf123ee4fab97d5ce64d54f2e57c91d8c8c0e87904c4a6ea2144",
+        "size": 48145289,
         "platform": "linux/arm64/v8",
-        "index": "sha256:f3de2b96ec6b1cc987619c4d1d65d7e8140862eb0bbfc5f0e2e563691e8787d8",
+        "index": "sha256:6b9cbca6fac42ab0075f5437d8dc1685cfd188626d8d515839ea94f8b6271c42",
         "addon": true
       },
       {

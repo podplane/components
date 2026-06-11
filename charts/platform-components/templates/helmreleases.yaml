@@ -104,9 +104,8 @@ platform:
 trust-manager:
   image:
     repository: {{ printf "%s/quay.io/jetstack/trust-manager" $hostname | quote }}
-  defaultPackage:
-    image:
-      repository: {{ printf "%s/quay.io/jetstack/trust-pkg-debian-bookworm" $hostname | quote }}
+  defaultPackageImage:
+    repository: {{ printf "%s/quay.io/jetstack/trust-pkg-debian-bookworm" $hostname | quote }}
 {{- end -}}
 {{- end -}}
 
