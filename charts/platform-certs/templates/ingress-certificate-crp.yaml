@@ -2,11 +2,11 @@
 # Copyright The Podplane Authors
 # SPDX-License-Identifier: Apache-2.0
 ---
-# CertificateRequestPolicy for Traefik ingress domains.
+# CertificateRequestPolicy for ingress domains.
 apiVersion: policy.cert-manager.io/v1alpha1
 kind: CertificateRequestPolicy
 metadata:
-  name: platform-traefik-ingress-certificate-crp
+  name: platform-ingress-certificate-crp
 spec:
   selector:
     issuerRef:
