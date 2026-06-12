@@ -21,14 +21,14 @@
         "digest": "sha256:9169234cc43b396435c64e45538fe6d4ffa237e7f988b9ab32abdfa0c3141979",
         "size": 71444298,
         "platform": "linux/amd64",
-        "index": "sha256:a6a091eac01ceac4b97496fe2957a49b6cdd83365337d5f46f6f73710424e805"
+        "index": "sha256:7a3e50096189ad57c9f9f865e7e4aa8585ed1585248513dc5cda498e2f41812c"
       },
       {
         "image": "docker.io/library/golang:alpine",
         "digest": "sha256:8a2c4b4fcc440d13bb95098763596ddcbff756342a0ea8df40dad60ed41efb4d",
         "size": 68666441,
         "platform": "linux/arm64/v8",
-        "index": "sha256:a6a091eac01ceac4b97496fe2957a49b6cdd83365337d5f46f6f73710424e805"
+        "index": "sha256:7a3e50096189ad57c9f9f865e7e4aa8585ed1585248513dc5cda498e2f41812c"
       },
       {
         "image": "ghcr.io/podplane/hello:latest",
