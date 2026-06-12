@@ -6,7 +6,6 @@ platform:
   certs:
     clusterCA:
       commonName: "podplane.local"
-    domains: []
     acme:
       enabled: false
       issuerName: platform-acme-clusterissuer

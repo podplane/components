@@ -122,8 +122,6 @@ platform:
     #   platform-certs:
     #     platform:
     #       certs:
-    #         domains:
-    #           - zone: example.com
     #         acme:
     #           enabled: true
     #           server: https://acme-v02.api.letsencrypt.org/directory

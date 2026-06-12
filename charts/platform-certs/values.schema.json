@@ -22,20 +22,6 @@
               },
               "required": ["commonName"]
             },
-            "domains": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                  "zone": {
-                    "type": "string",
-                    "minLength": 1
-                  }
-                },
-                "required": ["zone"]
-              }
-            },
             "acme": {
               "type": "object",
               "additionalProperties": false,
@@ -146,7 +132,7 @@
               "required": ["enabled", "image", "mounts"]
             }
           },
-          "required": ["clusterCA", "domains", "acme", "local", "secretSync"]
+          "required": ["clusterCA", "acme", "local", "secretSync"]
         }
       },
       "required": ["certs"]

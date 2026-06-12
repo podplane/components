@@ -1,13 +1,6 @@
 # Podplane <https://podplane.dev>
 # Copyright The Podplane Authors
 # SPDX-License-Identifier: Apache-2.0
-{{- if .Values.platform.certs.domains }}
-{{- $domains := .Values.platform.certs.domains -}}
-{{- $conditions := list -}}
-{{- range $domain := $domains -}}
-{{- $zone := required "platform.certs.domains[].zone is required" $domain.zone -}}
-{{- $conditions = append $conditions (printf "self == '%s' || self == '*.%s'" $zone $zone) -}}
-{{- end -}}
 ---
 # CertificateRequestPolicy for Traefik ingress domains.
 apiVersion: policy.cert-manager.io/v1alpha1
@@ -21,12 +14,11 @@ spec:
         - "platform-traefik"
   allowed:
     # Deny commonName - must not be present
-    # Only allow wildcard DNS name pattern
+    # Platform Traefik owns ingress TLS termination; allow any DNS name from
+    # this namespace while keeping CA and client certificate issuance blocked.
     dnsNames:
       required: true
-      validations:
-        - rule: {{ join " || " $conditions | quote }}
-          message: 'DNS names must match a configured ingress domain apex or wildcard'
+      values: ["*"]
     # Restrict to server auth only
     usages:
       - "digital signature"
@@ -44,4 +36,3 @@ spec:
       streetAddresses: { values: ["*"] }
       postalCodes: { values: ["*"] }
       serialNumber: { value: "*" }
-{{- end }}

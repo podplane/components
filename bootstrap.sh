@@ -130,12 +130,12 @@ cilium_args=()
 coredns_args=()
 fluxcd_args=()
 
-# DOMAIN, when set, wires the platform-components values so the included
-# Traefik ingress + platform-certs domain match a real cluster domain. This
-# matches what `podplane hooks netsy-seed` derives from cluster.domains and
-# is what makes `make recommended DOMAIN=...` produce a usable cluster
-# straight out of bare bootstrap. The selfsigned ClusterIssuer is shipped by
-# the platform-certs chart so it works without ACME credentials.
+# DOMAIN, when set, wires the platform-components values so Traefik ingress
+# uses a real cluster domain. This matches what `podplane hooks netsy-seed`
+# derives from cluster.domains and is what makes `make recommended DOMAIN=...`
+# produce a usable cluster straight out of bare bootstrap. The selfsigned
+# ClusterIssuer is shipped by the platform-certs chart so it works without
+# ACME credentials.
 if [[ -n "${DOMAIN:-}" ]]; then
     platform_values+=$(cat <<YAML
           traefik:
@@ -149,11 +149,6 @@ if [[ -n "${DOMAIN:-}" ]]; then
                   domains:
                     - zone: ${DOMAIN}
                       default: true
-          platform-certs:
-            platform:
-              certs:
-                domains:
-                  - zone: ${DOMAIN}
 YAML
 )
     platform_values+=$'\n'
