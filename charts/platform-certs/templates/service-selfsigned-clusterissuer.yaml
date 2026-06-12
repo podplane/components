@@ -1,0 +1,12 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+# ClusterIssuer for service certificates signed by the platform self-signed CA.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Values.platform.certs.service.selfsigned.issuerName }}
+spec:
+  ca:
+    secretName: platform-selfsigned-ca-certificate-secret

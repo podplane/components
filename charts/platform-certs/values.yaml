@@ -6,15 +6,19 @@ platform:
   certs:
     clusterCA:
       commonName: "podplane.local"
-    acme:
-      enabled: false
-      issuerName: platform-acme-clusterissuer
-      server: ""
-      email: ""
-      privateKeySecretName: platform-acme-account-key
-      solvers: []
-    local:
-      issuerName: platform-selfsigned-clusterissuer
+    service:
+      selfsigned:
+        issuerName: platform-service-certificate-clusterissuer
+    ingress:
+      acme:
+        enabled: false
+        issuerName: platform-ingress-acme-clusterissuer
+        server: ""
+        email: ""
+        privateKeySecretName: platform-acme-account-key
+        solvers: []
+      selfsigned:
+        issuerName: platform-ingress-selfsigned-clusterissuer
     secretSync:
       enabled: false
       image:

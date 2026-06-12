@@ -1,11 +1,11 @@
 # Podplane <https://podplane.dev>
 # Copyright The Podplane Authors
 # SPDX-License-Identifier: Apache-2.0
-{{- if .Values.platform.certs.acme.enabled }}
-{{- $acme := .Values.platform.certs.acme -}}
-{{- if not $acme.server }}{{ fail "platform.certs.acme.server is required when ACME is enabled" }}{{- end }}
-{{- if not $acme.email }}{{ fail "platform.certs.acme.email is required when ACME is enabled" }}{{- end }}
-{{- if not $acme.solvers }}{{ fail "platform.certs.acme.solvers must contain at least one solver when ACME is enabled" }}{{- end }}
+{{- if .Values.platform.certs.ingress.acme.enabled }}
+{{- $acme := .Values.platform.certs.ingress.acme -}}
+{{- if not $acme.server }}{{ fail "platform.certs.ingress.acme.server is required when ACME is enabled" }}{{- end }}
+{{- if not $acme.email }}{{ fail "platform.certs.ingress.acme.email is required when ACME is enabled" }}{{- end }}
+{{- if not $acme.solvers }}{{ fail "platform.certs.ingress.acme.solvers must contain at least one solver when ACME is enabled" }}{{- end }}
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -19,12 +19,12 @@ spec:
       name: {{ $acme.privateKeySecretName }}
     solvers:
 {{- range $index, $solver := $acme.solvers }}
-{{- if not $solver.dnsZones }}{{ fail "platform.certs.acme.solvers[].dnsZones must contain at least one zone" }}{{- end }}
+{{- if not $solver.dnsZones }}{{ fail "platform.certs.ingress.acme.solvers[].dnsZones must contain at least one zone" }}{{- end }}
 {{- $providerCount := 0 -}}
 {{- if $solver.route53 }}{{ $providerCount = add1 $providerCount }}{{- end }}
 {{- if $solver.cloudflare }}{{ $providerCount = add1 $providerCount }}{{- end }}
 {{- if $solver.cloudDNS }}{{ $providerCount = add1 $providerCount }}{{- end }}
-{{- if ne $providerCount 1 }}{{ fail "each platform.certs.acme.solvers[] entry must configure exactly one DNS provider" }}{{- end }}
+{{- if ne $providerCount 1 }}{{ fail "each platform.certs.ingress.acme.solvers[] entry must configure exactly one DNS provider" }}{{- end }}
       - selector:
           dnsZones:
 {{- range $solver.dnsZones }}

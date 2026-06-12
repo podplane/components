@@ -2,11 +2,11 @@
 # Copyright The Podplane Authors
 # SPDX-License-Identifier: Apache-2.0
 ---
-# ClusterIssuer for self-signed certificates
+# ClusterIssuer for ingress certificates signed by the platform self-signed CA.
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: {{ .Values.platform.certs.local.issuerName }}
+  name: {{ .Values.platform.certs.ingress.selfsigned.issuerName }}
 spec:
   ca:
     secretName: platform-selfsigned-ca-certificate-secret

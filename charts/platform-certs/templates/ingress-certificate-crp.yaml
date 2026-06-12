@@ -9,6 +9,9 @@ metadata:
   name: platform-traefik-ingress-certificate-crp
 spec:
   selector:
+    issuerRef:
+      kind: ClusterIssuer
+      name: platform-ingress-*-clusterissuer
     namespace:
       matchNames:
         - "platform-traefik"

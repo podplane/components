@@ -145,7 +145,7 @@ if [[ -n "${DOMAIN:-}" ]]; then
                   enabled: true
                   issuerRef:
                     kind: ClusterIssuer
-                    name: platform-selfsigned-clusterissuer
+                    name: platform-ingress-selfsigned-clusterissuer
                   domains:
                     - zone: ${DOMAIN}
                       default: true

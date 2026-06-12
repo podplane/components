@@ -22,67 +22,92 @@
               },
               "required": ["commonName"]
             },
-            "acme": {
+            "service": {
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "enabled": {
-                  "type": "boolean"
-                },
-                "issuerName": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "server": {
-                  "type": "string"
-                },
-                "email": {
-                  "type": "string"
-                },
-                "privateKeySecretName": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "solvers": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "dnsZones": {
-                        "type": "array",
-                        "minItems": 1,
-                        "items": {
-                          "type": "string",
-                          "minLength": 1
-                        }
-                      },
-                      "route53": {
-                        "$ref": "#/definitions/route53Solver"
-                      },
-                      "cloudflare": {
-                        "$ref": "#/definitions/cloudflareSolver"
-                      },
-                      "cloudDNS": {
-                        "$ref": "#/definitions/cloudDNSSolver"
-                      }
-                    },
-                    "required": ["dnsZones"]
-                  }
+                "selfsigned": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "issuerName": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": ["issuerName"]
                 }
               },
-              "required": ["enabled", "issuerName", "server", "email", "privateKeySecretName", "solvers"]
+              "required": ["selfsigned"]
             },
-            "local": {
+            "ingress": {
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "issuerName": {
-                  "type": "string",
-                  "minLength": 1
+                "acme": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "issuerName": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "server": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "privateKeySecretName": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "solvers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "dnsZones": {
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "route53": {
+                            "$ref": "#/definitions/route53Solver"
+                          },
+                          "cloudflare": {
+                            "$ref": "#/definitions/cloudflareSolver"
+                          },
+                          "cloudDNS": {
+                            "$ref": "#/definitions/cloudDNSSolver"
+                          }
+                        },
+                        "required": ["dnsZones"]
+                      }
+                    }
+                  },
+                  "required": ["enabled", "issuerName", "server", "email", "privateKeySecretName", "solvers"]
+                },
+                "selfsigned": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "issuerName": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": ["issuerName"]
                 }
               },
-              "required": ["issuerName"]
+              "required": ["acme", "selfsigned"]
             },
             "secretSync": {
               "type": "object",
@@ -132,7 +157,7 @@
               "required": ["enabled", "image", "mounts"]
             }
           },
-          "required": ["clusterCA", "acme", "local", "secretSync"]
+          "required": ["clusterCA", "service", "ingress", "secretSync"]
         }
       },
       "required": ["certs"]

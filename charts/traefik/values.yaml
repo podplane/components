@@ -11,7 +11,7 @@ platform:
         className: platform-traefik
       issuerRef:
         kind: ClusterIssuer
-        name: platform-acme-clusterissuer
+        name: platform-ingress-acme-clusterissuer
       domains: []
       bootstrapTLS:
         enabled: true
