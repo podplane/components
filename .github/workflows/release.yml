@@ -25,6 +25,7 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -76,3 +77,22 @@ jobs:
           generate_release_notes: true
           prerelease: ${{ steps.meta.outputs.prerelease }}
           fail_on_unmatched_files: true
+
+      - name: Create deps app token
+        id: deps-app
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.PODPLANE_DEPS_APP_ID }}
+          private-key: ${{ secrets.PODPLANE_DEPS_APP_PRIVATE_KEY }}
+          owner: podplane
+          repositories: deps
+
+      - name: Trigger deps sync
+        env:
+          GH_TOKEN: ${{ steps.deps-app.outputs.token }}
+        run: |
+          gh workflow run sync.yml \
+            --repo podplane/deps \
+            --ref main \
+            -f source_repo="${GITHUB_REPOSITORY}" \
+            -f source_ref="${GITHUB_REF_NAME}"
