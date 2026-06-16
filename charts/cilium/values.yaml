@@ -12,6 +12,8 @@ cilium:
     enabled: false
   hubble:
     enabled: false
+  readinessProbe:
+    periodSeconds: 5
   kubeProxyReplacement: true
   k8sServiceHost: kube-apiserver.podplane.internal
   k8sServicePort: 6443

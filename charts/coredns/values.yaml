@@ -8,6 +8,9 @@ coredns:
     repository: docker.io/coredns/coredns
   podAnnotations:
     cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+  readinessProbe:
+    initialDelaySeconds: 2
+    periodSeconds: 5
   tolerations:
     - key: "node.kubernetes.io/not-ready"
       operator: "Exists"

@@ -31,6 +31,8 @@ traefik:
     #   level: "DEBUG"
     access:
       enabled: false
+  readinessProbe:
+    periodSeconds: 5
   deployment:
     kind: DaemonSet
   updateStrategy:
