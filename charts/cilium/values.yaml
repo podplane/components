@@ -12,6 +12,7 @@ cilium:
     enabled: false
   hubble:
     enabled: false
+  l7Proxy: false
   readinessProbe:
     periodSeconds: 5
   kubeProxyReplacement: true
