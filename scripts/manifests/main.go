@@ -40,14 +40,19 @@ var (
 		"linux/arm64": true,
 	}
 	componentMetadata = map[string]metadata{
-		"agent-sandbox":  {Addon: true},
-		"cert-manager":   {Addon: true},
-		"platform-certs": {Addon: true},
-		"trust-manager":  {Addon: true},
-		"platform-trust": {Addon: true},
-		"traefik":        {Addon: true},
-		"snapshot":       {Addon: true},
-		"csi-aws-ebs":    {Providers: []string{"aws"}},
+		"agent-sandbox":                      {Addon: true},
+		"cert-manager":                       {Addon: true},
+		"platform-certs":                     {Addon: true},
+		"trust-manager":                      {Addon: true},
+		"platform-trust":                     {Addon: true},
+		"traefik":                            {Addon: true},
+		"snapshot":                           {Addon: true},
+		"csi-aws-ebs":                        {Providers: []string{"aws"}},
+		"secrets-store-csi-driver":           {Addon: true},
+		"secrets-store-csi-provider-aws":     {Providers: []string{"aws"}, Addon: true},
+		"secrets-store-csi-provider-gcp":     {Providers: []string{"gcp"}, Addon: true},
+		"secrets-store-csi-provider-openbao": {Addon: true},
+		"secrets-store-csi-provider-vault":   {Addon: true},
 	}
 )
 

@@ -1,0 +1,16 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: secrets-store-csi-provider-gcp
+description: GCP provider for Secrets Store CSI Driver
+type: application
+version: "1.0.0"
+appVersion: "1.15.0"
+
+# The upstream GCP provider repository includes a Helm chart, but it does not
+# publish a stable Helm repository dependency. Its chart also hardcodes RBAC
+# names, provider socket paths, and init image settings that Podplane needs to
+# control for naming and mirroring consistency. Keep this chart aligned with the
+# upstream v1.15.0 install manifests while preserving Podplane-controlled values.

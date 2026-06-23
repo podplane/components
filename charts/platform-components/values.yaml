@@ -38,6 +38,8 @@ platform:
         enabled: false
       snapshot-crds:
         enabled: false
+      secrets-store-csi-driver-crds:
+        enabled: false
 
     # Apps
     # `core: true` marks entries so that the Podplane CLI will refuse to uninstall them.
@@ -74,6 +76,31 @@ platform:
         enabled: false
         core: true
         namespace: platform-csi-aws-ebs
+      secrets-store-csi-driver:
+        enabled: false
+        namespace: platform-secrets-store-csi-driver
+        dependsOn:
+          - secrets-store-csi-driver-crds
+      secrets-store-csi-provider-aws:
+        enabled: false
+        namespace: platform-secrets-store-csi-provider-aws
+        dependsOn:
+          - secrets-store-csi-driver
+      secrets-store-csi-provider-gcp:
+        enabled: false
+        namespace: platform-secrets-store-csi-provider-gcp
+        dependsOn:
+          - secrets-store-csi-driver
+      secrets-store-csi-provider-vault:
+        enabled: false
+        namespace: platform-secrets-store-csi-provider-vault
+        dependsOn:
+          - secrets-store-csi-driver
+      secrets-store-csi-provider-openbao:
+        enabled: false
+        namespace: platform-secrets-store-csi-provider-openbao
+        dependsOn:
+          - secrets-store-csi-driver
       # Addons (default disabled)
       agent-sandbox:
         enabled: false

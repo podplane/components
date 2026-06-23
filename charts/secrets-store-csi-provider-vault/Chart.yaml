@@ -1,0 +1,14 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: secrets-store-csi-provider-vault
+description: Vault provider for Secrets Store CSI Driver
+type: application
+version: "1.0.0"
+appVersion: "1.7.2"
+dependencies:
+  - name: vault
+    version: "0.33.0"
+    repository: "https://helm.releases.hashicorp.com"

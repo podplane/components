@@ -201,6 +201,19 @@ var charts = []crdChart{
 		},
 	},
 	{
+		Name: "secrets-store-csi-driver-crds",
+		Env:  "SECRETS_STORE_CSI_DRIVER_VERSION",
+		Update: func(ctx updateContext) error {
+			version := firstNonEmpty(ctx.Version, "1.6.0")
+			return renderHelmCRDs(ctx.OutDir, helmDependency{
+				Name:       "secrets-store-csi-driver",
+				Release:    "secrets-store-csi-driver-crds",
+				Version:    version,
+				Repository: "https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts",
+			}, map[string]any{})
+		},
+	},
+	{
 		Name: "traefik-crds",
 		Env:  "TRAEFIK_CHART_VERSION",
 		Update: func(ctx updateContext) error {

@@ -1,0 +1,97 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: platform-secrets-store-csi-provider-gcp
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "secrets-store-csi-provider-gcp.labels" . | indent 4 }}
+spec:
+  selector:
+    matchLabels:
+{{ include "secrets-store-csi-provider-gcp.selectorLabels" . | indent 6 }}
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+{{ include "secrets-store-csi-provider-gcp.selectorLabels" . | indent 8 }}
+{{- with .Values.gcp.podAnnotations }}
+      annotations:
+{{ toYaml . | indent 8 }}
+{{- end }}
+    spec:
+      hostNetwork: false
+      hostPID: false
+      hostIPC: false
+      serviceAccountName: platform-secrets-store-csi-provider-gcp
+{{- with .Values.gcp.priorityClassName }}
+      priorityClassName: {{ . }}
+{{- end }}
+      initContainers:
+        - name: chown-provider-mount
+          image: {{ printf "%s:%s" .Values.gcp.initImage.repository .Values.gcp.initImage.tag | quote }}
+          imagePullPolicy: {{ .Values.gcp.initImage.pullPolicy }}
+          command:
+            - chown
+            - "1000:1000"
+            - {{ .Values.gcp.socketDir }}
+          volumeMounts:
+            - name: providervol
+              mountPath: {{ .Values.gcp.socketDir }}
+      containers:
+        - name: provider
+{{- if .Values.gcp.image.digest }}
+          image: {{ printf "%s@%s" .Values.gcp.image.repository .Values.gcp.image.digest | quote }}
+{{- else }}
+          image: {{ printf "%s:%s" .Values.gcp.image.repository .Values.gcp.image.tag | quote }}
+{{- end }}
+          imagePullPolicy: {{ .Values.gcp.image.pullPolicy }}
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: TARGET_DIR
+              value: {{ .Values.gcp.socketDir | quote }}
+          volumeMounts:
+            - name: providervol
+              mountPath: {{ .Values.gcp.socketDir }}
+              mountPropagation: None
+              readOnly: false
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /live
+              port: 8095
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+            periodSeconds: 30
+          resources:
+{{ toYaml .Values.gcp.resources | indent 12 }}
+      volumes:
+        - name: providervol
+          hostPath:
+            path: {{ .Values.gcp.socketDir }}
+            type: DirectoryOrCreate
+{{- with .Values.gcp.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- with .Values.gcp.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- with .Values.gcp.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+{{- end }}

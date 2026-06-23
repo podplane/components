@@ -1,0 +1,14 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: secrets-store-csi-provider-openbao
+description: OpenBao provider for Secrets Store CSI Driver
+type: application
+version: "1.0.0"
+appVersion: "2.0.2"
+dependencies:
+  - name: openbao
+    version: "0.28.4"
+    repository: "https://openbao.github.io/openbao-helm"

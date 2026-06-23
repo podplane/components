@@ -76,6 +76,39 @@ aws-ebs-csi-driver:
     nodeDriverRegistrar:
       image:
         repository: {{ printf "%s/public.ecr.aws/csi-components/csi-node-driver-registrar" $hostname | quote }}
+{{- else if eq $name "secrets-store-csi-driver" -}}
+secrets-store-csi-driver:
+  linux:
+    image:
+      repository: {{ printf "%s/registry.k8s.io/csi-secrets-store/driver" $hostname | quote }}
+    crds:
+      image:
+        repository: {{ printf "%s/registry.k8s.io/csi-secrets-store/driver-crds" $hostname | quote }}
+    registrarImage:
+      repository: {{ printf "%s/registry.k8s.io/sig-storage/csi-node-driver-registrar" $hostname | quote }}
+    livenessProbeImage:
+      repository: {{ printf "%s/registry.k8s.io/sig-storage/livenessprobe" $hostname | quote }}
+{{- else if eq $name "secrets-store-csi-provider-aws" -}}
+secrets-store-csi-driver-provider-aws:
+  image:
+    repository: {{ printf "%s/public.ecr.aws/aws-secrets-manager/secrets-store-csi-driver-provider-aws" $hostname | quote }}
+{{- else if eq $name "secrets-store-csi-provider-gcp" -}}
+provider:
+  image:
+    repository: {{ printf "%s/us-docker.pkg.dev/secretmanager-csi/secrets-store-csi-driver-provider-gcp/plugin" $hostname | quote }}
+  initImage:
+    repository: {{ printf "%s/docker.io/library/busybox" $hostname | quote }}
+{{- else if eq $name "secrets-store-csi-provider-vault" -}}
+vault:
+  csi:
+    image:
+      repository: {{ printf "%s/docker.io/hashicorp/vault-csi-provider" $hostname | quote }}
+{{- else if eq $name "secrets-store-csi-provider-openbao" -}}
+openbao:
+  csi:
+    image:
+      registry: {{ printf "%s/quay.io" $hostname | quote }}
+      repository: openbao/openbao-csi-provider
 {{- else if eq $name "fluxcd" -}}
 flux2:
   cli:

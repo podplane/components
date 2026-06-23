@@ -1,0 +1,31 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+gcp:
+  name: gcp
+  image:
+    repository: us-docker.pkg.dev/secretmanager-csi/secrets-store-csi-driver-provider-gcp/plugin
+    tag: "v1.15.0"
+    digest: sha256:c87cfa3e8be097c0034f136fb56e37d76966430b69223c12d179398ea0584576
+    pullPolicy: IfNotPresent
+  initImage:
+    repository: docker.io/library/busybox
+    tag: "1.36"
+    pullPolicy: IfNotPresent
+  socketDir: /etc/kubernetes/secrets-store-csi-providers
+  resources:
+    requests:
+      cpu: 50m
+      memory: 100Mi
+    limits:
+      cpu: 50m
+      memory: 100Mi
+  nodeSelector:
+    kubernetes.io/os: linux
+  tolerations: []
+  affinity: {}
+  priorityClassName: ""
+  podAnnotations: {}
+serviceAccount:
+  annotations: {}

@@ -1,0 +1,14 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: secrets-store-csi-driver
+description: Secrets Store CSI Driver chart
+type: application
+version: "1.0.0"
+appVersion: "1.6.0"
+dependencies:
+  - name: secrets-store-csi-driver
+    version: "1.6.0"
+    repository: "https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts"

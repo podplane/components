@@ -1,0 +1,10 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: secrets-store-csi-driver-crds
+description: Secrets Store CSI Driver CRDs chart
+type: application
+version: "1.0.0"
+appVersion: "1.6.0"

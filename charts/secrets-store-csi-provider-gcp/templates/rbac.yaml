@@ -1,0 +1,44 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: platform-secrets-store-csi-provider-gcp
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "secrets-store-csi-provider-gcp.labels" . | indent 4 }}
+{{- with .Values.serviceAccount.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: platform-secrets-store-csi-provider-gcp
+  labels:
+{{ include "secrets-store-csi-provider-gcp.labels" . | indent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["serviceaccounts/token"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: platform-secrets-store-csi-provider-gcp
+  labels:
+{{ include "secrets-store-csi-provider-gcp.labels" . | indent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: platform-secrets-store-csi-provider-gcp
+subjects:
+  - kind: ServiceAccount
+    name: platform-secrets-store-csi-provider-gcp
+    namespace: {{ .Release.Namespace }}
