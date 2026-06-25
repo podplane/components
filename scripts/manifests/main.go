@@ -203,7 +203,7 @@ func run() error {
 func componentsSource(version string) source {
 	ref := sourceRef{Branch: "main"}
 	if version != "" && version != "dev" {
-		ref = sourceRef{Semver: "^" + version}
+		ref = sourceRef{Semver: version}
 	}
 	return source{
 		URL: "https://github.com/podplane/components.git",

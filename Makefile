@@ -103,7 +103,7 @@ release-manifest: ## Write dist/release/components_$${VERSION}.json from manifes
 	@test -n "$${VERSION:-}" || { echo "VERSION is required"; exit 1; }
 	@command -v jq >/dev/null 2>&1 || { echo "jq is required but not installed"; exit 1; }
 	@mkdir -p dist/release
-	@jq --arg version "$$VERSION" '.components.version = $$version | .components.source = {"url":"https://github.com/podplane/components.git","ref":{"semver":("^" + $$version)}}' manifests/components.json > "dist/release/components_$${VERSION}.json"
+	@jq --arg version "$$VERSION" '.components.version = $$version | .components.source = {"url":"https://github.com/podplane/components.git","ref":{"semver":$$version}}' manifests/components.json > "dist/release/components_$${VERSION}.json"
 	@jq . "dist/release/components_$${VERSION}.json" >/dev/null
 	@echo "wrote dist/release/components_$${VERSION}.json"
 
@@ -136,7 +136,7 @@ _local-bootstrap:
 			exit 1; \
 		fi; \
 		export PLATFORM_GIT_REPOSITORY_URL PLATFORM_GIT_REPOSITORY_BRANCH PLATFORM_GIT_SECRET_REF_NAME PLATFORM_GIT_CA_CERT_FILE; \
-		DOMAIN="$${DOMAIN:-default.localhost}" PLATFORM_INSTALL=$(PLATFORM_INSTALL) ./bootstrap.sh
+		DOMAIN="$${DOMAIN:-default.localhost}" PLATFORM_INSTALL=$(PLATFORM_INSTALL) ./bootstrap/apply.sh
 
 git-sync: ## Snapshot this checkout into the Podplane Git cache as components.git local-dev
 	@mkdir -p "$(PODPLANE_GIT_CACHE_DIR)" temp/git-sync

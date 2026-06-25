@@ -1,0 +1,69 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+bootstrap:
+  # Select the additional platform-components CRDs/apps to install:
+  #   minimal     - core only; no addon overrides are rendered.
+  #   recommended - core + curated addons: agent-sandbox, cert-manager,
+  #                 trust-manager, traefik, podplane-operator,
+  #                 secrets-store-csi-driver, OpenBao secrets provider.
+  #   all         - every addon CRD/app listed below.
+  install: minimal
+  clusterID: default
+  domain: ""
+  registry:
+    hostname: ""
+  flux:
+    git:
+      url: https://github.com/podplane/components.git
+      secretRefName: ""
+      caCert: "" # Base64-encoded CA certificate PEM
+      ref:
+        branch: ""
+        tag: ""
+        commit: ""
+        semver: ">=1.0.0"
+  addons:
+    crds:
+      - name: agent-sandbox-crds
+        install: [recommended, all]
+      - name: cert-manager-crds
+        install: [recommended, all]
+      - name: podplane-operator-crds
+        install: [recommended, all]
+      - name: secrets-store-csi-driver-crds
+        install: [recommended, all]
+      - name: trust-manager-crds
+        install: [recommended, all]
+      - name: traefik-crds
+        install: [recommended, all]
+      - name: snapshot-crds
+        install: [all]
+    apps:
+      - name: agent-sandbox
+        install: [recommended, all]
+      - name: cert-manager
+        install: [recommended, all]
+      - name: platform-certs
+        install: [recommended, all]
+      - name: podplane-operator
+        install: [recommended, all]
+      - name: secrets-store-csi-driver
+        install: [recommended, all]
+      - name: secrets-store-csi-provider-aws
+        install: [all]
+      - name: secrets-store-csi-provider-gcp
+        install: [all]
+      - name: secrets-store-csi-provider-vault
+        install: [all]
+      - name: secrets-store-csi-provider-openbao
+        install: [recommended, all]
+      - name: trust-manager
+        install: [recommended, all]
+      - name: platform-trust
+        install: [recommended, all]
+      - name: traefik
+        install: [recommended, all]
+      - name: snapshot
+        install: [all]

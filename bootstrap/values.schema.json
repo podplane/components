@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "bootstrap": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "install": {
+          "type": "string",
+          "enum": ["minimal", "recommended", "all"]
+        },
+        "clusterID": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "registry": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "hostname": {
+              "type": "string"
+            }
+          },
+          "required": ["hostname"]
+        },
+        "flux": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "git": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "secretRefName": {
+                  "type": "string"
+                },
+                "caCert": {
+                  "type": "string",
+                  "description": "Base64-encoded CA certificate PEM"
+                },
+                "ref": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "branch": {
+                      "type": "string"
+                    },
+                    "tag": {
+                      "type": "string"
+                    },
+                    "commit": {
+                      "type": "string"
+                    },
+                    "semver": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": ["branch", "tag", "commit", "semver"]
+                }
+              },
+              "required": ["url", "secretRefName", "caCert", "ref"]
+            }
+          },
+          "required": ["git"]
+        },
+        "addons": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "crds": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/addon"
+              }
+            },
+            "apps": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/addon"
+              }
+            }
+          },
+          "required": ["crds", "apps"]
+        }
+      },
+      "required": ["install", "clusterID", "domain", "registry", "flux", "addons"]
+    }
+  },
+  "required": ["bootstrap"],
+  "definitions": {
+    "addon": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "install": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["recommended", "all"]
+          }
+        }
+      },
+      "required": ["name", "install"]
+    }
+  }
+}

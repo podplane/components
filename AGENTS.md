@@ -7,7 +7,7 @@ over.
 
 ## Commands
 
-- **Bootstrap a cluster**: `./bootstrap.sh` — installs
+- **Bootstrap a cluster**: `./bootstrap/apply.sh` — installs
   cilium, fluxcd and the platform-components chart in dependency order against the
   current `kubectl` context.
 - **Bootstrap a local Podplane VM from local sources**: create a bare local VM
@@ -22,18 +22,19 @@ over.
 
 Dependencies: `helm`, `kubectl`; `watchexec` is optional for `make git-watch`.
 
-Note: agents must NEVER run `./bootstrap.sh`, `make minimal`, `make recommended`,
+Note: agents must NEVER run `./bootstrap/apply.sh`, `make minimal`, `make recommended`,
 or `make all` against a real cluster without explicit user approval.
 
 ## Architecture
 
-- **Bootstrap (custom code)**: [`bootstrap.sh`](./bootstrap.sh) installs five
+- **Bootstrap**: [`bootstrap/apply.sh`](./bootstrap/apply.sh) installs five
   Helm releases in order with `helm upgrade --install --create-namespace
   --wait` — `platform-cilium-crds`, `platform-cilium`, `platform-coredns`,
-  `platform-fluxcd-crds`, `platform-fluxcd` — then `kubectl apply`s a
-  `platform-components` `Namespace`, a `GitRepository` pointing at this repo, and a Flux
-  `HelmRelease` that installs the `platform-components` chart. From there
-  Flux reconciles everything else.
+  `platform-fluxcd-crds`, `platform-fluxcd` — then renders the bootstrap chart
+  with `helm template` and `kubectl apply`s a `platform-components` `Namespace`,
+  a `GitRepository` pointing at this repo, and a Flux `HelmRelease` that
+  installs the `platform-components` chart. From there Flux reconciles
+  everything else.
 - **Platform components chart** ([`charts/platform-components`](./charts/platform-components)): the single source
   of truth at runtime. Its `values.yaml` lists every Core and Addon
   component. The chart renders:

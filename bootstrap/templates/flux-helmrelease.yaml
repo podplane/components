@@ -1,0 +1,61 @@
+{{/*
+Podplane <https://podplane.dev>
+Copyright The Podplane Authors
+SPDX-License-Identifier: Apache-2.0
+*/}}
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: platform-components
+  namespace: platform-components
+spec:
+  interval: 10m
+  maxHistory: 3
+  releaseName: platform-components
+  chart:
+    spec:
+      chart: ./charts/platform-components
+      sourceRef:
+        kind: GitRepository
+        name: podplane-components
+        namespace: platform-components
+  values:
+    platform:
+      components:
+        clusterID: "{{ .Values.bootstrap.clusterID }}"
+{{- if .Values.bootstrap.registry.hostname }}
+        registry:
+          mirror:
+            enabled: true
+            hostname: {{ .Values.bootstrap.registry.hostname }}
+{{- end }}
+{{- if or (eq .Values.bootstrap.install "recommended") (eq .Values.bootstrap.install "all") }}
+        crds:
+{{- range .Values.bootstrap.addons.crds }}
+{{- if has $.Values.bootstrap.install .install }}
+          {{ .name }}:
+            enabled: true
+{{- end }}
+{{- end }}
+        apps:
+{{- range .Values.bootstrap.addons.apps }}
+{{- if has $.Values.bootstrap.install .install }}
+          {{ .name }}:
+            enabled: true
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if .Values.bootstrap.domain }}
+        values:
+          traefik:
+            platform:
+              traefik:
+                ingress:
+                  enabled: true
+                  issuerRef:
+                    kind: ClusterIssuer
+                    name: platform-ingress-selfsigned-clusterissuer
+                  domains:
+                    - zone: {{ .Values.bootstrap.domain }}
+                      default: true
+{{- end }}

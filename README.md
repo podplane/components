@@ -47,7 +47,7 @@ After cluster creation, bootstrap Cilium, Flux CD and the platform chart
 against the current `kubectl` context:
 
 ```sh
-./bootstrap.sh
+./bootstrap/apply.sh
 ```
 
 This bootstraps six component layers in dependency order:
@@ -94,7 +94,7 @@ DOMAIN=default.localhost make recommended
 changes) into `~/.podplane/cache/deps/git/components.git` on the `local-dev` 
 branch. The Podplane local server exposes that cache to the VM over HTTPS. 
 `make recommended` reads `podplane local status --json` to discover the VM Git 
-URL, Flux `secretRef`, and CA certificate, then runs `bootstrap.sh` with the 
+URL, Flux `secretRef`, and CA certificate, then runs `bootstrap/apply.sh` with the 
 recommended component set.
 
 The local bootstrap targets are:
@@ -125,8 +125,9 @@ local development flow, including dependency caching and seed snapshot creation.
   `HelmRelease` resources for components and manages platform namespaces.
 - `charts/platform-rbac/` — Podplane platform RBAC and admission policies.
 - `charts/platform-trust/` — Podplane trust bundles and trust policy resources.
-- `bootstrap.sh` — the only custom shell code; brings the cluster from
-  bare to Flux-managed. Creates the `GitRepository` resource used by all Flux CD `HelmRelease` resources created.
+- `bootstrap/` — render-only bootstrap chart plus `apply.sh`; brings the
+  cluster from bare to Flux-managed. Creates the `GitRepository` resource used
+  by all Flux CD `HelmRelease` resources created.
 
 ## CRD Compatibility Policy
 

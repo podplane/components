@@ -7,7 +7,7 @@
 # For tag vX.Y.Z (or vX.Y.Z-rcN for pre-releases), this:
 #   1. Reads manifests/components.json as the checked-in development manifest.
 #   2. Renders components_X.Y.Z.json with components.version set to X.Y.Z
-#      and components.source.ref.semver set to ^X.Y.Z.
+#      and components.source.ref.semver set to X.Y.Z.
 #   3. Writes components_X.Y.Z_checksums.txt (sha512) covering release assets
 #      and signs it keyless with cosign, producing a self-contained bundle.
 #   4. Creates a GitHub Release and uploads the manifest, checksums, and bundle.

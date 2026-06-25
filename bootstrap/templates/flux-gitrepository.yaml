@@ -1,0 +1,27 @@
+{{/*
+Podplane <https://podplane.dev>
+Copyright The Podplane Authors
+SPDX-License-Identifier: Apache-2.0
+*/}}
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: podplane-components
+  namespace: platform-components
+spec:
+  interval: 10m
+  url: "{{ .Values.bootstrap.flux.git.url }}"
+{{- if .Values.bootstrap.flux.git.secretRefName }}
+  secretRef:
+    name: {{ .Values.bootstrap.flux.git.secretRefName }}
+{{- end }}
+  ref:
+{{- if .Values.bootstrap.flux.git.ref.branch }}
+    branch: "{{ .Values.bootstrap.flux.git.ref.branch }}"
+{{- else if .Values.bootstrap.flux.git.ref.tag }}
+    tag: "{{ .Values.bootstrap.flux.git.ref.tag }}"
+{{- else if .Values.bootstrap.flux.git.ref.commit }}
+    commit: "{{ .Values.bootstrap.flux.git.ref.commit }}"
+{{- else }}
+    semver: "{{ .Values.bootstrap.flux.git.ref.semver }}"
+{{- end }}
