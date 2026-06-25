@@ -103,7 +103,7 @@ release-manifest: ## Write dist/release/components_$${VERSION}.json from manifes
 	@test -n "$${VERSION:-}" || { echo "VERSION is required"; exit 1; }
 	@command -v jq >/dev/null 2>&1 || { echo "jq is required but not installed"; exit 1; }
 	@mkdir -p dist/release
-	@jq --arg version "$$VERSION" '.components.version = $$version | .components.source = {"url":"https://github.com/podplane/components.git","ref":{"semver":$$version}}' manifests/components.json > "dist/release/components_$${VERSION}.json"
+	@jq --arg version "$$VERSION" '.components.version = $$version | .components.source = {"url":"https://github.com/podplane/components.git","ref":{"tag":("v" + $$version)}}' manifests/components.json > "dist/release/components_$${VERSION}.json"
 	@jq . "dist/release/components_$${VERSION}.json" >/dev/null
 	@echo "wrote dist/release/components_$${VERSION}.json"
 
