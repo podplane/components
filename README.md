@@ -50,13 +50,14 @@ against the current `kubectl` context:
 ./bootstrap.sh
 ```
 
-This bootstraps five component layers in dependency order:
+This bootstraps six component layers in dependency order:
 
 1. `platform-cilium-crds` (in `platform-cluster`)
 2. `platform-cilium` (in `platform-cilium`) — nodes go `Ready` after this
-3. `platform-fluxcd-crds` (in `platform-cluster`)
-4. `platform-fluxcd` (in `platform-fluxcd`)
-5. `platform-components` (as a Flux `HelmRelease` in `platform-components`)
+3. `platform-coredns` (in `platform-coredns`)
+4. `platform-fluxcd-crds` (in `platform-cluster`)
+5. `platform-fluxcd` (in `platform-fluxcd`)
+6. `platform-components` (as a Flux `HelmRelease` in `platform-components`)
 
 From this point on, Flux reconciles `platform-components` and every other component
 from the `charts/platform-components` chart's values, fetched from this repo via a
@@ -74,35 +75,43 @@ Common environment variables to configure bootstrap:
 - `CLUSTER_ID=<id>` — cluster ID to set on the Podplane operator when using `PLATFORM_INSTALL=recommended` or `all` (default `default`).
 - `DOMAIN=<zone>` — configures the included Traefik ingress and `platform-certs` to that domain using the platform self-signed `ClusterIssuer`. Use this when bootstrapping a bare cluster with `PLATFORM_INSTALL=recommended` (or `all`) so the cluster comes up with a working default ingress without needing ACME credentials.
 - `REGISTRY_HOSTNAME=<host>` — pull component images via the given registry mirror.
-- `CILIUM_K8S_SERVICE_HOST=<host>` — override the Cilium Kubernetes API server hostname (typically needed for Kind).
 
 ## Local Testing
 
-We use [Kind](https://kind.sigs.k8s.io/) to test the configuration locally:
+Use the Podplane CLI local VM workflow to test components locally. Start a bare
+local VM from the CLI repository, then bootstrap this checkout into that VM:
 
 ```sh
-make kind-create     # create the local Kind cluster + switch kubectl context to it
-make bootstrap       # install the components from github.com/podplane/components
-make kind-delete     # tear down
+cd ../podplane
+go run . local start --components none --follow
+
+cd ../components
+make git-sync
+DOMAIN=default.localhost make recommended
 ```
 
-### Testing unpushed local chart changes
+`make git-sync` snapshots the current components repo checkout (including unstaged 
+changes) into `~/.podplane/cache/deps/git/components.git` on the `local-dev` 
+branch. The Podplane local server exposes that cache to the VM over HTTPS. 
+`make recommended` reads `podplane local status --json` to discover the VM Git 
+URL, Flux `secretRef`, and CA certificate, then runs `bootstrap.sh` with the 
+recommended component set.
 
-The above works fine if you've pushed changes to the [github.com/podplane/components](https://github.com/podplane/components) main branch.
+The local bootstrap targets are:
 
-But what if you want to test some changes before committing and pushing them?
+- `make minimal` for development and testing with only core components.
+- `make recommended` for generating a new Netsy snapshots for the seeds repo.
+- `make all` for testing all recommended and additional addons.
 
-The makefile contains different commands, which copies of all local changes into a temporary "shadow git" repository that's served by an in-cluster git server which Flux will use instead of github.com/podplane/components - to do this, use these commands instead:
+After bootstrap, run `make git-sync` again for manual updates, or 
+`make git-watch` to sync automatically on file changes:
 
 ```sh
-make dev-sync        # publish current local files to temp/kind-git/components.git
-make kind-create     # mounts temp/kind-git into the Kind node
-make dev-bootstrap   # deploys the Git daemon and points Flux at local-dev
-make kind-delete     # tear down
+make git-watch
 ```
 
-After bootstrap, run `make dev-sync` again for manual updates, or
-`make dev-watch` to sync automatically on file changes.
+See the Podplane CLI `docs/development.md` guide for the full cross-repository
+local development flow, including dependency caching and seed snapshot creation.
 
 ## Repository Layout
 

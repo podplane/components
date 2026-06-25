@@ -7,33 +7,31 @@ over.
 
 ## Commands
 
-- **Bootstrap a cluster**: `./bootstrap.sh` (or `make bootstrap`) — installs
+- **Bootstrap a cluster**: `./bootstrap.sh` — installs
   cilium, fluxcd and the platform-components chart in dependency order against the
   current `kubectl` context.
-- **Bootstrap Kind from local sources**: `make dev-sync`, `make kind-create`,
-  then `make dev-bootstrap` — snapshots the checkout into `temp/kind-git`,
-  mounts it into Kind, deploys the in-cluster Git daemon, and points Flux at
-  it instead of GitHub. Use `make dev-watch` to re-sync automatically on
+- **Bootstrap a local Podplane VM from local sources**: create a bare local VM
+  from the Podplane CLI repo with `podplane local start --components=none`,
+  then run `make git-sync` and one of `make minimal`, `make recommended`, or
+  `make all` from this repo. Use `make git-watch` to re-sync automatically on
   file changes.
 - **Lint all charts**: `make lint`.
 - **Template all charts (no install)**: `make render`.
 - **Validate vendored CRDs**: `make check-crds`.
 - **Update vendored CRDs**: `make update-crds` (or `make update-crds CHART=<name>`).
-- **Local Kind cluster**: `make kind-create` (also switches `kubectl` context
-  and mounts `temp/kind-git`), `make kind-delete`.
 
-Dependencies: `helm`, `kubectl`, `kind` (for local testing).
+Dependencies: `helm`, `kubectl`; `watchexec` is optional for `make git-watch`.
 
-Note: agents must NEVER run `./bootstrap.sh` or `make bootstrap` against a
-real cluster without explicit user approval.
+Note: agents must NEVER run `./bootstrap.sh`, `make minimal`, `make recommended`,
+or `make all` against a real cluster without explicit user approval.
 
 ## Architecture
 
-- **Bootstrap (custom code)**: [`bootstrap.sh`](./bootstrap.sh) installs four
+- **Bootstrap (custom code)**: [`bootstrap.sh`](./bootstrap.sh) installs five
   Helm releases in order with `helm upgrade --install --create-namespace
-  --wait` — `platform-cilium-crds`, `platform-cilium`, `platform-fluxcd-crds`,
-  `platform-fluxcd` — then `kubectl apply`s a `platform-components`
-  `Namespace`, a `GitRepository` pointing at this repo, and a Flux
+  --wait` — `platform-cilium-crds`, `platform-cilium`, `platform-coredns`,
+  `platform-fluxcd-crds`, `platform-fluxcd` — then `kubectl apply`s a
+  `platform-components` `Namespace`, a `GitRepository` pointing at this repo, and a Flux
   `HelmRelease` that installs the `platform-components` chart. From there
   Flux reconciles everything else.
 - **Platform components chart** ([`charts/platform-components`](./charts/platform-components)): the single source
@@ -89,5 +87,4 @@ real cluster without explicit user approval.
 ## Scope
 
 - The only officially supported Kubernetes distribution/platform/provider is Podplane.
-- Kind can also be used for local testing if Podplane local VMs are not an option.
 - Helm only. No plain manifests, no kustomize, and no other tools.

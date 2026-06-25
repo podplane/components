@@ -37,85 +37,6 @@ step() {
     echo "==> [$1/6] $2"
 }
 
-deploy_kind_git_server() {
-    kubectl apply -f - <<'YAML'
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: components-git
-  namespace: platform-fluxcd
-  labels:
-    app.kubernetes.io/name: components-git
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: components-git
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: components-git
-    spec:
-      containers:
-        - name: git-http
-          image: caddy:2-alpine
-          command:
-            - /bin/sh
-            - -ec
-          args:
-            - |
-              apk add --no-cache git-daemon fcgiwrap spawn-fcgi
-              git_http_backend=$(command -v git-http-backend || find /usr -path '*/git-http-backend' -type f | head -n1)
-              test -n "${git_http_backend}"
-              cat >/etc/caddy/Caddyfile <<'CADDY'
-              :80 {
-                reverse_proxy unix//run/fcgiwrap.sock {
-                  transport fastcgi {
-                    env SCRIPT_FILENAME __GIT_HTTP_BACKEND__
-                    env GIT_PROJECT_ROOT /git
-                    env GIT_HTTP_EXPORT_ALL 1
-                    env PATH_INFO {path}
-                    env QUERY_STRING {query}
-                    env REQUEST_METHOD {method}
-                    env CONTENT_TYPE {header.Content-Type}
-                    env CONTENT_LENGTH {header.Content-Length}
-                  }
-                }
-              }
-              CADDY
-              sed -i "s#__GIT_HTTP_BACKEND__#${git_http_backend}#" /etc/caddy/Caddyfile
-              spawn-fcgi -s /run/fcgiwrap.sock -M 766 /usr/bin/fcgiwrap
-              exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
-          ports:
-            - name: http
-              containerPort: 80
-          volumeMounts:
-            - name: git-repos
-              mountPath: /git
-              readOnly: true
-      volumes:
-        - name: git-repos
-          hostPath:
-            path: /podplane-components-kind-git
-            type: Directory
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: components-git
-  namespace: platform-fluxcd
-  labels:
-    app.kubernetes.io/name: components-git
-spec:
-  selector:
-    app.kubernetes.io/name: components-git
-  ports:
-    - name: http
-      port: 80
-      targetPort: http
-YAML
-}
-
 # Update chart dependencies so subcharts (cilium, coredns, flux2, etc.) are available.
 echo "==> [0/6] helm dependency update"
 helm dependency update "${REPO_DIR}/charts/cilium" >/dev/null
@@ -156,17 +77,6 @@ if [[ -n "${DOMAIN:-}" ]]; then
 YAML
 )
     platform_values+=$'\n'
-fi
-
-# Override the Cilium Kubernetes API server hostname config param, set when using kind
-if [[ -n "${CILIUM_K8S_SERVICE_HOST:-}" ]]; then
-    cilium_args+=(--set-string "cilium.k8sServiceHost=${CILIUM_K8S_SERVICE_HOST}")
-    # We also need to mirror the override into the platform-components values file,
-    # so when Flux takes over the cilium HelmRelease it doesn't re-render with the
-    # chart defaults
-    platform_values+="          cilium:"$'\n'
-    platform_values+="            cilium:"$'\n'
-    platform_values+="              k8sServiceHost: ${CILIUM_K8S_SERVICE_HOST}"$'\n'
 fi
 
 # Configure custom container registry/mirror
@@ -358,13 +268,6 @@ step 5 "Installing Flux source-controller + helm-controller (platform-fluxcd) --
 helm upgrade --install platform-fluxcd "${REPO_DIR}/charts/fluxcd" \
     --namespace platform-fluxcd --create-namespace --wait --skip-crds \
     "${fluxcd_args[@]}"
-
-if [[ -n "${KIND_LOCAL_GIT:-}" ]]; then
-    echo
-    echo "==> Installing Kind local Git server (into platform-fluxcd namespace) ..."
-    deploy_kind_git_server
-    kubectl rollout status deployment/components-git --namespace platform-fluxcd --timeout=60s
-fi
 
 step 6 "Installing platform components (platform-components) via Flux CD..."
 platform_manifest=$(mktemp)
