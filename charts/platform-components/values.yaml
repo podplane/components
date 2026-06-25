@@ -15,6 +15,15 @@ platform:
         enabled: false
         hostname: ""
 
+    clusterID: ""
+
+    # Secrets provider configuration passed to the Podplane operator.
+    # This mirrors the operator config shape and intentionally excludes
+    # credentials, tokens, private keys, and cluster-local default provider metadata.
+    secrets:
+      allowSyncToKubernetesSecrets: false
+      providers: {}
+
     # CRDs - shipped as separate Helm charts per Helm best practices.
     # `core: true` marks entries so that the Podplane CLI will refuse to uninstall them.
     crds:
@@ -31,6 +40,8 @@ platform:
       agent-sandbox-crds:
         enabled: false
       cert-manager-crds:
+        enabled: false
+      podplane-operator-crds:
         enabled: false
       trust-manager-crds:
         enabled: false
@@ -76,6 +87,13 @@ platform:
         enabled: false
         core: true
         namespace: platform-csi-aws-ebs
+      podplane-operator:
+        enabled: false
+        namespace: platform-podplane-operator
+        dependsOn:
+          - podplane-operator-crds
+          - cert-manager
+          - platform-certs
       secrets-store-csi-driver:
         enabled: false
         namespace: platform-secrets-store-csi-driver

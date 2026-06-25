@@ -1,0 +1,23 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+{{- if .Values.podplane.operator.apiService.enabled }}
+---
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
+metadata:
+  name: {{ .Values.podplane.operator.apiService.version }}.{{ .Values.podplane.operator.apiService.group }}
+  labels:
+{{ include "podplane-operator.labels" . | indent 4 }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ printf "%s/%s-serving-cert" .Release.Namespace (include "podplane-operator.namePrefix" .) | quote }}
+spec:
+  group: {{ .Values.podplane.operator.apiService.group }}
+  version: {{ .Values.podplane.operator.apiService.version }}
+  groupPriorityMinimum: 1000
+  versionPriority: 15
+  service:
+    name: {{ include "podplane-operator.namePrefix" . }}
+    namespace: {{ .Release.Namespace }}
+    port: 443
+{{- end }}

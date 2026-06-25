@@ -1,0 +1,23 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "podplane-operator.namePrefix" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "podplane-operator.labels" . | indent 4 }}
+spec:
+  type: ClusterIP
+  ipFamilyPolicy: PreferDualStack
+  ipFamilies:
+    - IPv4
+    - IPv6
+  ports:
+    - name: https
+      port: 443
+      targetPort: https
+  selector:
+{{ include "podplane-operator.selectorLabels" . | indent 4 }}

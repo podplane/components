@@ -70,7 +70,8 @@ kubectl get helmreleases -A
 
 Common environment variables to configure bootstrap:
 
-- `PLATFORM_INSTALL=minimal|recommended|all` — which platform-components install set to enable (default `minimal`). `recommended` adds Agent Sandbox, cert-manager, trust-manager, and Traefik atop minimal.
+- `PLATFORM_INSTALL=minimal|recommended|all` — which platform-components install set to enable (default `minimal`). `recommended` adds Agent Sandbox, cert-manager, trust-manager, Traefik, Podplane operator, Secrets Store CSI Driver, and the OpenBao Secrets Store CSI provider atop minimal.
+- `CLUSTER_ID=<id>` — cluster ID to set on the Podplane operator when using `PLATFORM_INSTALL=recommended` or `all` (default `default`).
 - `DOMAIN=<zone>` — configures the included Traefik ingress and `platform-certs` to that domain using the platform self-signed `ClusterIssuer`. Use this when bootstrapping a bare cluster with `PLATFORM_INSTALL=recommended` (or `all`) so the cluster comes up with a working default ingress without needing ACME credentials.
 - `REGISTRY_HOSTNAME=<host>` — pull component images via the given registry mirror.
 - `CILIUM_K8S_SERVICE_HOST=<host>` — override the Cilium Kubernetes API server hostname (typically needed for Kind).

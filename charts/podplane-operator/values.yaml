@@ -1,0 +1,52 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+podplane:
+  operator:
+    namePrefix: platform-podplane-operator
+    image:
+      repository: ghcr.io/podplane/operator
+      tag: "v0.2.0"
+      pullPolicy: IfNotPresent
+    serviceAccountName: platform-podplane-operator
+    securePort: 8443
+    config:
+      clusterID: ""
+      keyRotation: 6h
+      allowSyncToKubernetesSecrets: false
+      providers: {}
+    # Additional environment variables for the operator container. Useful for
+    # cloud/provider SDK configuration sourced from Kubernetes Secrets,
+    # but using volumes for mounting secrets instead is the recommended approach.
+    env: []
+    envFrom: []
+    # Additional volumes and mounts for the operator pod. For example, for
+    # OpenBao and Vault provider tokens, mount a Secret at
+    # /var/run/podplane/providers/<provider-name>/token.
+    extraVolumes: []
+    extraVolumeMounts: []
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    tls:
+      secretName: platform-podplane-operator-tls
+      issuerRef:
+        kind: ClusterIssuer
+        name: platform-service-certificate-clusterissuer
+    apiService:
+      enabled: true
+      group: secrets-api.podplane.dev
+      version: v1beta1
+    admissionPolicies:
+      secretProviderClassRestriction:
+        enabled: true
+        excludeNamespacesWithLabel:
+          enabled: false
+          key: secrets.podplane.dev/secretproviderclass-restriction-policy
+          value: bypass
+    rbac:
+      defaultRoles:
+        enabled: true
+        namePrefix: platform-podplane-secrets

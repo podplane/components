@@ -1,0 +1,94 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "podplane-operator.namePrefix" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "podplane-operator.labels" . | indent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+{{ include "podplane-operator.selectorLabels" . | indent 6 }}
+  template:
+    metadata:
+      labels:
+{{ include "podplane-operator.selectorLabels" . | indent 8 }}
+      annotations:
+        kubectl.kubernetes.io/default-container: operator
+    spec:
+      serviceAccountName: {{ include "podplane-operator.serviceAccountName" . }}
+      containers:
+        - name: operator
+          image: {{ printf "%s:%s" .Values.podplane.operator.image.repository .Values.podplane.operator.image.tag | quote }}
+          imagePullPolicy: {{ .Values.podplane.operator.image.pullPolicy }}
+          args:
+            - --config=/config/config.json
+            - --https-bind-address=:{{ .Values.podplane.operator.securePort }}
+            - --tls-cert-file=/tls/tls.crt
+            - --tls-private-key-file=/tls/tls.key
+          ports:
+            - name: https
+              containerPort: {{ .Values.podplane.operator.securePort }}
+{{- with .Values.podplane.operator.env }}
+          env:
+{{ toYaml . | indent 12 }}
+{{- end }}
+{{- with .Values.podplane.operator.envFrom }}
+          envFrom:
+{{ toYaml . | indent 12 }}
+{{- end }}
+          readinessProbe:
+            httpGet:
+              scheme: HTTPS
+              path: /readyz
+              port: https
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              scheme: HTTPS
+              path: /livez
+              port: https
+            periodSeconds: 10
+            failureThreshold: 6
+          volumeMounts:
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+            - name: config
+              mountPath: /config
+              readOnly: true
+{{- with .Values.podplane.operator.extraVolumeMounts }}
+{{ toYaml . | indent 12 }}
+{{- end }}
+          resources:
+{{ toYaml .Values.podplane.operator.resources | indent 12 }}
+      volumes:
+        - name: tls
+          secret:
+            secretName: {{ .Values.podplane.operator.tls.secretName }}
+        - name: config
+          configMap:
+            name: {{ include "podplane-operator.namePrefix" . }}-config
+{{- with .Values.podplane.operator.extraVolumes }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- with .Values.podplane.operator.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- with .Values.podplane.operator.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- with .Values.podplane.operator.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+{{- end }}

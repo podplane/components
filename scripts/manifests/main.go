@@ -43,6 +43,7 @@ var (
 		"agent-sandbox":                      {Addon: true},
 		"cert-manager":                       {Addon: true},
 		"platform-certs":                     {Addon: true},
+		"podplane-operator":                  {Addon: true},
 		"trust-manager":                      {Addon: true},
 		"platform-trust":                     {Addon: true},
 		"traefik":                            {Addon: true},
@@ -72,7 +73,20 @@ type manifest struct {
 
 type components struct {
 	Version string  `json:"version"`
+	Source  source  `json:"source"`
 	Images  []image `json:"images"`
+}
+
+type source struct {
+	URL string    `json:"url"`
+	Ref sourceRef `json:"ref"`
+}
+
+type sourceRef struct {
+	Branch string `json:"branch,omitempty"`
+	Tag    string `json:"tag,omitempty"`
+	Semver string `json:"semver,omitempty"`
+	Commit string `json:"commit,omitempty"`
 }
 
 type image struct {
@@ -166,7 +180,11 @@ func run() error {
 	if manifestVersion == "" {
 		manifestVersion = "dev"
 	}
-	body, err := json.MarshalIndent(manifest{Components: components{Version: manifestVersion, Images: images}}, "", "  ")
+	body, err := json.MarshalIndent(manifest{Components: components{
+		Version: manifestVersion,
+		Source:  componentsSource(manifestVersion),
+		Images:  images,
+	}}, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -179,6 +197,18 @@ func run() error {
 	}
 	fmt.Printf("wrote %s (%d images)\n", *outputPath, len(images))
 	return nil
+}
+
+// componentsSource returns the canonical Flux Git source for a manifest version.
+func componentsSource(version string) source {
+	ref := sourceRef{Branch: "main"}
+	if version != "" && version != "dev" {
+		ref = sourceRef{Semver: "^" + version}
+	}
+	return source{
+		URL: "https://github.com/podplane/components.git",
+		Ref: ref,
+	}
 }
 
 // resolveImage resolves a source image reference to one entry per supported

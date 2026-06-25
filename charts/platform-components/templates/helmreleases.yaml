@@ -76,6 +76,11 @@ aws-ebs-csi-driver:
     nodeDriverRegistrar:
       image:
         repository: {{ printf "%s/public.ecr.aws/csi-components/csi-node-driver-registrar" $hostname | quote }}
+{{- else if eq $name "podplane-operator" -}}
+podplane:
+  operator:
+    image:
+      repository: {{ printf "%s/ghcr.io/podplane/operator" $hostname | quote }}
 {{- else if eq $name "secrets-store-csi-driver" -}}
 secrets-store-csi-driver:
   linux:
@@ -93,7 +98,7 @@ secrets-store-csi-driver-provider-aws:
   image:
     repository: {{ printf "%s/public.ecr.aws/aws-secrets-manager/secrets-store-csi-driver-provider-aws" $hostname | quote }}
 {{- else if eq $name "secrets-store-csi-provider-gcp" -}}
-provider:
+gcp:
   image:
     repository: {{ printf "%s/us-docker.pkg.dev/secretmanager-csi/secrets-store-csi-driver-provider-gcp/plugin" $hostname | quote }}
   initImage:
@@ -142,10 +147,26 @@ trust-manager:
 {{- end -}}
 {{- end -}}
 
+{{- define "podplane.platform.baseValues" -}}
+{{- $name := .name -}}
+{{- if eq $name "podplane-operator" -}}
+podplane:
+  operator:
+    config:
+      clusterID: {{ required "platform.components.clusterID is required when podplane-operator is enabled" .clusterID | quote }}
+{{ toYaml (.config | default dict) | indent 6 }}
+{{- end -}}
+{{- end -}}
+
 {{- define "podplane.platform.values" -}}
 {{- $name := .name -}}
 {{- $values := .values -}}
 {{- $userValues := index $values $name | default dict -}}
+{{- $baseValues := dict -}}
+{{- $renderedBase := include "podplane.platform.baseValues" (dict "name" $name "clusterID" .clusterID "config" .config) -}}
+{{- if $renderedBase -}}
+{{- $baseValues = fromYaml $renderedBase | default dict -}}
+{{- end -}}
 {{- $mirrorValues := dict -}}
 {{- if and .mirrorEnabled .mirrorHostname -}}
 {{- $rendered := include "podplane.platform.mirrorValues" (dict "name" $name "hostname" .mirrorHostname) -}}
@@ -153,7 +174,7 @@ trust-manager:
 {{- $mirrorValues = fromYaml $rendered | default dict -}}
 {{- end -}}
 {{- end -}}
-{{- $merged := mergeOverwrite (deepCopy $mirrorValues) $userValues -}}
+{{- $merged := mergeOverwrite (deepCopy $baseValues) $mirrorValues $userValues -}}
 {{- if $merged }}
   values:
 {{ toYaml $merged | indent 4 }}
@@ -187,7 +208,7 @@ spec:
       namespace: platform-cluster
 {{- end }}
 {{- end }}
-{{ include "podplane.platform.values" (dict "name" $name "values" $values "mirrorEnabled" false "mirrorHostname" "") }}
+{{ include "podplane.platform.values" (dict "name" $name "values" $values "clusterID" ($components.clusterID | default "") "config" ($components.secrets | default dict) "mirrorEnabled" false "mirrorHostname" "") }}
 {{- end }}
 {{- end }}
 
@@ -233,6 +254,6 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
-{{ include "podplane.platform.values" (dict "name" $name "values" $values "mirrorEnabled" $mirrorEnabled "mirrorHostname" $mirrorHostname) }}
+{{ include "podplane.platform.values" (dict "name" $name "values" $values "clusterID" ($components.clusterID | default "") "config" ($components.secrets | default dict) "mirrorEnabled" $mirrorEnabled "mirrorHostname" $mirrorHostname) }}
 {{- end }}
 {{- end }}

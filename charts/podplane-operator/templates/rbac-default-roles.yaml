@@ -1,0 +1,51 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+{{- if .Values.podplane.operator.rbac.defaultRoles.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "podplane-operator.rbac.defaultRoles.namePrefix" . }}-publickey-view
+  labels:
+{{ include "podplane-operator.labels" . | indent 4 }}
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups: ["secrets-api.podplane.dev"]
+    resources: ["publickeys"]
+    resourceNames: ["latest"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "podplane-operator.rbac.defaultRoles.namePrefix" . }}-edit
+  labels:
+{{ include "podplane-operator.labels" . | indent 4 }}
+rules:
+  - apiGroups: ["secrets-api.podplane.dev"]
+    resources: ["publickeys"]
+    resourceNames: ["latest"]
+    verbs: ["get"]
+  - apiGroups: ["secrets-api.podplane.dev"]
+    resources: ["secretproviderkeyspaces"]
+    verbs: ["get", "update", "delete", "overwrite", "restore"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "podplane-operator.rbac.defaultRoles.namePrefix" . }}-admin
+  labels:
+{{ include "podplane-operator.labels" . | indent 4 }}
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups: ["secrets-api.podplane.dev"]
+    resources: ["publickeys"]
+    resourceNames: ["latest"]
+    verbs: ["get"]
+  - apiGroups: ["secrets-api.podplane.dev"]
+    resources: ["secretproviderkeyspaces"]
+    verbs: ["get", "update", "delete", "overwrite", "restore", "destroy"]
+{{- end }}

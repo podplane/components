@@ -1,34 +1,40 @@
 {
   "components": {
     "version": "dev",
+    "source": {
+      "url": "https://github.com/podplane/components.git",
+      "ref": {
+        "branch": "main"
+      }
+    },
     "images": [
       {
         "image": "docker.io/library/caddy:2",
-        "digest": "sha256:4679412ccd2114dca9f3017e2c460f76c9d8eb9e1850e72fb9ecda672e05c629",
-        "size": 23985139,
+        "digest": "sha256:98eb57d882ccd5213d1688764db10c1ca2c58a1ca3a6717a3411ad798f7a423a",
+        "size": 23916161,
         "platform": "linux/amd64",
-        "index": "sha256:cfeb0b281bc44a5a51fecde39e9e577c60d863c0b6196e6bbdf58fd00960887f"
+        "index": "sha256:1557580dffd3f309e30bd76b23a26aa3970d98bff11313cfa3a63b735ac8d04a"
       },
       {
         "image": "docker.io/library/caddy:2",
-        "digest": "sha256:ee97aec65dbdd1733fb12e719a392d2451fb06cc475f894ee45fb2e7d110db3e",
-        "size": 22793195,
+        "digest": "sha256:1172d4213087d3fc30bafc7ff2c2896180eb0c41ff7f75f315568fb36cabdcba",
+        "size": 22731608,
         "platform": "linux/arm64/v8",
-        "index": "sha256:cfeb0b281bc44a5a51fecde39e9e577c60d863c0b6196e6bbdf58fd00960887f"
+        "index": "sha256:1557580dffd3f309e30bd76b23a26aa3970d98bff11313cfa3a63b735ac8d04a"
       },
       {
         "image": "docker.io/library/golang:alpine",
-        "digest": "sha256:9169234cc43b396435c64e45538fe6d4ffa237e7f988b9ab32abdfa0c3141979",
-        "size": 71444298,
+        "digest": "sha256:0648ddfa35769070197ba1cdf22a16dc452caf9315e66b91791308a543baf229",
+        "size": 71378748,
         "platform": "linux/amd64",
-        "index": "sha256:7a3e50096189ad57c9f9f865e7e4aa8585ed1585248513dc5cda498e2f41812c"
+        "index": "sha256:3ad57304ad93bbec8548a0437ad9e06a455660655d9af011d58b993f6f615648"
       },
       {
         "image": "docker.io/library/golang:alpine",
-        "digest": "sha256:8a2c4b4fcc440d13bb95098763596ddcbff756342a0ea8df40dad60ed41efb4d",
-        "size": 68666441,
+        "digest": "sha256:5d9aa9fa75b776600e0972ac9d324bb260fdb403b8905202c7576d103a450361",
+        "size": 68601797,
         "platform": "linux/arm64/v8",
-        "index": "sha256:7a3e50096189ad57c9f9f865e7e4aa8585ed1585248513dc5cda498e2f41812c"
+        "index": "sha256:3ad57304ad93bbec8548a0437ad9e06a455660655d9af011d58b993f6f615648"
       },
       {
         "image": "ghcr.io/podplane/hello:latest",
@@ -361,6 +367,222 @@
         "size": 59131493,
         "platform": "linux/arm64",
         "index": "sha256:f2f6fd483b9a8b8c69f8ebe9f2277be23093a2b552b3578a6db15710d736bb0e"
+      },
+      {
+        "component": "podplane-operator",
+        "image": "ghcr.io/podplane/operator:v0.2.0",
+        "digest": "sha256:c34a3cea06caaa03c192ec26d05445f749fb3eed390cc371720e0e987d5ab7f2",
+        "size": 24327050,
+        "platform": "linux/amd64",
+        "index": "sha256:834d1e2d798c47c9b508d9c075dbab32e9444b56888f490b1e9ee11f4433393c",
+        "addon": true
+      },
+      {
+        "component": "podplane-operator",
+        "image": "ghcr.io/podplane/operator:v0.2.0",
+        "digest": "sha256:5146ef2342e2b698798acb062eec244f6d546f90b6ecfb60e3be6f35a05131b5",
+        "size": 24327025,
+        "platform": "linux/arm64",
+        "index": "sha256:834d1e2d798c47c9b508d9c075dbab32e9444b56888f490b1e9ee11f4433393c",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-driver",
+        "image": "registry.k8s.io/csi-secrets-store/driver:v1.6.0",
+        "digest": "sha256:6f9dcaa06df8603b07145326cedbd8eb1802308730450a2de873172fca71ab3e",
+        "size": 59162878,
+        "platform": "linux/amd64",
+        "index": "sha256:110344819630bfd41e0c6d3f215d325ad1a4d5d5b1d298f8af7d0edf4df64a4e",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-driver",
+        "image": "registry.k8s.io/csi-secrets-store/driver:v1.6.0",
+        "digest": "sha256:b004d789ad25ec82450d3a1a10b419d86aa6da00fac6aceba49a4e79c9f10e2c",
+        "size": 57900995,
+        "platform": "linux/arm64",
+        "index": "sha256:110344819630bfd41e0c6d3f215d325ad1a4d5d5b1d298f8af7d0edf4df64a4e",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-driver",
+        "image": "registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.16.0",
+        "digest": "sha256:aeecba5b171b50558bab359fdb8e28b9da185f666cef35cd87ac9784e51956c5",
+        "size": 14107192,
+        "platform": "linux/amd64",
+        "index": "sha256:ab482308a4921e28a6df09a16ab99a457e9af9641ff44fb1be1a690d07ce8b70",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-driver",
+        "image": "registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.16.0",
+        "digest": "sha256:108aadeb3bcdea7c60199f83ff53358bdcf42c365ed274b754baac2f81dd3883",
+        "size": 13064276,
+        "platform": "linux/arm64",
+        "index": "sha256:ab482308a4921e28a6df09a16ab99a457e9af9641ff44fb1be1a690d07ce8b70",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-driver",
+        "image": "registry.k8s.io/sig-storage/livenessprobe:v2.18.0",
+        "digest": "sha256:7fe80915b3cb9fb1d09dbd300a0682cafa8ab93947cd3ddc3e15a8250621bf24",
+        "size": 14219446,
+        "platform": "linux/amd64",
+        "index": "sha256:c4cc074199c045dd73ab85f28897e2a32f4d6f38ffdba4f3b13b8007ccbd3570",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-driver",
+        "image": "registry.k8s.io/sig-storage/livenessprobe:v2.18.0",
+        "digest": "sha256:857cc375c99c4e610df0b47c8935456ad6ef81cfbb4479dfe5edee837a34abe3",
+        "size": 13164909,
+        "platform": "linux/arm64",
+        "index": "sha256:c4cc074199c045dd73ab85f28897e2a32f4d6f38ffdba4f3b13b8007ccbd3570",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-aws",
+        "image": "public.ecr.aws/aws-secrets-manager/secrets-store-csi-driver-provider-aws:3.1.1",
+        "digest": "sha256:b141dc1d7b37e042e23ac5fe5512e50d0505c5824826f46b741e156df3892b56",
+        "size": 28925217,
+        "platform": "linux/amd64",
+        "index": "sha256:076848ab9b131eef31faeeddee68225c99a8298205501979b700e3a4b2b013c9",
+        "providers": [
+          "aws"
+        ],
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-aws",
+        "image": "public.ecr.aws/aws-secrets-manager/secrets-store-csi-driver-provider-aws:3.1.1",
+        "digest": "sha256:faac06035eefd1db325924d2b306943bb04e37fa27a3e72ebb26372d8f1e0e21",
+        "size": 26268546,
+        "platform": "linux/arm64",
+        "index": "sha256:076848ab9b131eef31faeeddee68225c99a8298205501979b700e3a4b2b013c9",
+        "providers": [
+          "aws"
+        ],
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-gcp",
+        "image": "docker.io/library/busybox:1.36",
+        "digest": "sha256:b7f3d86d6e84fc17718c48bcde1450807faa2d56704205c697b4bd5df7b9e29f",
+        "size": 2207471,
+        "platform": "linux/amd64",
+        "index": "sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662",
+        "providers": [
+          "gcp"
+        ],
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-gcp",
+        "image": "docker.io/library/busybox:1.36",
+        "digest": "sha256:bd44eb136a95dcc8dc58995e43abc40a413f2e8e3d4a2aae6bccbe94686acb05",
+        "size": 1897352,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662",
+        "providers": [
+          "gcp"
+        ],
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-gcp",
+        "image": "us-docker.pkg.dev/secretmanager-csi/secrets-store-csi-driver-provider-gcp/plugin@sha256:c87cfa3e8be097c0034f136fb56e37d76966430b69223c12d179398ea0584576",
+        "digest": "sha256:76217f31f082d5afe651e001b6097eccaadba09e1fa4204e792fb208a5632b44",
+        "size": 16407866,
+        "platform": "linux/amd64",
+        "index": "sha256:c87cfa3e8be097c0034f136fb56e37d76966430b69223c12d179398ea0584576",
+        "providers": [
+          "gcp"
+        ],
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-gcp",
+        "image": "us-docker.pkg.dev/secretmanager-csi/secrets-store-csi-driver-provider-gcp/plugin@sha256:c87cfa3e8be097c0034f136fb56e37d76966430b69223c12d179398ea0584576",
+        "digest": "sha256:64c43693af64a3132bd0572743a09e00feab7415e075205b24691528b0796944",
+        "size": 14684706,
+        "platform": "linux/arm64",
+        "index": "sha256:c87cfa3e8be097c0034f136fb56e37d76966430b69223c12d179398ea0584576",
+        "providers": [
+          "gcp"
+        ],
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-openbao",
+        "image": "quay.io/openbao/openbao-csi-provider:2.0.2",
+        "digest": "sha256:698a2f7d68b4206000d8180c189e0798f23c9e0d5f10a37407312690264fafd6",
+        "size": 17850839,
+        "platform": "linux/amd64",
+        "index": "sha256:3cb312e88c62c926caec03bf69497a16805a29daabb5ad2c7a236ab43bb241db",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-openbao",
+        "image": "quay.io/openbao/openbao-csi-provider:2.0.2",
+        "digest": "sha256:cb0eff68d59856f831de7800ca3451831b72baf83b1edbb506739ea24101f335",
+        "size": 16605314,
+        "platform": "linux/arm64",
+        "index": "sha256:3cb312e88c62c926caec03bf69497a16805a29daabb5ad2c7a236ab43bb241db",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-openbao",
+        "image": "quay.io/openbao/openbao:2.5.5",
+        "digest": "sha256:e59b4c73cfce6875363d25548222819433c6ce0af9c6d3ec9ede220e905723f9",
+        "size": 76857921,
+        "platform": "linux/amd64",
+        "index": "sha256:6150c4a6b62067db6141c8da7a6a6b5763f4f47c315343d0c848b40fecdfd452",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-openbao",
+        "image": "quay.io/openbao/openbao:2.5.5",
+        "digest": "sha256:272279302ac86a95368672c1a57ff3800d15a05e013dd53d038cc7552e43a62b",
+        "size": 71811204,
+        "platform": "linux/arm64",
+        "index": "sha256:6150c4a6b62067db6141c8da7a6a6b5763f4f47c315343d0c848b40fecdfd452",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-vault",
+        "image": "docker.io/hashicorp/vault-csi-provider:1.7.2",
+        "digest": "sha256:52ab988249dca0234bad0ef1bbab9752ddad49ba993bf3fff116476069ce36e6",
+        "size": 35465854,
+        "platform": "linux/amd64",
+        "index": "sha256:76540558b70ce8600780e1865a10aaf6e1b2059751ccdd03f5c93a4acf43fd85",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-vault",
+        "image": "docker.io/hashicorp/vault-csi-provider:1.7.2",
+        "digest": "sha256:7155edfd2003c3bc677d3f481305067439ecf374fcd0ea986b9f3ac41e9268a9",
+        "size": 33213817,
+        "platform": "linux/arm64",
+        "index": "sha256:76540558b70ce8600780e1865a10aaf6e1b2059751ccdd03f5c93a4acf43fd85",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-vault",
+        "image": "docker.io/hashicorp/vault:2.0.2",
+        "digest": "sha256:caaaf40018a66d8e3e65e043e3512debf726eb2170f7dce395c33335eebc8b83",
+        "size": 191699343,
+        "platform": "linux/amd64",
+        "index": "sha256:3fd53308acccd9e4e83fde3e6c6cf5b15e0f7fac1ff7510780b8b23f5e4c3de7",
+        "addon": true
+      },
+      {
+        "component": "secrets-store-csi-provider-vault",
+        "image": "docker.io/hashicorp/vault:2.0.2",
+        "digest": "sha256:78f1c39d7bf50bf3c91cd5678b3d77ef6f02ba5381f4291556caf8f0789562d4",
+        "size": 179031609,
+        "platform": "linux/arm64",
+        "index": "sha256:3fd53308acccd9e4e83fde3e6c6cf5b15e0f7fac1ff7510780b8b23f5e4c3de7",
+        "addon": true
       },
       {
         "component": "snapshot",

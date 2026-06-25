@@ -1,0 +1,58 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+{{- $policy := .Values.podplane.operator.admissionPolicies.secretProviderClassRestriction | default dict -}}
+{{- if ne false ($policy.enabled) }}
+{{- $exclude := $policy.excludeNamespacesWithLabel | default dict -}}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: {{ include "podplane-operator.spcRestrictionPolicyName" . }}
+  labels:
+{{ include "podplane-operator.labels" . | indent 4 }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  validations:
+    - expression: >
+        !has(object.spec.volumes) ||
+        object.spec.volumes.all(volume,
+          !has(volume.csi) ||
+          volume.csi.driver != 'secrets-store.csi.k8s.io' ||
+          (
+            has(object.spec.serviceAccountName) &&
+            object.spec.serviceAccountName != '' &&
+            has(volume.csi.volumeAttributes) &&
+            'secretProviderClass' in volume.csi.volumeAttributes &&
+            volume.csi.volumeAttributes['secretProviderClass'] == object.spec.serviceAccountName
+          )
+        )
+      message: "Secrets Store CSI volumes require an explicit pod serviceAccountName, and secretProviderClass must match it."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: {{ include "podplane-operator.spcRestrictionBindingName" . }}
+  labels:
+{{ include "podplane-operator.labels" . | indent 4 }}
+spec:
+  policyName: {{ include "podplane-operator.spcRestrictionPolicyName" . }}
+  validationActions: ["Deny", "Audit"]
+  matchResources:
+{{- if $exclude.enabled }}
+    namespaceSelector:
+      matchExpressions:
+        - key: {{ $exclude.key | default "secrets.podplane.dev/secretproviderclass-restriction-policy" | quote }}
+          operator: NotIn
+          values:
+            - {{ $exclude.value | default "bypass" | quote }}
+{{- else }}
+    namespaceSelector: {}
+{{- end }}
+{{- end }}
