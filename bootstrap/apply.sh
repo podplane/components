@@ -34,54 +34,32 @@ done
 
 step() {
     echo
-    echo "==> [$1/6] $2"
+    echo "==> [$1/9] $2"
 }
 
-set_bootstrap() {
-    bootstrap_args+=(--set-string "$1=$2")
-}
-
-set_bootstrap_if_present() {
+set_bootstrap_args() {
     if [[ -n "${2:-}" ]]; then
-        set_bootstrap "$1" "$2"
+        bootstrap_args+=(--set-string "$1=$2")
     fi
 }
 
-bootstrap_args=(--namespace platform-components)
-cilium_args=()
-coredns_args=()
-fluxcd_args=()
+RESOLVED_REGISTRY="${REGISTRY_HOSTNAME:+${REGISTRY_HOSTNAME}/}"
 
-set_bootstrap_if_present bootstrap.install "${PLATFORM_INSTALL:-}"
-set_bootstrap_if_present bootstrap.clusterID "${CLUSTER_ID:-}"
+bootstrap_args=(--namespace platform-components)
+set_bootstrap_args bootstrap.install "${PLATFORM_INSTALL:-}"
+set_bootstrap_args bootstrap.clusterID "${CLUSTER_ID:-}"
 # DOMAIN wires platform-components values so Traefik ingress uses a real
 # cluster domain. This matches what `podplane hooks netsy-seed` derives from
 # cluster.domains. With PLATFORM_INSTALL=recommended or all, it makes a bare
 # bootstrap usable without ACME credentials by using the platform self-signed
 # ClusterIssuer.
-set_bootstrap_if_present bootstrap.domain "${DOMAIN:-}"
-set_bootstrap_if_present bootstrap.flux.git.url "${PLATFORM_GIT_REPOSITORY_URL:-}"
-set_bootstrap_if_present bootstrap.flux.git.ref.branch "${PLATFORM_GIT_REPOSITORY_BRANCH:-}"
-set_bootstrap_if_present bootstrap.flux.git.ref.tag "${PLATFORM_GIT_REPOSITORY_TAG:-}"
-set_bootstrap_if_present bootstrap.flux.git.ref.commit "${PLATFORM_GIT_REPOSITORY_COMMIT:-}"
-set_bootstrap_if_present bootstrap.flux.git.ref.semver "${PLATFORM_GIT_REPOSITORY_SEMVER:-}"
-
-# Configure custom container registry/mirror.
-if [[ -n "${REGISTRY_HOSTNAME:-}" ]]; then
-    cilium_args+=(
-        --set-string "cilium.image.repository=${REGISTRY_HOSTNAME}/quay.io/cilium/cilium"
-        --set-string "cilium.operator.image.repository=${REGISTRY_HOSTNAME}/quay.io/cilium/operator"
-    )
-    coredns_args+=(
-        --set-string "coredns.image.repository=${REGISTRY_HOSTNAME}/docker.io/coredns/coredns"
-    )
-    fluxcd_args+=(
-        --set-string "flux2.sourceController.image=${REGISTRY_HOSTNAME}/ghcr.io/fluxcd/source-controller"
-        --set-string "flux2.helmController.image=${REGISTRY_HOSTNAME}/ghcr.io/fluxcd/helm-controller"
-        --set-string "flux2.cli.image=${REGISTRY_HOSTNAME}/ghcr.io/fluxcd/flux-cli"
-    )
-    set_bootstrap bootstrap.registry.hostname "${REGISTRY_HOSTNAME}"
-fi
+set_bootstrap_args bootstrap.domain "${DOMAIN:-}"
+set_bootstrap_args bootstrap.flux.git.url "${PLATFORM_GIT_REPOSITORY_URL:-}"
+set_bootstrap_args bootstrap.flux.git.ref.branch "${PLATFORM_GIT_REPOSITORY_BRANCH:-}"
+set_bootstrap_args bootstrap.flux.git.ref.tag "${PLATFORM_GIT_REPOSITORY_TAG:-}"
+set_bootstrap_args bootstrap.flux.git.ref.commit "${PLATFORM_GIT_REPOSITORY_COMMIT:-}"
+set_bootstrap_args bootstrap.flux.git.ref.semver "${PLATFORM_GIT_REPOSITORY_SEMVER:-}"
+set_bootstrap_args bootstrap.registry.hostname "${REGISTRY_HOSTNAME:-}"
 
 if [[ -n "${PLATFORM_GIT_CA_CERT_FILE:-}" ]]; then
     if [[ ! -f "${PLATFORM_GIT_CA_CERT_FILE}" ]]; then
@@ -92,48 +70,52 @@ if [[ -n "${PLATFORM_GIT_CA_CERT_FILE:-}" ]]; then
         PLATFORM_GIT_SECRET_REF_NAME="podplane-components-git"
     fi
     platform_git_ca_b64=$(base64 <"${PLATFORM_GIT_CA_CERT_FILE}" | tr -d '\n')
-    set_bootstrap bootstrap.flux.git.caCert "${platform_git_ca_b64}"
+    set_bootstrap_args bootstrap.flux.git.caCert "${platform_git_ca_b64}"
 fi
-set_bootstrap_if_present bootstrap.flux.git.secretRefName "${PLATFORM_GIT_SECRET_REF_NAME:-}"
+set_bootstrap_args bootstrap.flux.git.secretRefName "${PLATFORM_GIT_SECRET_REF_NAME:-}"
 
 platform_manifest=$(mktemp)
 trap 'rm -f "${platform_manifest}"' EXIT
 helm template podplane-components-bootstrap "${REPO_DIR}/bootstrap" "${bootstrap_args[@]}" >"${platform_manifest}"
 
-# Update chart dependencies so subcharts (cilium, coredns, flux2, etc.) are available.
-echo "==> [0/6] helm dependency update"
+step 1 "Updating Helm chart dependencies ..."
 helm dependency update "${REPO_DIR}/charts/cilium" >/dev/null
 helm dependency update "${REPO_DIR}/charts/coredns" >/dev/null
 helm dependency update "${REPO_DIR}/charts/fluxcd" >/dev/null
 
-step 1 "Installing cilium CRDs (platform-cluster) ..."
+step 2 "Installing cilium CRDs (platform-cluster) ..."
 helm upgrade --install platform-cilium-crds "${REPO_DIR}/charts/cilium-crds" \
     --namespace platform-cluster --create-namespace --wait
 
-step 2 "Installing cilium (platform-cilium) -- waiting for Nodes to go Ready ..."
+step 3 "Installing cilium (platform-cilium) -- waiting for Nodes to go Ready ..."
 helm upgrade --install platform-cilium "${REPO_DIR}/charts/cilium" \
     --namespace platform-cilium --create-namespace --wait --skip-crds \
-    "${cilium_args[@]}"
+    --set-string "cilium.image.repository=${RESOLVED_REGISTRY}quay.io/cilium/cilium" \
+    --set-string "cilium.operator.image.repository=${RESOLVED_REGISTRY}quay.io/cilium/operator"
 
-step 3 "Installing CoreDNS (platform-coredns) -- waiting for cluster DNS to be Ready ..."
+step 4 "Installing CoreDNS (platform-coredns) -- waiting for cluster DNS to be Ready ..."
 helm upgrade --install platform-coredns "${REPO_DIR}/charts/coredns" \
     --namespace platform-coredns --create-namespace --wait --skip-crds \
-    "${coredns_args[@]}"
+    --set-string "coredns.image.repository=${RESOLVED_REGISTRY}docker.io/coredns/coredns"
 
-step 4 "Installing Flux CRDs (platform-cluster) ..."
+step 5 "Installing Flux CRDs (platform-cluster) ..."
 helm upgrade --install platform-fluxcd-crds "${REPO_DIR}/charts/fluxcd-crds" \
     --namespace platform-cluster --create-namespace --wait
 
-step 5 "Installing Flux source-controller + helm-controller (platform-fluxcd) -- waiting for controllers to be Ready ..."
+step 6 "Installing Flux source-controller + helm-controller (platform-fluxcd) -- waiting for controllers to be Ready ..."
 helm upgrade --install platform-fluxcd "${REPO_DIR}/charts/fluxcd" \
     --namespace platform-fluxcd --create-namespace --wait --skip-crds \
-    "${fluxcd_args[@]}"
+    --set-string "flux2.sourceController.image=${RESOLVED_REGISTRY}ghcr.io/fluxcd/source-controller" \
+    --set-string "flux2.helmController.image=${RESOLVED_REGISTRY}ghcr.io/fluxcd/helm-controller" \
+    --set-string "flux2.cli.image=${RESOLVED_REGISTRY}ghcr.io/fluxcd/flux-cli"
 
-step 6 "Installing platform components (platform-components) via Flux CD..."
+step 7 "Installing platform components (platform-components) via Flux CD..."
 kubectl apply -f "${platform_manifest}"
-echo "==> Waiting for podplane-components GitRepository to become Ready..."
+
+step 8 "Waiting for podplane-components GitRepository to become Ready..."
 kubectl wait --for=condition=Ready gitrepository/podplane-components --namespace platform-components --timeout=120s
-echo "==> Waiting for platform-components HelmRelease to become Ready..."
+
+step 9 "Waiting for platform-components HelmRelease to become Ready..."
 if ! kubectl wait --for=condition=Ready helmrelease/platform-components --namespace platform-components --timeout=300s; then
     echo "Error: platform-components HelmRelease did not become Ready." >&2
     echo >&2
