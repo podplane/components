@@ -7,4 +7,4 @@ name: podplane-operator
 description: Podplane operator with SecretProviderBinding controller and aggregated secrets API
 type: application
 version: "1.0.0"
-appVersion: "0.2.1"
+appVersion: "0.2.2"

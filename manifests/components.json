@@ -370,20 +370,20 @@
       },
       {
         "component": "podplane-operator",
-        "image": "ghcr.io/podplane/operator:v0.2.1",
-        "digest": "sha256:37b6e00c5966f6969e36f7dbc02d99a9294140159651554848eef1fc4ca30bc0",
-        "size": 24327048,
+        "image": "ghcr.io/podplane/operator:v0.2.2",
+        "digest": "sha256:26612c6af6037ac23a03fa9d51cae93e48444d0e3dbabc8ceb56f3423e271ba4",
+        "size": 24326321,
         "platform": "linux/amd64",
-        "index": "sha256:41efecfee8dac391a565c0475ad1f30a18af0abd3ff0e3a99d4efacfab7d0771",
+        "index": "sha256:8096d7194c5989bbbc814d53024db11b8e219c5800aa21eea0c68c8d9ca337ac",
         "addon": true
       },
       {
         "component": "podplane-operator",
-        "image": "ghcr.io/podplane/operator:v0.2.1",
-        "digest": "sha256:c2030487f1746a4fa931808a3a5785d97499fff12c6056588c8bd1adb24e4249",
-        "size": 21785762,
+        "image": "ghcr.io/podplane/operator:v0.2.2",
+        "digest": "sha256:59f5f945eeb4295c05adb447aea41de742ef8fd93e53ac87e4f66010fc0f94b6",
+        "size": 21781757,
         "platform": "linux/arm64",
-        "index": "sha256:41efecfee8dac391a565c0475ad1f30a18af0abd3ff0e3a99d4efacfab7d0771",
+        "index": "sha256:8096d7194c5989bbbc814d53024db11b8e219c5800aa21eea0c68c8d9ca337ac",
         "addon": true
       },
       {
