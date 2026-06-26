@@ -26,6 +26,7 @@ spec:
   chart:
     spec:
       chart: ./charts/{{ $name }}
+      reconcileStrategy: Revision
       sourceRef:
         kind: GitRepository
         name: podplane-components
