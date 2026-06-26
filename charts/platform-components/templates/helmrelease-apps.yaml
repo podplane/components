@@ -1,0 +1,61 @@
+{{/*
+Podplane <https://podplane.dev>
+Copyright The Podplane Authors
+SPDX-License-Identifier: Apache-2.0
+
+Renders one Flux HelmRelease per enabled app chart.
+Each HelmRelease pulls its chart from the podplane-components GitRepository.
+*/}}
+{{- $components := .Values.platform.components -}}
+{{- $reconcileInterval := $components.reconcileInterval | default "10m" -}}
+{{- $values := $components.values | default dict -}}
+{{- $registry := $components.registry | default dict -}}
+{{- $mirror := $registry.mirror | default dict -}}
+{{- $mirrorEnabled := $mirror.enabled | default false -}}
+{{- $mirrorHostname := $mirror.hostname | default "" -}}
+{{- $sourceNs := .Release.Namespace -}}
+
+{{ range $name, $entry := $components.apps }}
+{{- if $entry.enabled }}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: {{ $name }}
+  namespace: {{ $entry.namespace }}
+spec:
+  interval: {{ $reconcileInterval }}
+  maxHistory: 3
+  releaseName: {{ include "podplane.platform.releaseName" $name }}
+  chart:
+    spec:
+      chart: ./charts/{{ $name }}
+      sourceRef:
+        kind: GitRepository
+        name: podplane-components
+        namespace: {{ $sourceNs }}
+  install:
+    crds: Skip
+    remediation:
+      retries: 10
+  upgrade:
+    crds: Skip
+    remediation:
+      retries: 3
+{{- with $entry.dependsOn }}
+  dependsOn:
+{{- range . }}
+    - name: {{ . }}
+{{- /* CRDs live in platform-cluster; apps live in their own namespace; default to source namespace if unknown */ -}}
+{{- $depCrd := index $components.crds . }}
+{{- $depApp := index $components.apps . }}
+{{- if $depCrd }}
+      namespace: platform-cluster
+{{- else if $depApp }}
+      namespace: {{ $depApp.namespace }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{ include "podplane.platform.values" (dict "name" $name "values" $values "clusterID" ($components.clusterID | default "") "config" ($components.secrets | default dict) "mirrorEnabled" $mirrorEnabled "mirrorHostname" $mirrorHostname) }}
+{{- end }}
+{{- end }}

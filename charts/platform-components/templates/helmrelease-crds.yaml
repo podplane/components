@@ -1,0 +1,42 @@
+{{/*
+Podplane <https://podplane.dev>
+Copyright The Podplane Authors
+SPDX-License-Identifier: Apache-2.0
+
+Renders one Flux HelmRelease per enabled CRD chart.
+Each HelmRelease pulls its chart from the podplane-components GitRepository.
+*/}}
+{{- $components := .Values.platform.components -}}
+{{- $reconcileInterval := $components.reconcileInterval | default "10m" -}}
+{{- $values := $components.values | default dict -}}
+{{- $sourceNs := .Release.Namespace -}}
+
+{{ range $name, $entry := $components.crds }}
+{{- if $entry.enabled }}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: {{ $name }}
+  namespace: platform-cluster
+spec:
+  interval: {{ $reconcileInterval }}
+  maxHistory: 3
+  releaseName: {{ include "podplane.platform.releaseName" $name }}
+  chart:
+    spec:
+      chart: ./charts/{{ $name }}
+      sourceRef:
+        kind: GitRepository
+        name: podplane-components
+        namespace: {{ $sourceNs }}
+{{- with $entry.dependsOn }}
+  dependsOn:
+{{- range . }}
+    - name: {{ . }}
+      namespace: platform-cluster
+{{- end }}
+{{- end }}
+{{ include "podplane.platform.values" (dict "name" $name "values" $values "clusterID" ($components.clusterID | default "") "config" ($components.secrets | default dict) "mirrorEnabled" false "mirrorHostname" "") }}
+{{- end }}
+{{- end }}
