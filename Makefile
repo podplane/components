@@ -120,6 +120,7 @@ all: ## Bootstrap all components using the local Podplane Git cache
 
 _local-bootstrap:
 	@test -f "$(PODPLANE_GIT_CACHE_DIR)/components.git/config" || { echo "Error: local components Git cache not found at $(PODPLANE_GIT_CACHE_DIR)/components.git. Run 'make git-sync' first." >&2; exit 1; }
+	@command -v podplane >/dev/null 2>&1 || { echo "Error: podplane is required." >&2; exit 1; }
 	@command -v jq >/dev/null 2>&1 || { echo "Error: jq is required." >&2; exit 1; }
 	@status_json="$$(podplane local status --json)"; \
 		local_server_running="$$(printf '%s' "$$status_json" | jq -r 'if .local_server.running then "true" else "" end')"; \

@@ -7,7 +7,7 @@ podplane:
     namePrefix: platform-podplane-operator
     image:
       repository: ghcr.io/podplane/operator
-      tag: "v0.2.2"
+      tag: "v0.2.3"
       pullPolicy: IfNotPresent
     serviceAccountName: platform-podplane-operator
     securePort: 8443
