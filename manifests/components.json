@@ -13,14 +13,14 @@
         "digest": "sha256:98eb57d882ccd5213d1688764db10c1ca2c58a1ca3a6717a3411ad798f7a423a",
         "size": 23916161,
         "platform": "linux/amd64",
-        "index": "sha256:1557580dffd3f309e30bd76b23a26aa3970d98bff11313cfa3a63b735ac8d04a"
+        "index": "sha256:af5fdcd76f2db5e4e974ee92f96ee8c0fc3edb55bd4ba5032547cbf3f65e486d"
       },
       {
         "image": "docker.io/library/caddy:2",
         "digest": "sha256:1172d4213087d3fc30bafc7ff2c2896180eb0c41ff7f75f315568fb36cabdcba",
         "size": 22731608,
         "platform": "linux/arm64/v8",
-        "index": "sha256:1557580dffd3f309e30bd76b23a26aa3970d98bff11313cfa3a63b735ac8d04a"
+        "index": "sha256:af5fdcd76f2db5e4e974ee92f96ee8c0fc3edb55bd4ba5032547cbf3f65e486d"
       },
       {
         "image": "docker.io/library/golang:alpine",
@@ -370,20 +370,20 @@
       },
       {
         "component": "podplane-operator",
-        "image": "ghcr.io/podplane/operator:v0.2.0",
-        "digest": "sha256:c34a3cea06caaa03c192ec26d05445f749fb3eed390cc371720e0e987d5ab7f2",
-        "size": 24327050,
+        "image": "ghcr.io/podplane/operator:v0.2.1",
+        "digest": "sha256:37b6e00c5966f6969e36f7dbc02d99a9294140159651554848eef1fc4ca30bc0",
+        "size": 24327048,
         "platform": "linux/amd64",
-        "index": "sha256:834d1e2d798c47c9b508d9c075dbab32e9444b56888f490b1e9ee11f4433393c",
+        "index": "sha256:41efecfee8dac391a565c0475ad1f30a18af0abd3ff0e3a99d4efacfab7d0771",
         "addon": true
       },
       {
         "component": "podplane-operator",
-        "image": "ghcr.io/podplane/operator:v0.2.0",
-        "digest": "sha256:5146ef2342e2b698798acb062eec244f6d546f90b6ecfb60e3be6f35a05131b5",
-        "size": 24327025,
+        "image": "ghcr.io/podplane/operator:v0.2.1",
+        "digest": "sha256:c2030487f1746a4fa931808a3a5785d97499fff12c6056588c8bd1adb24e4249",
+        "size": 21785762,
         "platform": "linux/arm64",
-        "index": "sha256:834d1e2d798c47c9b508d9c075dbab32e9444b56888f490b1e9ee11f4433393c",
+        "index": "sha256:41efecfee8dac391a565c0475ad1f30a18af0abd3ff0e3a99d4efacfab7d0771",
         "addon": true
       },
       {
