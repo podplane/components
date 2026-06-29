@@ -7,10 +7,10 @@ Renders one Flux HelmRelease per enabled app chart.
 Each HelmRelease pulls its chart from the podplane-components GitRepository.
 */}}
 {{- $components := .Values.platform.components -}}
-{{- $reconcileInterval := $components.reconcileInterval | default "10m" -}}
+{{- $helmRelease := $components.helmRelease | default dict -}}
+{{- $interval := $helmRelease.interval | default "10m" -}}
 {{- $values := $components.values | default dict -}}
-{{- $registry := $components.registry | default dict -}}
-{{- $mirror := $registry.mirror | default dict -}}
+{{- $mirror := $components.imageMirror | default dict -}}
 {{- $mirrorEnabled := $mirror.enabled | default false -}}
 {{- $mirrorHostname := $mirror.hostname | default "" -}}
 {{- $sourceNs := .Release.Namespace -}}
@@ -24,7 +24,7 @@ metadata:
   name: {{ $name }}
   namespace: {{ $entry.namespace }}
 spec:
-  interval: {{ $reconcileInterval }}
+  interval: {{ $interval }}
   maxHistory: 3
   releaseName: {{ include "podplane.platform.releaseName" $name }}
   chart:

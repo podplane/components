@@ -11,29 +11,29 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "reconcileInterval": {
-              "type": "string",
-              "minLength": 1
-            },
-            "registry": {
+            "helmRelease": {
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "mirror": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "properties": {
-                    "enabled": {
-                      "type": "boolean"
-                    },
-                    "hostname": {
-                      "type": "string"
-                    }
-                  },
-                  "required": ["enabled", "hostname"]
+                "interval": {
+                  "type": "string",
+                  "minLength": 1
                 }
               },
-              "required": ["mirror"]
+              "required": ["interval"]
+            },
+            "imageMirror": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "hostname": {
+                  "type": "string"
+                }
+              },
+              "required": ["enabled", "hostname"]
             },
             "crds": {
               "type": "object",
@@ -52,7 +52,7 @@
               "additionalProperties": true
             }
           },
-          "required": ["reconcileInterval", "registry", "crds", "apps", "values"]
+          "required": ["helmRelease", "imageMirror", "crds", "apps", "values"]
         }
       },
       "required": ["components"]

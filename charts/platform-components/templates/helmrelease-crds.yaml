@@ -7,7 +7,8 @@ Renders one Flux HelmRelease per enabled CRD chart.
 Each HelmRelease pulls its chart from the podplane-components GitRepository.
 */}}
 {{- $components := .Values.platform.components -}}
-{{- $reconcileInterval := $components.reconcileInterval | default "10m" -}}
+{{- $helmRelease := $components.helmRelease | default dict -}}
+{{- $interval := $helmRelease.interval | default "10m" -}}
 {{- $values := $components.values | default dict -}}
 {{- $sourceNs := .Release.Namespace -}}
 
@@ -20,7 +21,7 @@ metadata:
   name: {{ $name }}
   namespace: platform-cluster
 spec:
-  interval: {{ $reconcileInterval }}
+  interval: {{ $interval }}
   maxHistory: 3
   releaseName: {{ include "podplane.platform.releaseName" $name }}
   chart:

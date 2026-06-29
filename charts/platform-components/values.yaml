@@ -4,20 +4,17 @@
 ---
 platform:
   components:
-    # Default reconciliation interval for component HelmReleases.
-    reconcileInterval: 10m
+    # Defaults for component Flux HelmReleases rendered by this chart.
+    helmRelease:
+      interval: 10m
 
-    # Global image registry mirror settings used by platform-components when it
-    # renders component HelmRelease values. This is platform plumbing, not a
-    # component-specific configuration; component chart values belong
-    # under `platform.components.values.<component-name>` below.
-    registry:
-      # Component image mirror settings. When enabled, platform injects explicit
-      # chart values so component images are pulled from
-      # <hostname>/<original-registry>/<repository>.
-      mirror:
-        enabled: false
-        hostname: ""
+    # Component image mirror settings. When enabled, platform-components injects
+    # explicit chart values so component images are pulled from
+    # <hostname>/<original-registry>/<repository>. This is platform plumbing;
+    # component chart values belong under `platform.components.values.<component-name>`.
+    imageMirror:
+      enabled: false
+      hostname: ""
 
     # CRDs - shipped as separate Helm charts per Helm best practices.
     # `core: true` marks entries so that the Podplane CLI will refuse to uninstall them.

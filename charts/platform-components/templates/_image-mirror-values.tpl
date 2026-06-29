@@ -4,7 +4,7 @@ Copyright The Podplane Authors
 SPDX-License-Identifier: Apache-2.0
 
 When you deploy a Podplane cluster, you can enable a registry mirror for all component
-container images using this chart's `platform.components.registry.mirror` value. This
+container images using this chart's `platform.components.imageMirror` value. This
 rewrites all component image defaults without changing user-supplied values.
 
 Since each component chart uses a different Helm values structure for its container

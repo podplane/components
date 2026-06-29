@@ -23,10 +23,9 @@ spec:
     platform:
       components:
 {{- if .Values.bootstrap.registry.hostname }}
-        registry:
-          mirror:
-            enabled: true
-            hostname: {{ .Values.bootstrap.registry.hostname }}
+        imageMirror:
+          enabled: true
+          hostname: {{ .Values.bootstrap.registry.hostname }}
 {{- end }}
 {{- if or (eq .Values.bootstrap.install "recommended") (eq .Values.bootstrap.install "all") }}
         crds:
