@@ -1,6 +1,6 @@
-# Based on kubernetes-sigs/agent-sandbox/helm at v0.4.6.
-{{- if .Values.namespace.create }}
+# Based on kubernetes-sigs/agent-sandbox/helm at v0.5.0.
 ---
+{{- if .Values.namespace.create }}
 apiVersion: v1
 kind: Namespace
 metadata:

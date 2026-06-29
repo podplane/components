@@ -8,10 +8,14 @@ namespace:
 
 image:
   repository: registry.k8s.io/agent-sandbox/agent-sandbox-controller
-  tag: "v0.4.6"
+  tag: "v0.5.0"
   pullPolicy: IfNotPresent
 
 replicaCount: 1
+
+podAnnotations: {}
+
+podLabels: {}
 
 controller:
   leaderElect: true
@@ -25,3 +29,9 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+podSecurityContext: null
+
+containerSecurityContext: null
+
+webhookServiceName: agent-sandbox-webhook-service

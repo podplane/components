@@ -7,4 +7,4 @@ name: agent-sandbox-crds
 description: Agent Sandbox CRDs chart
 type: application
 version: "1.0.0"
-appVersion: "v0.4.6"
+appVersion: "v0.5.0"

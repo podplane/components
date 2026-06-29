@@ -7,7 +7,7 @@ name: agent-sandbox
 description: Podplane Agent Sandbox controller chart
 type: application
 version: "1.0.0"
-appVersion: "v0.4.6"
+appVersion: "v0.5.0"
 home: https://github.com/kubernetes-sigs/agent-sandbox
 sources:
   - https://github.com/kubernetes-sigs/agent-sandbox

@@ -52,20 +52,20 @@
       },
       {
         "component": "agent-sandbox",
-        "image": "registry.k8s.io/agent-sandbox/agent-sandbox-controller:v0.4.6",
-        "digest": "sha256:9a44ed3856f2f5c01d1d95dc3dae0ed3aa7f144108ed11c68bb3b3e00147f888",
-        "size": 15607884,
+        "image": "registry.k8s.io/agent-sandbox/agent-sandbox-controller:v0.5.0",
+        "digest": "sha256:c33439351fcb5e6b85fed69e9b81e7fa1a7d8d5fce1e311f6b4086ca6bcf3502",
+        "size": 15779996,
         "platform": "linux/amd64",
-        "index": "sha256:93c28f724f34845fcfbd58818959958fd877f9953698c920add3081f61a54429",
+        "index": "sha256:e99cac42f10cac69cab09a91e59f982c9d525b2933a5f5b7dfd52dae09340aa2",
         "addon": true
       },
       {
         "component": "agent-sandbox",
-        "image": "registry.k8s.io/agent-sandbox/agent-sandbox-controller:v0.4.6",
-        "digest": "sha256:94c168a06f1db32ac453a1be049cddee6c89969667cf1a20551fd265acc5bb0f",
-        "size": 13935025,
+        "image": "registry.k8s.io/agent-sandbox/agent-sandbox-controller:v0.5.0",
+        "digest": "sha256:236c28895bb77bca8ac9a6247f8f16323652fbfab470ebf0310e065ccbca413c",
+        "size": 14088501,
         "platform": "linux/arm64",
-        "index": "sha256:93c28f724f34845fcfbd58818959958fd877f9953698c920add3081f61a54429",
+        "index": "sha256:e99cac42f10cac69cab09a91e59f982c9d525b2933a5f5b7dfd52dae09340aa2",
         "addon": true
       },
       {

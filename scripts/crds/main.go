@@ -68,7 +68,7 @@ var charts = []crdChart{
 					return err
 				}
 			}
-			return nil
+			return excludeCRDVersions(ctx.OutDir, []string{"v1alpha1"}, []string{"conversion"})
 		},
 	},
 	{
@@ -564,6 +564,82 @@ func downloadFile(url, path string) error {
 		return err
 	}
 	return os.WriteFile(path, body, 0o644)
+}
+
+// excludeCRDVersions removes the named CRD versions from each CRD in dir.
+// If exactly one version remains, it also deletes the supplied keys from the
+// CRD spec; this is useful for removing conversion config that is only needed
+// while multiple versions are served.
+func excludeCRDVersions(dir string, excludedVersions, deleteSpecKeysWhenSingleVersion []string) error {
+	excluded := map[string]bool{}
+	for _, version := range excludedVersions {
+		excluded[version] = true
+	}
+
+	return filepath.WalkDir(dir, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".yaml") {
+			return nil
+		}
+
+		body, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		var doc map[string]any
+		if err := yaml.Unmarshal(body, &doc); err != nil {
+			return fmt.Errorf("parse %s: %w", path, err)
+		}
+		if doc["kind"] != "CustomResourceDefinition" {
+			return nil
+		}
+
+		spec, ok := doc["spec"].(map[string]any)
+		if !ok {
+			return fmt.Errorf("CRD in %s has no spec", path)
+		}
+		versions, ok := spec["versions"].([]any)
+		if !ok {
+			return fmt.Errorf("CRD in %s has no spec.versions", path)
+		}
+
+		kept := []any{}
+		for _, value := range versions {
+			crdVersion, ok := value.(map[string]any)
+			if !ok {
+				continue
+			}
+			versionName, _ := crdVersion["name"].(string)
+			if excluded[versionName] {
+				continue
+			}
+			kept = append(kept, crdVersion)
+		}
+		if len(kept) == 0 {
+			return fmt.Errorf("CRD in %s has no versions after excluding %s", path, strings.Join(excludedVersions, ", "))
+		}
+
+		spec["versions"] = kept
+		if len(kept) == 1 {
+			for _, key := range deleteSpecKeysWhenSingleVersion {
+				delete(spec, key)
+			}
+		}
+		var rendered bytes.Buffer
+		encoder := yaml.NewEncoder(&rendered)
+		encoder.SetIndent(2)
+		if err := encoder.Encode(doc); err != nil {
+			_ = encoder.Close()
+			return fmt.Errorf("marshal %s: %w", path, err)
+		}
+		if err := encoder.Close(); err != nil {
+			return fmt.Errorf("marshal %s: %w", path, err)
+		}
+		body = rendered.Bytes()
+		return os.WriteFile(path, append([]byte("---\n"), body...), 0o644)
+	})
 }
 
 func download(url string) ([]byte, error) {

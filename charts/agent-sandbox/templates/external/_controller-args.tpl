@@ -1,5 +1,5 @@
 {{/*
-Based on kubernetes-sigs/agent-sandbox/helm at v0.4.6.
+Based on kubernetes-sigs/agent-sandbox/helm at v0.5.0.
 */}}
 
 {{- define "agent-sandbox.controllerArgs" -}}
@@ -47,6 +47,12 @@ Based on kubernetes-sigs/agent-sandbox/helm at v0.4.6.
 {{- end }}
 {{- if .Values.controller.sandboxTemplateConcurrentWorkers }}
 - --sandbox-template-concurrent-workers={{ .Values.controller.sandboxTemplateConcurrentWorkers }}
+{{- end }}
+{{- if .Values.webhookServiceName }}
+- --webhook-service-name={{ .Values.webhookServiceName }}
+{{- end }}
+{{- if (include "agent-sandbox.namespace" .) }}
+- --webhook-namespace={{ include "agent-sandbox.namespace" . }}
 {{- end }}
 {{- range .Values.controller.extraArgs }}
 - {{ . | quote }}
