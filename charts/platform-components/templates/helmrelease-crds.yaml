@@ -38,6 +38,6 @@ spec:
       namespace: platform-cluster
 {{- end }}
 {{- end }}
-{{ include "podplane.platform.values" (dict "name" $name "values" $values "clusterID" ($components.clusterID | default "") "config" ($components.secrets | default dict) "mirrorEnabled" false "mirrorHostname" "") }}
+{{ include "podplane.platform.values" (dict "name" $name "values" $values "mirrorEnabled" false "mirrorHostname" "") }}
 {{- end }}
 {{- end }}

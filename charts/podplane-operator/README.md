@@ -6,29 +6,33 @@ separately in the `podplane-operator-crds` chart.
 
 ## Installation model
 
-Podplane normally installs this chart through `platform-components` by enabling:
+Podplane normally installs this chart through `platform-components` by enabling the app & CRD and setting values like so:
 
 ```yaml
 platform:
   components:
-    clusterID: dev-cluster
-    secrets:
-      allowSyncToKubernetesSecrets: false
-      providers:
-        openbao-local:
-          kind: openbao
-          keyPrefix: shared-secrets
-          address: https://bao.example
-          mountPath: secret
     crds:
       podplane-operator-crds:
         enabled: true
     apps:
       podplane-operator:
         enabled: true
+    values:
+      podplane-operator:
+        podplane:
+          operator:
+            config:
+              clusterID: dev-cluster
+              allowSyncToKubernetesSecrets: false
+              providers:
+                openbao-local:
+                  kind: openbao
+                  keyPrefix: shared-secrets
+                  address: https://bao.example
+                  mountPath: secret
 ```
 
-`platform.components.clusterID` is required when the operator is enabled.
+`podplane.operator.config.clusterID` is required.
 
 ## Runtime configuration
 
@@ -51,22 +55,25 @@ The chart renders a JSON config file and passes it to the operator with the real
 }
 ```
 
-When configured through `platform-components`, provider values use the same map
-shape as cluster config and the operator config, but Helm value keys use
-camelCase:
+When configured through `platform-components`, the values of the JSON config file are determined by this chart's values
+under `platform.components.values.podplane-operator`:
 
 ```yaml
 platform:
   components:
-    clusterID: dev-cluster
-    secrets:
-      allowSyncToKubernetesSecrets: false
-      providers:
-        openbao-local:
-          kind: openbao
-          keyPrefix: shared-secrets
-          address: https://bao.example
-          mountPath: secret
+    values:
+      podplane-operator:
+        podplane:
+          operator:
+            config:
+              clusterID: dev-cluster
+              allowSyncToKubernetesSecrets: false
+              providers:
+                openbao-local:
+                  kind: openbao
+                  keyPrefix: shared-secrets
+                  address: https://bao.example
+                  mountPath: secret
 ```
 
 Secret material must not be placed in the operator config. Use Kubernetes

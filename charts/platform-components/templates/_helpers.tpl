@@ -136,26 +136,10 @@ trust-manager:
 {{- end -}}
 {{- end -}}
 
-{{- define "podplane.platform.baseValues" -}}
-{{- $name := .name -}}
-{{- if eq $name "podplane-operator" -}}
-podplane:
-  operator:
-    config:
-      clusterID: {{ required "platform.components.clusterID is required when podplane-operator is enabled" .clusterID | quote }}
-{{ toYaml (.config | default dict) | indent 6 }}
-{{- end -}}
-{{- end -}}
-
 {{- define "podplane.platform.values" -}}
 {{- $name := .name -}}
 {{- $values := .values -}}
 {{- $userValues := index $values $name | default dict -}}
-{{- $baseValues := dict -}}
-{{- $renderedBase := include "podplane.platform.baseValues" (dict "name" $name "clusterID" .clusterID "config" .config) -}}
-{{- if $renderedBase -}}
-{{- $baseValues = fromYaml $renderedBase | default dict -}}
-{{- end -}}
 {{- $mirrorValues := dict -}}
 {{- if and .mirrorEnabled .mirrorHostname -}}
 {{- $rendered := include "podplane.platform.mirrorValues" (dict "name" $name "hostname" .mirrorHostname) -}}
@@ -163,7 +147,7 @@ podplane:
 {{- $mirrorValues = fromYaml $rendered | default dict -}}
 {{- end -}}
 {{- end -}}
-{{- $merged := mergeOverwrite (deepCopy $baseValues) $mirrorValues $userValues -}}
+{{- $merged := mergeOverwrite (deepCopy $mirrorValues) $userValues -}}
 {{- if $merged }}
   values:
 {{ toYaml $merged | indent 4 }}

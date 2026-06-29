@@ -58,13 +58,17 @@ deps: ## Fetch Helm chart dependencies for charts that declare them
 lint: deps ## Run helm lint on every chart
 	@for chart in $(CHARTS); do \
 		echo "==> $$chart"; \
-		helm lint $$chart || exit 1; \
+		extra_args=""; \
+		if [ "$$chart" = "charts/podplane-operator" ]; then extra_args="--set podplane.operator.config.clusterID=test-cluster"; fi; \
+		helm lint $$chart $$extra_args || exit 1; \
 	done
 
 render: deps ## Run helm template on every chart
 	@for chart in $(CHARTS); do \
 		echo "==> $$chart"; \
-		helm template $$chart >/dev/null || exit 1; \
+		extra_args=""; \
+		if [ "$$chart" = "charts/podplane-operator" ]; then extra_args="--set podplane.operator.config.clusterID=test-cluster"; fi; \
+		helm template $$chart $$extra_args >/dev/null || exit 1; \
 	done
 
 validate: render ## Alias for render
@@ -75,7 +79,9 @@ test: ## Run Go tests
 precommit: check ## Fast local pre-commit check: JSON fmt + helm lint (no network)
 	@command -v helm >/dev/null 2>&1 || { echo "helm is required but not installed"; exit 1; }
 	@for chart in $(CHARTS); do \
-		helm lint --quiet $$chart >/dev/null || { helm lint $$chart; exit 1; }; \
+		extra_args=""; \
+		if [ "$$chart" = "charts/podplane-operator" ]; then extra_args="--set podplane.operator.config.clusterID=test-cluster"; fi; \
+		helm lint --quiet $$chart $$extra_args >/dev/null || { helm lint $$chart $$extra_args; exit 1; }; \
 	done
 	@go vet ./...
 	@echo "precommit ok"

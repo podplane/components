@@ -57,6 +57,6 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
-{{ include "podplane.platform.values" (dict "name" $name "values" $values "clusterID" ($components.clusterID | default "") "config" ($components.secrets | default dict) "mirrorEnabled" $mirrorEnabled "mirrorHostname" $mirrorHostname) }}
+{{ include "podplane.platform.values" (dict "name" $name "values" $values "mirrorEnabled" $mirrorEnabled "mirrorHostname" $mirrorHostname) }}
 {{- end }}
 {{- end }}

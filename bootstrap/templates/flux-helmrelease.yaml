@@ -22,7 +22,6 @@ spec:
   values:
     platform:
       components:
-        clusterID: "{{ .Values.bootstrap.clusterID }}"
 {{- if .Values.bootstrap.registry.hostname }}
         registry:
           mirror:
@@ -45,8 +44,13 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
-{{- if .Values.bootstrap.domain }}
         values:
+          podplane-operator:
+            podplane:
+              operator:
+                config:
+                  clusterID: "{{ .Values.bootstrap.clusterID }}"
+{{- if .Values.bootstrap.domain }}
           traefik:
             platform:
               traefik:

@@ -43,6 +43,7 @@ app.kubernetes.io/component: operator
 
 {{- define "podplane-operator.configJSON" -}}
 {{- $valuesConfig := .Values.podplane.operator.config | default dict -}}
+{{- $_ := required "podplane.operator.config.clusterID is required" $valuesConfig.clusterID -}}
 {{- $config := dict
   "cluster_id" ""
   "key_rotation" "6h"

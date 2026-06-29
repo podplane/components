@@ -4,9 +4,25 @@ Podplane `components` is a collection of Helm charts for the components
 which run atop a bare Podplane Kubernetes cluster to deliver a
 Platform-as-a-Service (PaaS) experience. 
 
-The charts are reconciled in-cluster by
-[Flux CD](https://fluxcd.io/), driven by the [`charts/platform-components`](./charts/platform-components)
-chart's values.
+A "component" is a logical platform capability backed by one or more
+application Helm charts, and (optionally) sibling CRD Helm charts.
+
+The component Helm charts are reconciled in-cluster by
+[Flux CD](https://fluxcd.io/), and are managed via the
+[`charts/platform-components`](./charts/platform-components) chart.
+
+A bootstrap chart initialises a bare Kubernetes cluster with the minimal
+resources required for the cluster to self-manage via Flux CD reconciling the
+[`charts/platform-components`](./charts/platform-components) chart.
+From then on, `platform-components` is the entrypoint for selecting
+installed components and passing each component chart its values.
+
+The platform and bootstrap charts are kept intentionally simple:
+
+- `bootstrap` installs the minimum number of resources to have Flux CD and
+  the `platform-components` chart self-manage the cluster.
+- `platform-components` selects components, wires dependencies, and
+  passes chart values.
 
 ## Components
 

@@ -10,37 +10,6 @@
         "components": {
           "type": "object",
           "additionalProperties": false,
-          "allOf": [
-            {
-              "if": {
-                "properties": {
-                  "apps": {
-                    "properties": {
-                      "podplane-operator": {
-                        "properties": {
-                          "enabled": {
-                            "const": true
-                          }
-                        },
-                        "required": ["enabled"]
-                      }
-                    },
-                    "required": ["podplane-operator"]
-                  }
-                },
-                "required": ["apps"]
-              },
-              "then": {
-                "properties": {
-                  "clusterID": {
-                    "type": "string",
-                    "minLength": 1
-                  }
-                },
-                "required": ["clusterID"]
-              }
-            }
-          ],
           "properties": {
             "reconcileInterval": {
               "type": "string",
@@ -66,34 +35,6 @@
               },
               "required": ["mirror"]
             },
-            "clusterID": {
-              "type": "string"
-            },
-            "secrets": {
-              "type": "object",
-              "additionalProperties": true,
-              "properties": {
-                "allowSyncToKubernetesSecrets": {
-                  "type": "boolean"
-                },
-                "providers": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "additionalProperties": true,
-                    "properties": {
-                      "kind": {
-                        "type": "string",
-                        "enum": ["aws", "gcp", "vault", "openbao"]
-                      },
-                      "keyPrefix": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            },
             "crds": {
               "type": "object",
               "additionalProperties": {
@@ -111,7 +52,7 @@
               "additionalProperties": true
             }
           },
-          "required": ["reconcileInterval", "registry", "secrets", "crds", "apps", "values"]
+          "required": ["reconcileInterval", "registry", "crds", "apps", "values"]
         }
       },
       "required": ["components"]
