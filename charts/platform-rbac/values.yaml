@@ -5,6 +5,8 @@
 platform:
   rbac:
     admissionPolicies:
+      denyEditorShell:
+        enabled: true
       denyCiliumExec:
         enabled: true
       denyPrivileged:

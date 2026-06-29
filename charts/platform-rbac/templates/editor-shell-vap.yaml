@@ -1,0 +1,39 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+{{- if ne false (((((.Values.platform).rbac).admissionPolicies).denyEditorShell).enabled) }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: platform-deny-editor-shell-vap
+spec:
+  # Denies pod shell access for the `podplane:editors` group while allowing users
+  # who also belong to a higher-privilege operational/admin group to exec or attach.
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - operations: ["CONNECT"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods/exec", "pods/attach"]
+  validations:
+    - expression: >
+        !(request.userInfo.groups.exists(group, group == "podplane:editors")) ||
+        request.userInfo.groups.exists(group,
+          group == "podplane:admins" ||
+          group == "podplane:managers" ||
+          group == "podplane:operators" ||
+          group == "system:masters")
+      message: "Podplane editors are not permitted to use pod shell access."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: platform-deny-editor-shell-vapb
+spec:
+  policyName: platform-deny-editor-shell-vap
+  validationActions: ["Deny", "Audit"]
+  matchResources:
+    namespaceSelector: {}
+{{- end }}

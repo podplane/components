@@ -10,6 +10,7 @@ subjects:
   - kind: Group
     apiGroup: rbac.authorization.k8s.io
     name: podplane:managers
+# Cluster managers can administer namespaced workloads without full cluster-admin privileges.
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
