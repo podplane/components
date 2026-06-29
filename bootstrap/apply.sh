@@ -43,7 +43,13 @@ set_bootstrap_args() {
     fi
 }
 
-RESOLVED_REGISTRY="${REGISTRY_HOSTNAME:+${REGISTRY_HOSTNAME}/}"
+set_bootstrap_bool() {
+    if [[ -n "${2:-}" ]]; then
+        bootstrap_args+=(--set "$1=$2")
+    fi
+}
+
+RESOLVED_REGISTRY="${REGISTRY_HOSTNAME:+${REGISTRY_HOSTNAME}/mirror/}"
 
 bootstrap_args=(--namespace platform-components)
 set_bootstrap_args bootstrap.install "${PLATFORM_INSTALL:-}"
@@ -60,6 +66,19 @@ set_bootstrap_args bootstrap.flux.git.ref.tag "${PLATFORM_GIT_REPOSITORY_TAG:-}"
 set_bootstrap_args bootstrap.flux.git.ref.commit "${PLATFORM_GIT_REPOSITORY_COMMIT:-}"
 set_bootstrap_args bootstrap.flux.git.ref.semver "${PLATFORM_GIT_REPOSITORY_SEMVER:-}"
 set_bootstrap_args bootstrap.registry.hostname "${REGISTRY_HOSTNAME:-}"
+set_bootstrap_args bootstrap.registry.bucket "${REGISTRY_BUCKET:-}"
+set_bootstrap_args bootstrap.registry.region "${REGISTRY_REGION:-}"
+set_bootstrap_args bootstrap.registry.endpoint "${REGISTRY_ENDPOINT:-}"
+set_bootstrap_bool bootstrap.registry.forcePathStyle "${AWS_S3_USE_PATH_STYLE:-}"
+if [[ "${REGISTRY_ENDPOINT:-}" == http://* ]]; then
+    set_bootstrap_bool bootstrap.registry.secure false
+fi
+set_bootstrap_args bootstrap.registry.accessKeyID "${REGISTRY_ACCESS_KEY_ID:-}"
+set_bootstrap_args bootstrap.registry.secretAccessKey "${REGISTRY_SECRET_ACCESS_KEY:-}"
+set_bootstrap_args bootstrap.oidc.issuer "${OIDC_ISSUER:-}"
+set_bootstrap_args bootstrap.oidc.audience "${OIDC_AUDIENCE:-${CLUSTER_ID:-}}"
+set_bootstrap_args bootstrap.oidc.usernameClaim "${OIDC_USERNAME_CLAIM:-}"
+set_bootstrap_args bootstrap.oidc.groupsClaim "${OIDC_GROUPS_CLAIM:-}"
 
 if [[ -n "${PLATFORM_GIT_CA_CERT_FILE:-}" ]]; then
     if [[ ! -f "${PLATFORM_GIT_CA_CERT_FILE}" ]]; then

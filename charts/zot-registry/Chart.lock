@@ -1,0 +1,6 @@
+dependencies:
+- name: zot
+  repository: https://zotregistry.dev/helm-charts
+  version: 0.1.118
+digest: sha256:b9481e0137a7245c006d7a1a3a9034d8289ba4cc8bf36abe064956fbe74ebf8b
+generated: "2026-06-29T17:30:58.448623+10:00"

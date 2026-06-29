@@ -26,6 +26,7 @@ spec:
         imageMirror:
           enabled: true
           hostname: {{ .Values.bootstrap.registry.hostname }}
+          prefix: mirror
 {{- end }}
 {{- if or (eq .Values.bootstrap.install "recommended") (eq .Values.bootstrap.install "all") }}
         crds:
@@ -49,6 +50,23 @@ spec:
               operator:
                 config:
                   clusterID: "{{ .Values.bootstrap.clusterID }}"
+          zot-registry:
+            platform:
+              zotRegistry:
+                registryHostname: {{ .Values.bootstrap.registry.hostname | quote }}
+                storage:
+                  bucket: {{ .Values.bootstrap.registry.bucket | quote }}
+                  region: {{ .Values.bootstrap.registry.region | quote }}
+                  endpoint: {{ .Values.bootstrap.registry.endpoint | quote }}
+                  forcePathStyle: {{ .Values.bootstrap.registry.forcePathStyle }}
+                  secure: {{ .Values.bootstrap.registry.secure }}
+                  accessKeyID: {{ .Values.bootstrap.registry.accessKeyID | quote }}
+                  secretAccessKey: {{ .Values.bootstrap.registry.secretAccessKey | quote }}
+                oidc:
+                  issuer: {{ .Values.bootstrap.oidc.issuer | quote }}
+                  audience: {{ .Values.bootstrap.oidc.audience | default .Values.bootstrap.clusterID | quote }}
+                  usernameClaim: {{ .Values.bootstrap.oidc.usernameClaim | quote }}
+                  groupsClaim: {{ .Values.bootstrap.oidc.groupsClaim | quote }}
 {{- if .Values.bootstrap.domain }}
           traefik:
             platform:

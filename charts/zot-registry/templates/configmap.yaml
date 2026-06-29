@@ -1,0 +1,16 @@
+{{/*
+Podplane <https://podplane.dev>
+Copyright The Podplane Authors
+SPDX-License-Identifier: Apache-2.0
+*/}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zot-registry-config
+  labels:
+    app.kubernetes.io/name: zot-registry
+    app.kubernetes.io/managed-by: Helm
+data:
+  config.json: |-
+{{ include "podplane.zotRegistry.config" . | indent 4 }}

@@ -15,7 +15,7 @@ SPDX-License-Identifier: Apache-2.0
 {{- $userValues := index $values $name | default dict -}}
 {{- $mirrorValues := dict -}}
 {{- if and .mirrorEnabled .mirrorHostname -}}
-{{- $rendered := include "podplane.platform.imageMirrorValues" (dict "hostname" .mirrorHostname) -}}
+{{- $rendered := include "podplane.platform.imageMirrorValues" (dict "hostname" .mirrorHostname "prefix" .mirrorPrefix) -}}
 {{- if $rendered -}}
 {{- $allMirrorValues := fromYaml $rendered | default dict -}}
 {{- $mirrorValues = index $allMirrorValues $name | default dict -}}

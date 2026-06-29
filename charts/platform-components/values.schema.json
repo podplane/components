@@ -31,9 +31,12 @@
                 },
                 "hostname": {
                   "type": "string"
+                },
+                "prefix": {
+                  "type": "string"
                 }
               },
-              "required": ["enabled", "hostname"]
+              "required": ["enabled", "hostname", "prefix"]
             },
             "crds": {
               "type": "object",

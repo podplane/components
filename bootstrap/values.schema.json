@@ -23,9 +23,49 @@
           "properties": {
             "hostname": {
               "type": "string"
+            },
+            "bucket": {
+              "type": "string"
+            },
+            "region": {
+              "type": "string"
+            },
+            "endpoint": {
+              "type": "string"
+            },
+            "forcePathStyle": {
+              "type": "boolean"
+            },
+            "secure": {
+              "type": "boolean"
+            },
+            "accessKeyID": {
+              "type": "string"
+            },
+            "secretAccessKey": {
+              "type": "string"
             }
           },
-          "required": ["hostname"]
+          "required": ["hostname", "bucket", "region", "endpoint", "forcePathStyle", "secure", "accessKeyID", "secretAccessKey"]
+        },
+        "oidc": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "issuer": {
+              "type": "string"
+            },
+            "audience": {
+              "type": "string"
+            },
+            "usernameClaim": {
+              "type": "string"
+            },
+            "groupsClaim": {
+              "type": "string"
+            }
+          },
+          "required": ["issuer", "audience", "usernameClaim", "groupsClaim"]
         },
         "flux": {
           "type": "object",
@@ -92,7 +132,7 @@
           "required": ["crds", "apps"]
         }
       },
-      "required": ["install", "clusterID", "domain", "registry", "flux", "addons"]
+      "required": ["install", "clusterID", "domain", "registry", "oidc", "flux", "addons"]
     }
   },
   "required": ["bootstrap"],

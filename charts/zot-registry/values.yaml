@@ -1,0 +1,80 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+platform:
+  zotRegistry:
+    registryHostname: ""
+    logLevel: info
+    storage:
+      bucket: registry
+      region: local
+      endpoint: ""
+      rootDirectory: ""
+      forcePathStyle: false
+      secure: true
+      skipVerify: false
+      # Static credentials are only for local fake-S3 development. Production
+      # clusters should use workload identity via zot.serviceAccount.annotations.
+      accessKeyID: ""
+      secretAccessKey: ""
+    oidc:
+      issuer: ""
+      audience: ""
+      usernameClaim: email
+      groupsClaim: groups
+    accessControl:
+      repositories:
+        "**":
+          policies:
+            - groups:
+                - podplane:registry:admin
+                - podplane:admins
+                - system:masters
+              actions: [read, create, update, delete]
+            - groups:
+                - podplane:registry:edit
+                - podplane:editors
+                - podplane:operators
+              actions: [read]
+            - groups:
+                - podplane:registry:view
+                - podplane:viewers
+              actions: [read]
+          defaultPolicy: []
+        "apps/**":
+          policies:
+            - groups:
+                - podplane:registry:edit
+                - podplane:editors
+                - podplane:operators
+              actions: [create]
+          defaultPolicy: []
+
+# Upstream project-zot/zot chart values for the workload/service implementation
+zot:
+  fullnameOverride: zot-registry
+  service:
+    type: ClusterIP
+    port: 5000 # default
+  persistence: false # default
+  metrics:
+    enabled: false # default
+    serviceMonitor:
+      enabled: false # default
+  ingress:
+    enabled: false # default
+  httproute:
+    enabled: false # default
+  serviceHeadless:
+    enabled: false # default
+  mountConfig: false # default
+  extraVolumes:
+    - name: podplane-zot-config
+      configMap:
+        name: zot-registry-config
+  extraVolumeMounts:
+    - name: podplane-zot-config
+      mountPath: /etc/zot/config.json
+      subPath: config.json
+      readOnly: true

@@ -13,6 +13,8 @@ Each HelmRelease pulls its chart from the podplane-components GitRepository.
 {{- $mirror := $components.imageMirror | default dict -}}
 {{- $mirrorEnabled := $mirror.enabled | default false -}}
 {{- $mirrorHostname := $mirror.hostname | default "" -}}
+{{- $mirrorPrefix := "mirror" -}}
+{{- if hasKey $mirror "prefix" -}}{{- $mirrorPrefix = trimAll "/" $mirror.prefix -}}{{- end -}}
 {{- $sourceNs := .Release.Namespace -}}
 
 {{ range $name, $entry := $components.apps }}
@@ -57,6 +59,6 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
-{{ include "podplane.platform.values" (dict "name" $name "values" $values "mirrorEnabled" $mirrorEnabled "mirrorHostname" $mirrorHostname) }}
+{{ include "podplane.platform.values" (dict "name" $name "values" $values "mirrorEnabled" $mirrorEnabled "mirrorHostname" $mirrorHostname "mirrorPrefix" $mirrorPrefix) }}
 {{- end }}
 {{- end }}

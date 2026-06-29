@@ -10,11 +10,13 @@ platform:
 
     # Component image mirror settings. When enabled, platform-components injects
     # explicit chart values so component images are pulled from
-    # <hostname>/<original-registry>/<repository>. This is platform plumbing;
+    # <hostname>/<prefix>/<original-registry>/<repository>. This is platform plumbing;
     # component chart values belong under `platform.components.values.<component-name>`.
     imageMirror:
       enabled: false
       hostname: ""
+      # Trimmed of leading/trailing slashes. Empty means no prefix.
+      prefix: mirror
 
     # CRDs - shipped as separate Helm charts per Helm best practices.
     # `core: true` marks entries so that the Podplane CLI will refuse to uninstall them.
@@ -150,6 +152,11 @@ platform:
         namespace: platform-snapshot
         dependsOn:
           - snapshot-crds
+      zot-registry:
+        enabled: false
+        namespace: platform-zot-registry
+        dependsOn:
+          - platform-certs
 
     # Per-component values merged into each HelmRelease's `values:`.
     # Keys must match entries in `platform.components.{apps,crds}`. Component
