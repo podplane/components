@@ -16,7 +16,7 @@ SPDX-License-Identifier: Apache-2.0
   "distSpecVersion" "1.1.1"
   "storage" (dict
     "rootDirectory" "/var/lib/registry"
-    "dedupe" true
+    "dedupe" false
     "storageDriver" (dict
       "name" "s3"
       "bucket" ($storage.bucket | default "registry")
