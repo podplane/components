@@ -110,6 +110,10 @@ secrets-store-csi-provider-openbao:
       image:
         registry: {{ printf "%s/quay.io" $base | quote }}
         repository: openbao/openbao-csi-provider
+      agent:
+        image:
+          registry: {{ printf "%s/quay.io" $base | quote }}
+          repository: openbao/openbao
 fluxcd:
   flux2:
     cli:
