@@ -655,6 +655,22 @@
         "platform": "linux/arm64",
         "index": "sha256:f5b80f469b8c777881a35ad60590a10cd7686c2dc74011af13aac86aae3dfb0c",
         "addon": true
+      },
+      {
+        "component": "zot-registry",
+        "image": "ghcr.io/project-zot/zot:v2.1.18",
+        "digest": "sha256:34f18f783037f967dba10df02f9d4086c4d626f5643ef9f5e51e4a4547280a0b",
+        "size": 74148805,
+        "platform": "linux/amd64",
+        "index": "sha256:6f7bf2b8e43437c7c3a121bc80214845c85f27321e66f2ff4be6bf4220775fd7"
+      },
+      {
+        "component": "zot-registry",
+        "image": "ghcr.io/project-zot/zot:v2.1.18",
+        "digest": "sha256:96913b282b93ee7bc415555c14887e81ece9078631f3189c2e8c1fbb5f888af6",
+        "size": 67685366,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:6f7bf2b8e43437c7c3a121bc80214845c85f27321e66f2ff4be6bf4220775fd7"
       }
     ]
   }
