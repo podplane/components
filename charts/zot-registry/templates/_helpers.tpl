@@ -11,6 +11,12 @@ SPDX-License-Identifier: Apache-2.0
 
 {{- $secure := true -}}
 {{- if hasKey $storage "secure" -}}{{- $secure = $storage.secure -}}{{- end -}}
+{{- $region := $storage.region | default "local" -}}
+{{- if and (eq $region "local") (not $storage.endpoint) -}}
+{{- fail "platform.zotRegistry.storage.endpoint is required when platform.zotRegistry.storage.region is local" -}}
+{{- end -}}
+{{- $issuer := required "platform.zotRegistry.oidc.issuer is required" $oidc.issuer -}}
+{{- $audience := required "platform.zotRegistry.oidc.audience is required" $oidc.audience -}}
 
 {{- $config := dict
   "distSpecVersion" "1.1.1"
@@ -20,7 +26,7 @@ SPDX-License-Identifier: Apache-2.0
     "storageDriver" (dict
       "name" "s3"
       "bucket" ($storage.bucket | default "registry")
-      "region" ($storage.region | default "local")
+      "region" $region
       "forcepathstyle" ($storage.forcePathStyle | default false)
       "secure" $secure
       "skipverify" ($storage.skipVerify | default false)
@@ -32,6 +38,18 @@ SPDX-License-Identifier: Apache-2.0
     "readTimeout" "60s"
     "writeTimeout" "60s"
     "accessControl" ($registry.accessControl | default dict)
+    "auth" (dict "bearer" (dict
+      "realm" "zot"
+      "service" ($registry.registryHostname | default "zot-registry")
+      "oidc" (list (dict
+        "issuer" $issuer
+        "audiences" (list $audience)
+        "claimMapping" (dict
+          "username" (printf "claims.%s" ($oidc.usernameClaim | default "email"))
+          "groups" (printf "claims.%s" ($oidc.groupsClaim | default "groups"))
+        )
+      ))
+    ))
   )
   "log" (dict "level" ($registry.logLevel | default "info"))
 -}}
@@ -42,25 +60,6 @@ SPDX-License-Identifier: Apache-2.0
 {{- with $storage.rootDirectory }}{{- $_ := set $storageDriver "rootdirectory" . -}}{{- end -}}
 {{- with $storage.accessKeyID }}{{- $_ := set $storageDriver "accesskey" . -}}{{- end -}}
 {{- with $storage.secretAccessKey }}{{- $_ := set $storageDriver "secretkey" . -}}{{- end -}}
-
-{{/* Direct OIDC bearer-token validation, enabled once issuer/audience are known. */}}
-{{- $issuer := $oidc.issuer | default "" -}}
-{{- $audience := $oidc.audience | default $registry.registryHostname | default "" -}}
-{{- if and $issuer $audience -}}
-{{- $http := index $config "http" -}}
-{{- $_ := set $http "auth" (dict "bearer" (dict
-  "realm" "zot"
-  "service" ($registry.registryHostname | default "zot-registry")
-  "oidc" (list (dict
-    "issuer" $issuer
-    "audiences" (list $audience)
-    "claimMapping" (dict
-      "username" (printf "claims.%s" ($oidc.usernameClaim | default "email"))
-      "groups" (printf "claims.%s" ($oidc.groupsClaim | default "groups"))
-    )
-  ))
-)) -}}
-{{- end -}}
 
 {{- $config | toPrettyJson -}}
 {{- end -}}

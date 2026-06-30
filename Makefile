@@ -59,7 +59,8 @@ lint: deps ## Run helm lint on every chart
 	@for chart in $(CHARTS); do \
 		echo "==> $$chart"; \
 		extra_args=""; \
-		if [ "$$chart" = "charts/podplane-operator" ]; then extra_args="--set podplane.operator.config.cluster.id=test-cluster"; fi; \
+		values_file="tests/values/$$(basename $$chart).yaml"; \
+		if [ -f "$$values_file" ]; then extra_args="-f $$values_file"; fi; \
 		helm lint $$chart $$extra_args || exit 1; \
 	done
 
@@ -67,7 +68,8 @@ render: deps ## Run helm template on every chart
 	@for chart in $(CHARTS); do \
 		echo "==> $$chart"; \
 		extra_args=""; \
-		if [ "$$chart" = "charts/podplane-operator" ]; then extra_args="--set podplane.operator.config.cluster.id=test-cluster"; fi; \
+		values_file="tests/values/$$(basename $$chart).yaml"; \
+		if [ -f "$$values_file" ]; then extra_args="-f $$values_file"; fi; \
 		helm template $$chart $$extra_args >/dev/null || exit 1; \
 	done
 
@@ -80,7 +82,8 @@ precommit: check ## Fast local pre-commit check: JSON fmt + helm lint (no networ
 	@command -v helm >/dev/null 2>&1 || { echo "helm is required but not installed"; exit 1; }
 	@for chart in $(CHARTS); do \
 		extra_args=""; \
-		if [ "$$chart" = "charts/podplane-operator" ]; then extra_args="--set podplane.operator.config.cluster.id=test-cluster"; fi; \
+		values_file="tests/values/$$(basename $$chart).yaml"; \
+		if [ -f "$$values_file" ]; then extra_args="-f $$values_file"; fi; \
 		helm lint --quiet $$chart $$extra_args >/dev/null || { helm lint $$chart $$extra_args; exit 1; }; \
 	done
 	@go vet ./...
@@ -138,11 +141,33 @@ _local-bootstrap:
 		PLATFORM_GIT_REPOSITORY_BRANCH="$$(printf '%s' "$$status_json" | jq -r '.components.source.ref.branch // empty')"; \
 		PLATFORM_GIT_SECRET_REF_NAME="$$(printf '%s' "$$status_json" | jq -r '.components.source.secretRef.name // empty')"; \
 		PLATFORM_GIT_CA_CERT_FILE="$$(printf '%s' "$$status_json" | jq -r '.local_server.ca_cert_file // empty')"; \
+		CLUSTER_ID="$$(printf '%s' "$$status_json" | jq -r '.cluster_id // empty')"; \
+		LOCAL_VM_PROVIDER="$$(printf '%s' "$$status_json" | jq -r '.vm.provider // empty')"; \
+		LOCAL_SERVER_HTTP_PORT="$$(printf '%s' "$$status_json" | jq -r '.local_server.http_port // empty')"; \
+		LOCAL_SERVER_HTTPS_PORT="$$(printf '%s' "$$status_json" | jq -r '.local_server.https_port // empty')"; \
 		if [ -z "$$PLATFORM_GIT_REPOSITORY_URL" ] || [ -z "$$PLATFORM_GIT_REPOSITORY_BRANCH" ] || [ -z "$$PLATFORM_GIT_SECRET_REF_NAME" ] || [ -z "$$PLATFORM_GIT_CA_CERT_FILE" ]; then \
 			echo "Error: podplane local status --json did not return local Git URL, branch, secretRef, and CA file." >&2; \
 			exit 1; \
 		fi; \
+		if [ -z "$$CLUSTER_ID" ] || [ -z "$$LOCAL_VM_PROVIDER" ] || [ -z "$$LOCAL_SERVER_HTTP_PORT" ] || [ -z "$$LOCAL_SERVER_HTTPS_PORT" ]; then \
+			echo "Error: podplane local status --json did not return cluster ID, VM provider, and local server ports." >&2; \
+			exit 1; \
+		fi; \
+		case "$$LOCAL_VM_PROVIDER" in \
+			qemu) LOCAL_SERVER_HOST_FROM_VM=10.0.2.2 ;; \
+			*) echo "Error: unsupported local VM provider '$$LOCAL_VM_PROVIDER' for local components bootstrap." >&2; exit 1 ;; \
+		esac; \
+		: "$${OIDC_ISSUER:=https://oidc.localhost:$$LOCAL_SERVER_HTTPS_PORT/oidc}"; \
+		: "$${OIDC_AUDIENCE:=$$CLUSTER_ID}"; \
+		: "$${REGISTRY_HOSTNAME:=$$CLUSTER_ID-registry.local}"; \
+		: "$${REGISTRY_BUCKET:=registry}"; \
+		: "$${REGISTRY_REGION:=local}"; \
+		: "$${REGISTRY_ENDPOINT:=http://$$LOCAL_SERVER_HOST_FROM_VM:$$LOCAL_SERVER_HTTP_PORT/s3/cache}"; \
+		: "$${REGISTRY_ACCESS_KEY_ID:=test}"; \
+		: "$${REGISTRY_SECRET_ACCESS_KEY:=test}"; \
+		: "$${AWS_S3_USE_PATH_STYLE:=true}"; \
 		export PLATFORM_GIT_REPOSITORY_URL PLATFORM_GIT_REPOSITORY_BRANCH PLATFORM_GIT_SECRET_REF_NAME PLATFORM_GIT_CA_CERT_FILE; \
+		export CLUSTER_ID OIDC_ISSUER OIDC_AUDIENCE REGISTRY_HOSTNAME REGISTRY_BUCKET REGISTRY_REGION REGISTRY_ENDPOINT REGISTRY_ACCESS_KEY_ID REGISTRY_SECRET_ACCESS_KEY AWS_S3_USE_PATH_STYLE; \
 		DOMAIN="$${DOMAIN:-default.localhost}" PLATFORM_INSTALL=$(PLATFORM_INSTALL) ./bootstrap/apply.sh
 
 git-sync: ## Snapshot this checkout into the Podplane Git cache as components.git local-dev
