@@ -20,7 +20,7 @@ The namespace to deploy into.
 Common labels.
 */}}
 {{- define "agent-sandbox.labels" -}}
-helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | quote }}
+helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | quote }}
 app.kubernetes.io/name: {{ include "agent-sandbox.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
