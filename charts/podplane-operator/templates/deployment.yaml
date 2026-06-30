@@ -30,12 +30,21 @@ spec:
           imagePullPolicy: {{ .Values.podplane.operator.image.pullPolicy }}
           args:
             - --config=/config/config.json
-            - --https-bind-address=:{{ .Values.podplane.operator.securePort }}
-            - --tls-cert-file=/tls/tls.crt
-            - --tls-private-key-file=/tls/tls.key
+            - --aggregated-api-bind-address=:{{ .Values.podplane.operator.aggregatedApiService.securePort }}
+            - --aggregated-api-tls-cert-file=/tls/tls.crt
+            - --aggregated-api-tls-private-key-file=/tls/tls.key
+{{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}
+            - --registry-auth-bind-address=:{{ .Values.podplane.operator.registry.auth.securePort }}
+            - --registry-auth-tls-cert-file=/tls/tls.crt
+            - --registry-auth-tls-private-key-file=/tls/tls.key
+{{- end }}
           ports:
-            - name: https
-              containerPort: {{ .Values.podplane.operator.securePort }}
+            - name: aggregated-api
+              containerPort: {{ .Values.podplane.operator.aggregatedApiService.securePort }}
+{{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}
+            - name: registry-auth
+              containerPort: {{ .Values.podplane.operator.registry.auth.securePort }}
+{{- end }}
 {{- with .Values.podplane.operator.env }}
           env:
 {{ toYaml . | indent 12 }}
@@ -48,14 +57,14 @@ spec:
             httpGet:
               scheme: HTTPS
               path: /readyz
-              port: https
+              port: aggregated-api
             periodSeconds: 5
             failureThreshold: 6
           livenessProbe:
             httpGet:
               scheme: HTTPS
               path: /livez
-              port: https
+              port: aggregated-api
             periodSeconds: 10
             failureThreshold: 6
           volumeMounts:

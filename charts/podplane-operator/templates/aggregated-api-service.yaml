@@ -5,7 +5,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "podplane-operator.namePrefix" . }}
+  name: {{ include "podplane-operator.namePrefix" . }}-aggregated-api
   namespace: {{ .Release.Namespace }}
   labels:
 {{ include "podplane-operator.labels" . | indent 4 }}
@@ -16,8 +16,8 @@ spec:
     - IPv4
     - IPv6
   ports:
-    - name: https
+    - name: aggregated-api
       port: 443
-      targetPort: https
+      targetPort: aggregated-api
   selector:
 {{ include "podplane-operator.selectorLabels" . | indent 4 }}

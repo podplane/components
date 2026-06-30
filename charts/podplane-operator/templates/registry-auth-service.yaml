@@ -1,0 +1,25 @@
+{{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "podplane-operator.namePrefix" . }}-registry-auth
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "podplane-operator.labels" . | indent 4 }}
+spec:
+  type: ClusterIP
+  ipFamilyPolicy: PreferDualStack
+  ipFamilies:
+    - IPv4
+    - IPv6
+  ports:
+    - name: registry-auth
+      port: 443
+      targetPort: registry-auth
+  selector:
+{{ include "podplane-operator.selectorLabels" . | indent 4 }}
+{{- end }}

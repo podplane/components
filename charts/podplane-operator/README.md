@@ -22,17 +22,25 @@ platform:
         podplane:
           operator:
             config:
-              clusterID: dev-cluster
-              allowSyncToKubernetesSecrets: false
-              providers:
-                openbao-local:
-                  kind: openbao
-                  keyPrefix: shared-secrets
-                  address: https://bao.example
-                  mountPath: secret
+              cluster:
+                id: dev-cluster
+                oidc:
+                  issuerURL: https://oidc.example/dev-cluster
+                  clientID: dev-cluster
+              secrets:
+                allowSyncToKubernetesSecrets: false
+                providers:
+                  openbao-local:
+                    kind: openbao
+                    keyPrefix: shared-secrets
+                    address: https://bao.example
+                    mountPath: secret
+              registry:
+                auth:
+                  enabled: true
 ```
 
-`podplane.operator.config.clusterID` is required.
+`podplane.operator.config.cluster.id` is required.
 
 ## Runtime configuration
 
@@ -41,15 +49,30 @@ The chart renders a JSON config file and passes it to the operator with the real
 
 ```json
 {
-  "cluster_id": "dev-cluster",
-  "key_rotation": "6h",
-  "allow_sync_to_kubernetes_secrets": false,
-  "providers": {
-    "openbao-local": {
-      "kind": "openbao",
-      "key_prefix": "shared-secrets",
-      "address": "https://bao.example",
-      "mount_path": "secret"
+  "cluster": {
+    "id": "dev-cluster",
+    "oidc": {
+      "issuer_url": "https://oidc.example/dev-cluster",
+      "client_id": "dev-cluster",
+      "username_claim": "email",
+      "groups_claim": "groups"
+    }
+  },
+  "secrets": {
+    "key_rotation": "6h",
+    "allow_sync_to_kubernetes_secrets": false,
+    "providers": {
+      "openbao-local": {
+        "kind": "openbao",
+        "key_prefix": "shared-secrets",
+        "address": "https://bao.example",
+        "mount_path": "secret"
+      }
+    }
+  },
+  "registry": {
+    "auth": {
+      "enabled": true
     }
   }
 }
@@ -66,18 +89,36 @@ platform:
         podplane:
           operator:
             config:
-              clusterID: dev-cluster
-              allowSyncToKubernetesSecrets: false
-              providers:
-                openbao-local:
-                  kind: openbao
-                  keyPrefix: shared-secrets
-                  address: https://bao.example
-                  mountPath: secret
+              cluster:
+                id: dev-cluster
+                oidc:
+                  issuerURL: https://oidc.example/dev-cluster
+                  clientID: dev-cluster
+              secrets:
+                allowSyncToKubernetesSecrets: false
+                providers:
+                  openbao-local:
+                    kind: openbao
+                    keyPrefix: shared-secrets
+                    address: https://bao.example
+                    mountPath: secret
+              registry:
+                auth:
+                  enabled: true
 ```
 
 Secret material must not be placed in the operator config. Use Kubernetes
 Secrets, workload identity, IAM, or the provider's native credential mechanism.
+
+The chart passes scoped serving flags for each HTTPS endpoint:
+`--aggregated-api-*` for the aggregated Kubernetes API backend and
+`--registry-auth-*` for Docker registry token exchange. When
+`registry.auth.enabled` is true, the chart exposes a separate HTTPS registry auth
+Service. The auth service reuses the same service-DNS certificate as the
+aggregated API. The chart adds the `svc.cluster.local` SAN for the
+`registry-auth` Service and renders a Gateway `BackendTLSPolicy` that trusts
+`platform-selfsigned-ca-bundle`, matching the Podplane web template workload
+ingress pattern.
 
 ## Mounting provider credentials
 
@@ -143,11 +184,17 @@ Common values:
 | `podplane.operator.image.tag` | Operator image tag. |
 | `podplane.operator.image.pullPolicy` | Operator image pull policy. |
 | `podplane.operator.serviceAccountName` | ServiceAccount name used by the operator Deployment. |
-| `podplane.operator.securePort` | HTTPS container port for the aggregated APIService. |
-| `podplane.operator.config.clusterID` | Podplane cluster ID; required for real installs. |
-| `podplane.operator.config.keyRotation` | Operator public-key rotation interval. |
-| `podplane.operator.config.allowSyncToKubernetesSecrets` | Allows `syncToKubernetesSecrets` when namespaces opt in. |
-| `podplane.operator.config.providers` | Non-sensitive provider config map. Each provider may set `keyPrefix`; it defaults to `clusterID` when omitted. |
+| `podplane.operator.aggregatedApiService.securePort` | HTTPS container port for aggregated API backends. |
+| `podplane.operator.registry.auth.securePort` | HTTPS container port for Docker registry auth; the Service exposes port 443. |
+| `podplane.operator.registry.auth.backendTLSPolicy.enabled` | Renders Gateway backend TLS trust for the registry auth Service. |
+| `podplane.operator.registry.auth.backendTLSPolicy.caCertificateRef.name` | ConfigMap containing the CA bundle Traefik/Gateway trusts for registry auth backend TLS. |
+| `podplane.operator.config.cluster.id` | Podplane cluster ID; required for real installs. |
+| `podplane.operator.config.cluster.oidc.issuerURL` | Podplane OIDC issuer; required when registry auth is enabled. |
+| `podplane.operator.config.cluster.oidc.clientID` | Podplane OIDC audience/client ID; defaults to `cluster.id` in operator config. |
+| `podplane.operator.config.secrets.keyRotation` | Operator public-key rotation interval. |
+| `podplane.operator.config.secrets.allowSyncToKubernetesSecrets` | Allows `syncToKubernetesSecrets` when namespaces opt in. |
+| `podplane.operator.config.secrets.providers` | Non-sensitive provider config map. Each provider may set `keyPrefix`; it defaults to `cluster.id` when omitted. |
+| `podplane.operator.config.registry.auth.enabled` | Enables the HTTPS Docker registry auth endpoint. |
 | `podplane.operator.tls.secretName` | TLS Secret mounted by the operator Deployment. |
 | `podplane.operator.tls.issuerRef` | cert-manager issuer reference for the serving certificate. |
 | `podplane.operator.apiService.enabled` | Renders the Kubernetes APIService registration. |

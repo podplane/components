@@ -59,7 +59,7 @@ lint: deps ## Run helm lint on every chart
 	@for chart in $(CHARTS); do \
 		echo "==> $$chart"; \
 		extra_args=""; \
-		if [ "$$chart" = "charts/podplane-operator" ]; then extra_args="--set podplane.operator.config.clusterID=test-cluster"; fi; \
+		if [ "$$chart" = "charts/podplane-operator" ]; then extra_args="--set podplane.operator.config.cluster.id=test-cluster"; fi; \
 		helm lint $$chart $$extra_args || exit 1; \
 	done
 
@@ -67,7 +67,7 @@ render: deps ## Run helm template on every chart
 	@for chart in $(CHARTS); do \
 		echo "==> $$chart"; \
 		extra_args=""; \
-		if [ "$$chart" = "charts/podplane-operator" ]; then extra_args="--set podplane.operator.config.clusterID=test-cluster"; fi; \
+		if [ "$$chart" = "charts/podplane-operator" ]; then extra_args="--set podplane.operator.config.cluster.id=test-cluster"; fi; \
 		helm template $$chart $$extra_args >/dev/null || exit 1; \
 	done
 
@@ -80,7 +80,7 @@ precommit: check ## Fast local pre-commit check: JSON fmt + helm lint (no networ
 	@command -v helm >/dev/null 2>&1 || { echo "helm is required but not installed"; exit 1; }
 	@for chart in $(CHARTS); do \
 		extra_args=""; \
-		if [ "$$chart" = "charts/podplane-operator" ]; then extra_args="--set podplane.operator.config.clusterID=test-cluster"; fi; \
+		if [ "$$chart" = "charts/podplane-operator" ]; then extra_args="--set podplane.operator.config.cluster.id=test-cluster"; fi; \
 		helm lint --quiet $$chart $$extra_args >/dev/null || { helm lint $$chart $$extra_args; exit 1; }; \
 	done
 	@go vet ./...

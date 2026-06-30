@@ -283,7 +283,7 @@ func resolveImage(component, sourceImage string) ([]image, error) {
 func chartImages(chartPath string) ([]string, error) {
 	args := []string{"template", chartPath}
 	if filepath.Base(chartPath) == "podplane-operator" {
-		args = append(args, "--set", "podplane.operator.config.clusterID=test-cluster")
+		args = append(args, "--set", "podplane.operator.config.cluster.id=test-cluster")
 	}
 	rendered, err := commandOutput("helm", args...)
 	if err != nil {

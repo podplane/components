@@ -12,9 +12,16 @@ metadata:
 spec:
   secretName: {{ .Values.podplane.operator.tls.secretName }}
   dnsNames:
-    - {{ include "podplane-operator.namePrefix" . }}
-    - {{ include "podplane-operator.namePrefix" . }}.{{ .Release.Namespace }}
-    - {{ include "podplane-operator.namePrefix" . }}.{{ .Release.Namespace }}.svc
+    - {{ include "podplane-operator.namePrefix" . }}-aggregated-api
+    - {{ include "podplane-operator.namePrefix" . }}-aggregated-api.{{ .Release.Namespace }}
+    - {{ include "podplane-operator.namePrefix" . }}-aggregated-api.{{ .Release.Namespace }}.svc
+    - {{ include "podplane-operator.namePrefix" . }}-aggregated-api.{{ .Release.Namespace }}.svc.cluster.local
+{{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}
+    - {{ include "podplane-operator.namePrefix" . }}-registry-auth
+    - {{ include "podplane-operator.namePrefix" . }}-registry-auth.{{ .Release.Namespace }}
+    - {{ include "podplane-operator.namePrefix" . }}-registry-auth.{{ .Release.Namespace }}.svc
+    - {{ include "podplane-operator.namePrefix" . }}-registry-auth.{{ .Release.Namespace }}.svc.cluster.local
+{{- end }}
   issuerRef:
     kind: {{ .Values.podplane.operator.tls.issuerRef.kind }}
     name: {{ .Values.podplane.operator.tls.issuerRef.name }}

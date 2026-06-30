@@ -1,0 +1,24 @@
+{{- if and (eq (include "podplane-operator.registryAuth.enabled" .) "true") .Values.podplane.operator.registry.auth.backendTLSPolicy.enabled }}
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: {{ include "podplane-operator.namePrefix" . }}-registry-auth-tls
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "podplane-operator.labels" . | indent 4 }}
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: {{ include "podplane-operator.namePrefix" . }}-registry-auth
+  validation:
+    hostname: {{ printf "%s-registry-auth.%s.svc.cluster.local" (include "podplane-operator.namePrefix" .) .Release.Namespace | quote }}
+    caCertificateRefs:
+      - group: ""
+        name: {{ .Values.podplane.operator.registry.auth.backendTLSPolicy.caCertificateRef.name }}
+        kind: ConfigMap
+{{- end }}

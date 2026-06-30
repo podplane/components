@@ -17,7 +17,7 @@ spec:
   groupPriorityMinimum: 1000
   versionPriority: 15
   service:
-    name: {{ include "podplane-operator.namePrefix" . }}
+    name: {{ include "podplane-operator.namePrefix" . }}-aggregated-api
     namespace: {{ .Release.Namespace }}
     port: 443
 {{- end }}
