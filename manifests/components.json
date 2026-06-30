@@ -38,17 +38,17 @@
       },
       {
         "image": "ghcr.io/podplane/hello:latest",
-        "digest": "sha256:3ad1e1128a3ae69127dbe7cc2437262dfa0230368de2125f22e9940cf4986726",
-        "size": 3511400,
+        "digest": "sha256:0eb8dacbbcb38b1a83f465daad2654b7c07546d3c3ef095ccb7d4d2ffcc8c18e",
+        "size": 3512511,
         "platform": "linux/amd64",
-        "index": "sha256:285694288ffe8cf77989955a211420431dc1ff8f6d723316a6f59f0a2b7887ec"
+        "index": "sha256:9f64faa5f5f13ffe0b69fca59b828c5d7e5642b41b3f6cfe5976d7c72f12a2cf"
       },
       {
         "image": "ghcr.io/podplane/hello:latest",
-        "digest": "sha256:9cd80da7f6c928ebf7e8b87748aad1e0efad452988ffb0afa34972e1173bceb9",
-        "size": 3186331,
+        "digest": "sha256:ea88ff614d991ad4897f26b940e857b0b9302fb324ce7661b2b299b5cfdb82e0",
+        "size": 3187021,
         "platform": "linux/arm64",
-        "index": "sha256:285694288ffe8cf77989955a211420431dc1ff8f6d723316a6f59f0a2b7887ec"
+        "index": "sha256:9f64faa5f5f13ffe0b69fca59b828c5d7e5642b41b3f6cfe5976d7c72f12a2cf"
       },
       {
         "component": "agent-sandbox",
