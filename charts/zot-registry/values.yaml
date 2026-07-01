@@ -47,10 +47,15 @@ platform:
         "apps/**":
           policies:
             - groups:
+                - podplane:registry:admin
+                - podplane:admins
+                - system:masters
+              actions: [read, create, update, delete]
+            - groups:
                 - podplane:registry:edit
                 - podplane:editors
                 - podplane:operators
-              actions: [create]
+              actions: [read, create]
           defaultPolicy: []
 
 # Upstream project-zot/zot chart values for the workload/service implementation

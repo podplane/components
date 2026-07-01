@@ -35,6 +35,7 @@ SPDX-License-Identifier: Apache-2.0
   "http" (dict
     "address" "0.0.0.0"
     "port" "5000"
+    "compat" (list "docker2s2")
     "readTimeout" "60s"
     "writeTimeout" "60s"
     "accessControl" ($registry.accessControl | default dict)
