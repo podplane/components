@@ -53,6 +53,8 @@ SPDX-License-Identifier: Apache-2.0
   )
   "log" (dict "level" ($registry.logLevel | default "info"))
 -}}
+{{- with $oidc.certificateAuthority }}{{- $_ := set (index (index (index (index $config "http") "auth") "bearer") "oidc" | first) "certificateAuthority" . -}}{{- end -}}
+{{- with $oidc.certificateAuthorityFile }}{{- $_ := set (index (index (index (index $config "http") "auth") "bearer") "oidc" | first) "certificateAuthorityFile" . -}}{{- end -}}
 
 {{/* Zot's S3 driver accepts provider-specific settings as raw JSON keys. */}}
 {{- $storageDriver := index (index $config "storage") "storageDriver" -}}

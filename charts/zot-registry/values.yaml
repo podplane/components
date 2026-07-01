@@ -23,6 +23,8 @@ platform:
       audience: ""
       usernameClaim: email
       groupsClaim: groups
+      certificateAuthority: ""
+      certificateAuthorityFile: ""
     accessControl:
       repositories:
         "**":
