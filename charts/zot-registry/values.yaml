@@ -30,32 +30,48 @@ platform:
         "**":
           policies:
             - groups:
-                - podplane:registry:admin
-                - podplane:admins
                 - system:masters
-              actions: [read, create, update, delete]
-            - groups:
-                - podplane:registry:edit
+                - podplane:admins
                 - podplane:editors
                 - podplane:operators
-              actions: [read]
-            - groups:
-                - podplane:registry:view
                 - podplane:viewers
+                - podplane:registry:admin
+                - podplane:registry:edit
+                - podplane:registry:view
               actions: [read]
           defaultPolicy: []
         "apps/**":
           policies:
             - groups:
-                - podplane:registry:admin
-                - podplane:admins
                 - system:masters
+                - podplane:admins
+                - podplane:registry:admin
               actions: [read, create, update, delete]
             - groups:
-                - podplane:registry:edit
                 - podplane:editors
                 - podplane:operators
+                - podplane:registry:edit
               actions: [read, create]
+            - groups:
+                - podplane:viewers
+                - podplane:registry:view
+              actions: [read]
+          defaultPolicy: []
+        "mirror/**":
+          policies:
+            - groups:
+                - podplane:registry:mirror
+              actions: [read, create, update, delete]
+            - groups:
+                - system:masters
+                - podplane:admins
+                - podplane:editors
+                - podplane:operators
+                - podplane:viewers
+                - podplane:registry:admin
+                - podplane:registry:edit
+                - podplane:registry:view
+              actions: [read]
           defaultPolicy: []
 
 # Upstream project-zot/zot chart values for the workload/service implementation
