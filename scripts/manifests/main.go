@@ -281,9 +281,13 @@ func resolveImage(component, sourceImage string) ([]image, error) {
 
 // chartImages renders a chart and extracts normalized images from pod specs.
 func chartImages(chartPath string) ([]string, error) {
+	chartName := filepath.Base(chartPath)
 	args := []string{"template", chartPath}
-	if filepath.Base(chartPath) == "podplane-operator" {
-		args = append(args, "--set", "podplane.operator.config.cluster.id=test-cluster")
+	valuesPath := filepath.Join("tests", "values", chartName+".yaml")
+	if _, err := os.Stat(valuesPath); err == nil {
+		args = append(args, "-f", valuesPath)
+	} else if err != nil && !os.IsNotExist(err) {
+		return nil, fmt.Errorf("stat render values for %s: %w", chartPath, err)
 	}
 	rendered, err := commandOutput("helm", args...)
 	if err != nil {
