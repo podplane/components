@@ -1,0 +1,20 @@
+{{/*
+Podplane <https://podplane.dev>
+Copyright The Podplane Authors
+SPDX-License-Identifier: Apache-2.0
+
+Renders provider-specific CA bundles used by the Vault CSI provider.
+*/}}
+{{- $providers := .Values.podplane.secrets.providers | default dict -}}
+{{- range $name, $provider := $providers }}
+{{- with $provider.caCert }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "podplane.vaultProviderCACertConfigMapName" $name }}
+data:
+  ca.crt: |-
+{{ . | nindent 4 }}
+{{- end }}
+{{- end }}

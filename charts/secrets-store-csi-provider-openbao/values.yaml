@@ -18,3 +18,11 @@ openbao:
       providersDir: /etc/kubernetes/secrets-store-csi-providers
     agent:
       enabled: true
+
+podplane:
+  secrets:
+    # Provider entries can include caCert. The chart renders one ConfigMap per
+    # provider CA; callers also mount those ConfigMaps with openbao.csi.volumes
+    # and openbao.csi.volumeMounts so SecretProviderClasses can refer to them
+    # with baoCACertPath.
+    providers: {}
