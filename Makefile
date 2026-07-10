@@ -143,20 +143,23 @@ _local-bootstrap:
 		PLATFORM_GIT_CA_CERT_FILE="$$(printf '%s' "$$status_json" | jq -r '.local_server.ca_cert_file // empty')"; \
 		CLUSTER_ID="$$(printf '%s' "$$status_json" | jq -r '.cluster_id // empty')"; \
 		LOCAL_VM_PROVIDER="$$(printf '%s' "$$status_json" | jq -r '.vm.provider // empty')"; \
+		LOCAL_VM_NODE_IP="$$(printf '%s' "$$status_json" | jq -r '.vm.node_ip // empty')"; \
 		LOCAL_SERVER_HTTP_PORT="$$(printf '%s' "$$status_json" | jq -r '.local_server.http_port // empty')"; \
 		LOCAL_SERVER_HTTPS_PORT="$$(printf '%s' "$$status_json" | jq -r '.local_server.https_port // empty')"; \
 		if [ -z "$$PLATFORM_GIT_REPOSITORY_URL" ] || [ -z "$$PLATFORM_GIT_REPOSITORY_BRANCH" ] || [ -z "$$PLATFORM_GIT_SECRET_REF_NAME" ] || [ -z "$$PLATFORM_GIT_CA_CERT_FILE" ]; then \
 			echo "Error: podplane local status --json did not return local Git URL, branch, secretRef, and CA file." >&2; \
 			exit 1; \
 		fi; \
-		if [ -z "$$CLUSTER_ID" ] || [ -z "$$LOCAL_VM_PROVIDER" ] || [ -z "$$LOCAL_SERVER_HTTP_PORT" ] || [ -z "$$LOCAL_SERVER_HTTPS_PORT" ]; then \
-			echo "Error: podplane local status --json did not return cluster ID, VM provider, and local server ports." >&2; \
+		if [ -z "$$CLUSTER_ID" ] || [ -z "$$LOCAL_VM_PROVIDER" ] || [ -z "$$LOCAL_VM_NODE_IP" ] || [ -z "$$LOCAL_SERVER_HTTP_PORT" ] || [ -z "$$LOCAL_SERVER_HTTPS_PORT" ]; then \
+			echo "Error: podplane local status --json did not return cluster ID, VM provider, VM node IP, and local server ports." >&2; \
 			exit 1; \
 		fi; \
 		case "$$LOCAL_VM_PROVIDER" in \
 			qemu) LOCAL_SERVER_HOST_FROM_VM=10.0.2.2 ;; \
 			*) echo "Error: unsupported local VM provider '$$LOCAL_VM_PROVIDER' for local components bootstrap." >&2; exit 1 ;; \
 		esac; \
+		: "$${LOCAL_FAKEVAULT_ADDRESS:=https://$$LOCAL_VM_NODE_IP:19443/vault/$$CLUSTER_ID}"; \
+		: "$${LOCAL_FAKEVAULT_CA_CERT_FILE:=$$PLATFORM_GIT_CA_CERT_FILE}"; \
 		: "$${OIDC_ISSUER:=https://oidc.localhost:$$LOCAL_SERVER_HTTPS_PORT/oidc}"; \
 		: "$${OIDC_AUDIENCE:=$$CLUSTER_ID}"; \
 		: "$${REGISTRY_HOSTNAME:=$$CLUSTER_ID-registry.local}"; \
@@ -167,7 +170,7 @@ _local-bootstrap:
 		: "$${REGISTRY_SECRET_ACCESS_KEY:=test}"; \
 		: "$${AWS_S3_USE_PATH_STYLE:=true}"; \
 		export PLATFORM_GIT_REPOSITORY_URL PLATFORM_GIT_REPOSITORY_BRANCH PLATFORM_GIT_SECRET_REF_NAME PLATFORM_GIT_CA_CERT_FILE; \
-		export CLUSTER_ID OIDC_ISSUER OIDC_AUDIENCE REGISTRY_HOSTNAME REGISTRY_BUCKET REGISTRY_REGION REGISTRY_ENDPOINT REGISTRY_ACCESS_KEY_ID REGISTRY_SECRET_ACCESS_KEY AWS_S3_USE_PATH_STYLE; \
+		export CLUSTER_ID LOCAL_FAKEVAULT_ADDRESS LOCAL_FAKEVAULT_CA_CERT_FILE OIDC_ISSUER OIDC_AUDIENCE REGISTRY_HOSTNAME REGISTRY_BUCKET REGISTRY_REGION REGISTRY_ENDPOINT REGISTRY_ACCESS_KEY_ID REGISTRY_SECRET_ACCESS_KEY AWS_S3_USE_PATH_STYLE; \
 		DOMAIN="$${DOMAIN:-default.localhost}" PLATFORM_INSTALL=$(PLATFORM_INSTALL) ./bootstrap/apply.sh
 
 git-sync: ## Snapshot this checkout into the Podplane Git cache as components.git local-dev

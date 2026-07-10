@@ -26,6 +26,10 @@ bootstrap:
     audience: ""
     usernameClaim: email
     groupsClaim: groups
+  secrets:
+    localFakeVault:
+      address: ""
+      caCert: "" # Base64-encoded CA certificate PEM
   flux:
     git:
       url: https://github.com/podplane/components.git

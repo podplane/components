@@ -79,6 +79,16 @@ set_bootstrap_args bootstrap.oidc.issuer "${OIDC_ISSUER:-}"
 set_bootstrap_args bootstrap.oidc.audience "${OIDC_AUDIENCE:-${CLUSTER_ID:-}}"
 set_bootstrap_args bootstrap.oidc.usernameClaim "${OIDC_USERNAME_CLAIM:-}"
 set_bootstrap_args bootstrap.oidc.groupsClaim "${OIDC_GROUPS_CLAIM:-}"
+set_bootstrap_args bootstrap.secrets.localFakeVault.address "${LOCAL_FAKEVAULT_ADDRESS:-}"
+
+if [[ -n "${LOCAL_FAKEVAULT_CA_CERT_FILE:-}" ]]; then
+    if [[ ! -f "${LOCAL_FAKEVAULT_CA_CERT_FILE}" ]]; then
+        echo "Error: LOCAL_FAKEVAULT_CA_CERT_FILE does not exist: ${LOCAL_FAKEVAULT_CA_CERT_FILE}" >&2
+        exit 1
+    fi
+    local_fakevault_ca_b64=$(base64 <"${LOCAL_FAKEVAULT_CA_CERT_FILE}" | tr -d '\n')
+    set_bootstrap_args bootstrap.secrets.localFakeVault.caCert "${local_fakevault_ca_b64}"
+fi
 
 if [[ -n "${PLATFORM_GIT_CA_CERT_FILE:-}" ]]; then
     if [[ ! -f "${PLATFORM_GIT_CA_CERT_FILE}" ]]; then

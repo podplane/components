@@ -56,6 +56,27 @@ spec:
                       clientID: {{ .Values.bootstrap.oidc.audience | default .Values.bootstrap.clusterID | quote }}
                       usernameClaim: {{ .Values.bootstrap.oidc.usernameClaim | quote }}
                       groupsClaim: {{ .Values.bootstrap.oidc.groupsClaim | quote }}
+{{- if .Values.bootstrap.secrets.localFakeVault.address }}
+                  secrets:
+                    providers:
+                      local-fakevault:
+                        kind: openbao
+                        address: {{ .Values.bootstrap.secrets.localFakeVault.address | quote }}
+                        mountPath: secret
+{{- if .Values.bootstrap.secrets.localFakeVault.caCert }}
+                        caCert: {{ .Values.bootstrap.secrets.localFakeVault.caCert | b64dec | quote }}
+{{- end }}
+          secrets-store-csi-provider-openbao:
+            podplane:
+              secrets:
+                providers:
+                  local-fakevault:
+{{- if .Values.bootstrap.secrets.localFakeVault.caCert }}
+                    caCert: {{ .Values.bootstrap.secrets.localFakeVault.caCert | b64dec | quote }}
+{{- else }}
+                    caCert: ""
+{{- end }}
+{{- end }}
           zot-registry:
             platform:
               zotRegistry:

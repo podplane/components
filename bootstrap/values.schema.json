@@ -67,6 +67,27 @@
           },
           "required": ["issuer", "audience", "usernameClaim", "groupsClaim"]
         },
+        "secrets": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "localFakeVault": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "address": {
+                  "type": "string"
+                },
+                "caCert": {
+                  "type": "string",
+                  "description": "Base64-encoded CA certificate PEM"
+                }
+              },
+              "required": ["address", "caCert"]
+            }
+          },
+          "required": ["localFakeVault"]
+        },
         "flux": {
           "type": "object",
           "additionalProperties": false,
