@@ -7,7 +7,7 @@ podplane:
     namePrefix: platform-podplane-operator
     image:
       repository: ghcr.io/podplane/operator
-      tag: "v0.4.2"
+      tag: "v0.4.3"
       pullPolicy: IfNotPresent
     serviceAccountName: platform-podplane-operator
     registry:
