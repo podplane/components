@@ -95,6 +95,13 @@ spec:
                   usernameClaim: {{ .Values.bootstrap.oidc.usernameClaim | quote }}
                   groupsClaim: {{ .Values.bootstrap.oidc.groupsClaim | quote }}
 {{- if .Values.bootstrap.domain }}
+          platform-certs:
+            platform:
+              certs:
+                ingress:
+                  dnsNames:
+                    - {{ .Values.bootstrap.domain | quote }}
+                    - {{ printf "*.%s" .Values.bootstrap.domain | quote }}
           traefik:
             platform:
               traefik:
