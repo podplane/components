@@ -60,6 +60,21 @@
                       },
                       "default": {
                         "type": "boolean"
+                      },
+                      "issuerRef": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": ["kind", "name"]
                       }
                     },
                     "required": ["zone"]

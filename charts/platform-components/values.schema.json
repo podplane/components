@@ -77,6 +77,12 @@
         "manageNamespace": {
           "type": "boolean"
         },
+        "namespaceAnnotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "core": {
           "type": "boolean",
           "description": "When true, the Podplane CLI treats this component as core and will refuse to uninstall it."

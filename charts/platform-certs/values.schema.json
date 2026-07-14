@@ -105,9 +105,16 @@
                     }
                   },
                   "required": ["issuerName"]
+                },
+                "dnsNames": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
                 }
               },
-              "required": ["acme", "selfsigned"]
+              "required": ["acme", "selfsigned", "dnsNames"]
             },
             "secretSync": {
               "type": "object",

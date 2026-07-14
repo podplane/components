@@ -5,6 +5,7 @@
 {{- $ingress := .Values.platform.traefik.ingress -}}
 {{- range $ingress.domains }}
 {{- $zone := include "podplane.traefik.domainName" . }}
+{{- $issuerRef := default $ingress.issuerRef .issuerRef }}
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -17,8 +18,8 @@ spec:
     size: 256
     rotationPolicy: Always
   issuerRef:
-    kind: {{ $ingress.issuerRef.kind }}
-    name: {{ $ingress.issuerRef.name }}
+    kind: {{ $issuerRef.kind }}
+    name: {{ $issuerRef.name }}
   dnsNames:
     - {{ $zone | quote }}
     - {{ printf "*.%s" $zone | quote }}

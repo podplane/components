@@ -17,11 +17,13 @@ spec:
         - "platform-traefik"
   allowed:
     # Deny commonName - must not be present
-    # Platform Traefik owns ingress TLS termination; allow any DNS name from
-    # this namespace while keeping CA and client certificate issuance blocked.
+    # Platform Traefik owns ingress TLS termination. Permit only the configured
+    # apex and wildcard names from its namespace.
     dnsNames:
       required: true
-      values: ["*"]
+      validations:
+        - rule: {{ printf "self in %s" (toJson .Values.platform.certs.ingress.dnsNames) | quote }}
+          message: "DNS SAN must be one of the configured ingress names"
     # Restrict to server auth only
     usages:
       - "digital signature"

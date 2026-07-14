@@ -42,6 +42,9 @@ metadata:
   name: {{ $app.namespace }}
   annotations:
     helm.sh/resource-policy: keep
+{{- with $app.namespaceAnnotations }}
+{{ toYaml . | indent 4 }}
+{{- end }}
   labels:
     app.kubernetes.io/managed-by: Helm
 {{- if and $tbEnabled (eq $app.namespace $tbNamespace) }}

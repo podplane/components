@@ -19,6 +19,7 @@ platform:
         solvers: []
       selfsigned:
         issuerName: platform-ingress-selfsigned-clusterissuer
+      dnsNames: []
     secretSync:
       enabled: false
       image:

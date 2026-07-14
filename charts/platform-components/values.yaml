@@ -167,16 +167,16 @@ platform:
     #   platform-certs:
     #     platform:
     #       certs:
-    #         acme:
-    #           enabled: true
-    #           server: https://acme-v02.api.letsencrypt.org/directory
-    #           email: ops@example.com
-    #           solvers:
-    #             - dnsZones:
-    #                 - example.com
-    #               route53:
-    #                 hostedZoneID: Z123456789
-    #                 roleArn: arn:aws:iam::123456789012:role/podplane-cert-manager-dns01
+    #         ingress:
+    #           acme:
+    #             enabled: true
+    #             server: https://acme-v02.api.letsencrypt.org/directory
+    #             email: ops@example.com
+    #             solvers:
+    #               - dnsZones:
+    #                   - example.com
+    #                 route53:
+    #                   hostedZoneID: Z123456789
     #   traefik:
     #     platform:
     #       traefik:
