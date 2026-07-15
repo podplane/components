@@ -34,6 +34,9 @@ var (
 		{Repo: "docker.io/library/caddy", Tag: "2"},
 		{Repo: "docker.io/library/golang", Tag: "alpine"},
 		{Repo: "ghcr.io/podplane/hello", Tag: "latest"},
+		// Keep this version in sync with podplane/vmconfig scripts/manifests/sources.go.
+    // https://github.com/podplane/vmconfig/blob/main/scripts/manifests/sources.go#L203
+		{Repo: "registry.k8s.io/pause", Tag: "3.10.2"},
 	}
 	supportedPlatforms = map[string]bool{
 		"linux/amd64": true,
@@ -129,6 +132,7 @@ func run() error {
 	}
 
 	images := []image{}
+	imageRefs := map[string]string{}
 	sort.Slice(extraImages, func(i, j int) bool {
 		if extraImages[i].Repo != extraImages[j].Repo {
 			return extraImages[i].Repo < extraImages[j].Repo
@@ -138,6 +142,9 @@ func run() error {
 	fmt.Fprintf(os.Stderr, "resolving %d static extra image(s)\n", len(extraImages))
 	for i, extra := range extraImages {
 		imageRef := extra.Repo + ":" + extra.Tag
+		if err := validateImageRef(imageRefs, imageRef); err != nil {
+			return err
+		}
 		fmt.Fprintf(os.Stderr, "[static] resolving image %d/%d: %s\n", i+1, len(extraImages), imageRef)
 		items, err := resolveImage("", imageRef)
 		if err != nil {
@@ -155,6 +162,9 @@ func run() error {
 		}
 		fmt.Fprintf(os.Stderr, "[%d/%d] found %d image(s) in %s\n", i+1, len(chartNames), len(chartImages), component)
 		for j, chartImage := range chartImages {
+			if err := validateImageRef(imageRefs, chartImage); err != nil {
+				return err
+			}
 			fmt.Fprintf(os.Stderr, "[%d/%d] resolving image %d/%d: %s\n", i+1, len(chartNames), j+1, len(chartImages), chartImage)
 			items, err := resolveImage(component, chartImage)
 			if err != nil {
@@ -417,6 +427,20 @@ func splitRef(value string) (repo string, tag string, digest string) {
 		value = value[:lastColon]
 	}
 	return value, tag, digest
+}
+
+// validateImageRef rejects different source references for the same repository.
+func validateImageRef(seen map[string]string, value string) error {
+	value = normalizeImage(value)
+	repo, tag, digest := splitRef(value)
+	if tag == "" && digest == "" {
+		value = repo + ":latest"
+	}
+	if previous, ok := seen[repo]; ok && previous != value {
+		return fmt.Errorf("image repository %s uses conflicting references %q and %q", repo, previous, value)
+	}
+	seen[repo] = value
+	return nil
 }
 
 type imageIndex struct {

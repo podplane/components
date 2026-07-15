@@ -51,6 +51,20 @@
         "index": "sha256:7f472cc199b57f6b638f9f46212c1809e2510f5ea7c130722000b6f5586e17b0"
       },
       {
+        "image": "registry.k8s.io/pause:3.10.2",
+        "digest": "sha256:412c4a7219cb8a299a37337f3d87810c5340095322e15594a1637785adad0f17",
+        "size": 318043,
+        "platform": "linux/amd64",
+        "index": "sha256:f548e0e8e3dc1896ca956272154dde3314e8cc4fde0a57577ee9fa1c63f5baf4"
+      },
+      {
+        "image": "registry.k8s.io/pause:3.10.2",
+        "digest": "sha256:a433214620b407678934ebd69690a9ed6066247231eacfba181fab20dbc3dbf1",
+        "size": 265534,
+        "platform": "linux/arm64",
+        "index": "sha256:f548e0e8e3dc1896ca956272154dde3314e8cc4fde0a57577ee9fa1c63f5baf4"
+      },
+      {
         "component": "agent-sandbox",
         "image": "registry.k8s.io/agent-sandbox/agent-sandbox-controller:v0.5.0",
         "digest": "sha256:c33439351fcb5e6b85fed69e9b81e7fa1a7d8d5fce1e311f6b4086ca6bcf3502",
