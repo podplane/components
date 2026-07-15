@@ -23,6 +23,6 @@ platform:
     secretSync:
       enabled: false
       image:
-        repository: docker.io/library/golang
-        tag: alpine
+        repository: registry.k8s.io/pause
+        tag: 3.10.2
       mounts: []

@@ -40,7 +40,7 @@ platform-certs:
     certs:
       secretSync:
         image:
-          repository: {{ printf "%s/docker.io/library/golang" $base | quote }}
+          repository: {{ printf "%s/registry.k8s.io/pause" $base | quote }}
 cilium:
   cilium:
     image:
