@@ -31,6 +31,9 @@ platform:
         enabled: true
         core: true
       # Addon CRDs (default disabled; enable together with the matching app)
+      cluster-api-crds:
+        enabled: false
+        core: true
       agent-sandbox-crds:
         enabled: false
       cert-manager-crds:
@@ -77,6 +80,13 @@ platform:
         dependsOn:
           - fluxcd-crds
       # Provider-specific core components (default disabled unless selected by cluster configuration)
+      cluster-api:
+        enabled: false
+        core: true
+        namespace: platform-cluster-api
+        dependsOn:
+          - cluster-api-crds
+          - cert-manager
       csi-aws-ebs:
         enabled: false
         core: true

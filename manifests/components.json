@@ -13,14 +13,14 @@
         "digest": "sha256:98eb57d882ccd5213d1688764db10c1ca2c58a1ca3a6717a3411ad798f7a423a",
         "size": 23916161,
         "platform": "linux/amd64",
-        "index": "sha256:af5fdcd76f2db5e4e974ee92f96ee8c0fc3edb55bd4ba5032547cbf3f65e486d"
+        "index": "sha256:844f60b64e4724a5aa8245e019dace0d3f199f7433ce6c57676cb30a920dbad9"
       },
       {
         "image": "docker.io/library/caddy:2",
         "digest": "sha256:1172d4213087d3fc30bafc7ff2c2896180eb0c41ff7f75f315568fb36cabdcba",
         "size": 22731608,
         "platform": "linux/arm64/v8",
-        "index": "sha256:af5fdcd76f2db5e4e974ee92f96ee8c0fc3edb55bd4ba5032547cbf3f65e486d"
+        "index": "sha256:844f60b64e4724a5aa8245e019dace0d3f199f7433ce6c57676cb30a920dbad9"
       },
       {
         "image": "docker.io/library/golang:alpine",
@@ -185,6 +185,30 @@
         "size": 28544744,
         "platform": "linux/arm64",
         "index": "sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b"
+      },
+      {
+        "component": "cluster-api",
+        "image": "registry.k8s.io/cluster-api/cluster-api-controller:v1.12.10",
+        "digest": "sha256:2d3000b281748ea735d9b538e9a1dac346364cf25679cb2d270093e6300a7597",
+        "size": 40660376,
+        "platform": "linux/amd64",
+        "index": "sha256:fae17bc0513c004398671688c013a56b7d72e750429b8197e5aeb40cb53efb3f",
+        "providers": [
+          "aws",
+          "google"
+        ]
+      },
+      {
+        "component": "cluster-api",
+        "image": "registry.k8s.io/cluster-api/cluster-api-controller:v1.12.10",
+        "digest": "sha256:d0803b03e9e3ed8acc36a625d49f687e5eab262885829fcd2dbea38ec679c24a",
+        "size": 37299470,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:fae17bc0513c004398671688c013a56b7d72e750429b8197e5aeb40cb53efb3f",
+        "providers": [
+          "aws",
+          "google"
+        ]
       },
       {
         "component": "coredns",

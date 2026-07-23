@@ -54,8 +54,13 @@ __Addons (optional, installable via `podplane install <name>`):__
   certificate trust store management (_Apache 2.0_).
 - [Snapshot Controller](https://github.com/kubernetes-csi/external-snapshotter)
   for persistent volume snapshotting (_Apache 2.0_).
+
+__Provider-Specific Core (always installed for certain providers):__
+
 - [AWS EBS CSI Driver](https://github.com/kubernetes-sigs/aws-ebs-csi-driver)
   for persistent storage on AWS (_Apache 2.0_).
+- [Cluster API](https://cluster-api.sigs.k8s.io/) core controller and CRDs for
+  declarative infrastructure-provider cluster lifecycle management (_Apache 2.0_).
 
 ## Usage
 

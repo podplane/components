@@ -52,6 +52,9 @@ coredns:
   coredns:
     image:
       repository: {{ printf "%s/docker.io/coredns/coredns" $base | quote }}
+cluster-api:
+  image:
+    repository: {{ printf "%s/registry.k8s.io/cluster-api/cluster-api-controller" $base | quote }}
 csi-aws-ebs:
   aws-ebs-csi-driver:
     image:

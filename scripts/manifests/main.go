@@ -35,7 +35,7 @@ var (
 		{Repo: "docker.io/library/golang", Tag: "alpine"},
 		{Repo: "ghcr.io/podplane/hello", Tag: "latest"},
 		// Keep this version in sync with podplane/vmconfig scripts/manifests/sources.go.
-    // https://github.com/podplane/vmconfig/blob/main/scripts/manifests/sources.go#L203
+		// https://github.com/podplane/vmconfig/blob/main/scripts/manifests/sources.go#L203
 		{Repo: "registry.k8s.io/pause", Tag: "3.10.2"},
 	}
 	supportedPlatforms = map[string]bool{
@@ -44,6 +44,7 @@ var (
 	}
 	componentMetadata = map[string]metadata{
 		"agent-sandbox":                      {Addon: true},
+		"cluster-api":                        {Providers: []string{"aws", "google"}},
 		"cert-manager":                       {Addon: true},
 		"platform-certs":                     {Addon: true},
 		"podplane-operator":                  {Addon: true},

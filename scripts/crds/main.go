@@ -16,6 +16,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -35,8 +36,9 @@ type crdChart struct {
 }
 
 type updateContext struct {
-	OutDir  string
-	Version string
+	OutDir    string
+	AppOutDir string
+	Version   string
 }
 
 type crdInfo struct {
@@ -46,6 +48,19 @@ type crdInfo struct {
 }
 
 var charts = []crdChart{
+	{
+		Name: "cluster-api-crds",
+		Env:  "CLUSTER_API_VERSION",
+		Update: func(ctx updateContext) error {
+			version := firstNonEmpty(ctx.Version, "v1.12.10")
+			url := fmt.Sprintf("https://github.com/kubernetes-sigs/cluster-api/releases/download/%s/core-components.yaml", version)
+			body, err := download(url)
+			if err != nil {
+				return err
+			}
+			return splitClusterAPI(body, ctx.OutDir, ctx.AppOutDir)
+		},
+	},
 	{
 		Name: "agent-sandbox-crds",
 		Env:  "AGENT_SANDBOX_VERSION",
@@ -304,6 +319,10 @@ func updateCRDs(name string) error {
 
 func updateOne(repoRoot string, chart crdChart) error {
 	targetDir := filepath.Join(repoRoot, "charts", chart.Name, "templates", "external")
+	appTargetDir := ""
+	if chart.Name == "cluster-api-crds" {
+		appTargetDir = filepath.Join(repoRoot, "charts", "cluster-api", "templates", "external")
+	}
 	work, err := os.MkdirTemp("", "podplane-crds-*")
 	if err != nil {
 		return err
@@ -312,18 +331,24 @@ func updateOne(repoRoot string, chart crdChart) error {
 
 	oldDir := filepath.Join(work, "old")
 	newDir := filepath.Join(work, "new")
+	newAppDir := filepath.Join(work, "new-app")
 	if err := copyDir(targetDir, oldDir); err != nil {
 		return err
 	}
 	if err := os.MkdirAll(newDir, 0o755); err != nil {
 		return err
 	}
+	if appTargetDir != "" {
+		if err := os.MkdirAll(newAppDir, 0o755); err != nil {
+			return err
+		}
+	}
 
 	version := firstNonEmpty(os.Getenv(chart.Env), os.Getenv("DL_VERSION"))
 	if version != "" {
 		fmt.Printf("Using %s=%s\n", chart.Env, version)
 	}
-	if err := chart.Update(updateContext{OutDir: newDir, Version: version}); err != nil {
+	if err := chart.Update(updateContext{OutDir: newDir, AppOutDir: newAppDir, Version: version}); err != nil {
 		return err
 	}
 	if err := preserveFilenames(oldDir, newDir); err != nil {
@@ -338,7 +363,63 @@ func updateOne(repoRoot string, chart crdChart) error {
 	if err := copyDir(newDir, targetDir); err != nil {
 		return err
 	}
+	if appTargetDir != "" {
+		if err := os.RemoveAll(appTargetDir); err != nil {
+			return err
+		}
+		if err := copyDir(newAppDir, appTargetDir); err != nil {
+			return err
+		}
+	}
 	fmt.Printf("Updated %s\n", chart.Name)
+	return nil
+}
+
+var clusterAPIDefault = regexp.MustCompile(`\$\{[A-Za-z_][A-Za-z0-9_]*:=([^}]*)\}`)
+var clusterAPIControllerImage = regexp.MustCompile(`image: registry\.k8s\.io/cluster-api/cluster-api-controller:[^\n]+\n([ \t]*)imagePullPolicy: IfNotPresent`)
+
+// splitClusterAPI converts the upstream release artifact into the sibling CRD
+// and controller charts. Substitutions deliberately use the defaults embedded
+// in the artifact, making generation independent of the caller's environment.
+func splitClusterAPI(body []byte, crdDir, appDir string) error {
+	body = clusterAPIDefault.ReplaceAll(body, []byte("$1"))
+	for _, rawDoc := range splitYAMLDocuments(body) {
+		var doc map[string]any
+		if err := yaml.Unmarshal(rawDoc, &doc); err != nil {
+			return err
+		}
+		if doc == nil || doc["kind"] == "Namespace" {
+			continue
+		}
+		metadata, _ := doc["metadata"].(map[string]any)
+		name, _ := metadata["name"].(string)
+		kind, _ := doc["kind"].(string)
+		if name == "" || kind == "" {
+			return fmt.Errorf("Cluster API document has no kind or metadata.name")
+		}
+		target := appDir
+		if kind == "CustomResourceDefinition" {
+			target = crdDir
+		}
+		rawDoc = bytes.ReplaceAll(rawDoc, []byte("capi-system"), []byte("platform-cluster-api"))
+		if kind == "Deployment" && name == "capi-controller-manager" {
+			rawDoc = clusterAPIControllerImage.ReplaceAll(rawDoc,
+				[]byte(`image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+${1}imagePullPolicy: {{ .Values.image.pullPolicy }}`))
+			if !bytes.Contains(rawDoc, []byte(".Values.image.repository")) {
+				return fmt.Errorf("upstream Cluster API controller image layout changed")
+			}
+		}
+		if kind == "CustomResourceDefinition" {
+			// ClusterClass schema descriptions contain Go-template examples.
+			rawDoc = bytes.ReplaceAll(rawDoc, []byte("{{"), []byte(`{{ print "{{" }}`))
+		}
+		rawDoc = bytes.TrimSpace(rawDoc)
+		path := filepath.Join(target, name+".yaml")
+		if err := os.WriteFile(path, append(append([]byte("---\n"), rawDoc...), '\n'), 0o644); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
