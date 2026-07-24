@@ -9,6 +9,98 @@
     },
     "images": [
       {
+        "components": [
+          "coredns"
+        ],
+        "image": "docker.io/coredns/coredns:1.11.3",
+        "digest": "sha256:f0b8c589314ed010a0c326e987a52b50801f0145ac9b75423af1b5c66dbd6d50",
+        "size": 18560030,
+        "platform": "linux/amd64",
+        "index": "sha256:9caabbf6238b189a65d0d6e6ac138de60d6a1c419e5a341fbbb7c78382559c6e"
+      },
+      {
+        "components": [
+          "coredns"
+        ],
+        "image": "docker.io/coredns/coredns:1.11.3",
+        "digest": "sha256:31440a2bef59e2f1ffb600113b557103740ff851e27b0aef5b849f6e3ab994a6",
+        "size": 16946411,
+        "platform": "linux/arm64",
+        "index": "sha256:9caabbf6238b189a65d0d6e6ac138de60d6a1c419e5a341fbbb7c78382559c6e"
+      },
+      {
+        "components": [
+          "secrets-store-csi-provider-vault"
+        ],
+        "image": "docker.io/hashicorp/vault-csi-provider:1.7.2",
+        "digest": "sha256:52ab988249dca0234bad0ef1bbab9752ddad49ba993bf3fff116476069ce36e6",
+        "size": 35465854,
+        "platform": "linux/amd64",
+        "index": "sha256:76540558b70ce8600780e1865a10aaf6e1b2059751ccdd03f5c93a4acf43fd85",
+        "addon": true
+      },
+      {
+        "components": [
+          "secrets-store-csi-provider-vault"
+        ],
+        "image": "docker.io/hashicorp/vault-csi-provider:1.7.2",
+        "digest": "sha256:7155edfd2003c3bc677d3f481305067439ecf374fcd0ea986b9f3ac41e9268a9",
+        "size": 33213817,
+        "platform": "linux/arm64",
+        "index": "sha256:76540558b70ce8600780e1865a10aaf6e1b2059751ccdd03f5c93a4acf43fd85",
+        "addon": true
+      },
+      {
+        "components": [
+          "secrets-store-csi-provider-vault"
+        ],
+        "image": "docker.io/hashicorp/vault:2.0.2",
+        "digest": "sha256:caaaf40018a66d8e3e65e043e3512debf726eb2170f7dce395c33335eebc8b83",
+        "size": 191699343,
+        "platform": "linux/amd64",
+        "index": "sha256:3fd53308acccd9e4e83fde3e6c6cf5b15e0f7fac1ff7510780b8b23f5e4c3de7",
+        "addon": true
+      },
+      {
+        "components": [
+          "secrets-store-csi-provider-vault"
+        ],
+        "image": "docker.io/hashicorp/vault:2.0.2",
+        "digest": "sha256:78f1c39d7bf50bf3c91cd5678b3d77ef6f02ba5381f4291556caf8f0789562d4",
+        "size": 179031609,
+        "platform": "linux/arm64",
+        "index": "sha256:3fd53308acccd9e4e83fde3e6c6cf5b15e0f7fac1ff7510780b8b23f5e4c3de7",
+        "addon": true
+      },
+      {
+        "components": [
+          "secrets-store-csi-provider-gcp"
+        ],
+        "image": "docker.io/library/busybox:1.36",
+        "digest": "sha256:b7f3d86d6e84fc17718c48bcde1450807faa2d56704205c697b4bd5df7b9e29f",
+        "size": 2207471,
+        "platform": "linux/amd64",
+        "index": "sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662",
+        "providers": [
+          "gcp"
+        ],
+        "addon": true
+      },
+      {
+        "components": [
+          "secrets-store-csi-provider-gcp"
+        ],
+        "image": "docker.io/library/busybox:1.36",
+        "digest": "sha256:bd44eb136a95dcc8dc58995e43abc40a413f2e8e3d4a2aae6bccbe94686acb05",
+        "size": 1897352,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662",
+        "providers": [
+          "gcp"
+        ],
+        "addon": true
+      },
+      {
         "image": "docker.io/library/caddy:2",
         "digest": "sha256:98eb57d882ccd5213d1688764db10c1ca2c58a1ca3a6717a3411ad798f7a423a",
         "size": 23916161,
@@ -37,6 +129,116 @@
         "index": "sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2"
       },
       {
+        "components": [
+          "traefik"
+        ],
+        "image": "docker.io/traefik:v3.7.1",
+        "digest": "sha256:72ed9e98f2395fca5a9e1c67e131910c21ff06e694955da8e0eae0e5206fc27b",
+        "size": 52994705,
+        "platform": "linux/amd64",
+        "index": "sha256:6b9cbca6fac42ab0075f5437d8dc1685cfd188626d8d515839ea94f8b6271c42",
+        "addon": true
+      },
+      {
+        "components": [
+          "traefik"
+        ],
+        "image": "docker.io/traefik:v3.7.1",
+        "digest": "sha256:1274bacf6552cf123ee4fab97d5ce64d54f2e57c91d8c8c0e87904c4a6ea2144",
+        "size": 48145289,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:6b9cbca6fac42ab0075f5437d8dc1685cfd188626d8d515839ea94f8b6271c42",
+        "addon": true
+      },
+      {
+        "components": [
+          "fluxcd"
+        ],
+        "image": "ghcr.io/fluxcd/flux-cli:v2.8.5",
+        "digest": "sha256:f3f27e59943d98c32fc1cbe6a02bb042063ba6f37e4ddc67515606ec27f4de39",
+        "size": 46155840,
+        "platform": "linux/amd64",
+        "index": "sha256:f1947272d998247ce959adf8ffe13626f153e8b373ccd0322a18b4f7aad132f1"
+      },
+      {
+        "components": [
+          "fluxcd"
+        ],
+        "image": "ghcr.io/fluxcd/flux-cli:v2.8.5",
+        "digest": "sha256:8ec33a6691d77be52276ed51174a2c702771e430fc871fc6718bfbd22b00f8c5",
+        "size": 42162043,
+        "platform": "linux/arm64",
+        "index": "sha256:f1947272d998247ce959adf8ffe13626f153e8b373ccd0322a18b4f7aad132f1"
+      },
+      {
+        "components": [
+          "fluxcd"
+        ],
+        "image": "ghcr.io/fluxcd/helm-controller:v1.5.3",
+        "digest": "sha256:e9bf3dec37e7da581466d4b11f95e8723fc0494c88d3ce4116cdf4a341bcf249",
+        "size": 50825343,
+        "platform": "linux/amd64",
+        "index": "sha256:b150af0cd7a501dafe2374b1d22c39abf0572465df4fa1fb99b37927b0d95d75"
+      },
+      {
+        "components": [
+          "fluxcd"
+        ],
+        "image": "ghcr.io/fluxcd/helm-controller:v1.5.3",
+        "digest": "sha256:fed9b381e0484fac43897e603a6025e3af56fe4abe590488a76e2ed711f5525b",
+        "size": 47372802,
+        "platform": "linux/arm64",
+        "index": "sha256:b150af0cd7a501dafe2374b1d22c39abf0572465df4fa1fb99b37927b0d95d75"
+      },
+      {
+        "components": [
+          "fluxcd"
+        ],
+        "image": "ghcr.io/fluxcd/source-controller:v1.8.2",
+        "digest": "sha256:d8632c80aa18a671fd0a1584f7b3814e5686fcd4c79c5e66f18ea7145fb26653",
+        "size": 63541334,
+        "platform": "linux/amd64",
+        "index": "sha256:f2f6fd483b9a8b8c69f8ebe9f2277be23093a2b552b3578a6db15710d736bb0e"
+      },
+      {
+        "components": [
+          "fluxcd"
+        ],
+        "image": "ghcr.io/fluxcd/source-controller:v1.8.2",
+        "digest": "sha256:dab42ea9a5fad078113fe3b0cf7e0984725034353c2ab91d0f311a30736081e7",
+        "size": 59131493,
+        "platform": "linux/arm64",
+        "index": "sha256:f2f6fd483b9a8b8c69f8ebe9f2277be23093a2b552b3578a6db15710d736bb0e"
+      },
+      {
+        "components": [
+          "nstance-operator"
+        ],
+        "image": "ghcr.io/nstance-dev/nstance-operator:1.0.0",
+        "digest": "sha256:aaa5c0f45505d258ffe28ed9aa5677b4d96752ee2eaa503a1c3e92b2947ed95c",
+        "size": 16849471,
+        "platform": "linux/amd64",
+        "index": "sha256:f9038539fe78ff6fd6a1335e5f2c4bd3392101dc3ae9f8e2b946513cc320c711",
+        "providers": [
+          "aws",
+          "google"
+        ]
+      },
+      {
+        "components": [
+          "nstance-operator"
+        ],
+        "image": "ghcr.io/nstance-dev/nstance-operator:1.0.0",
+        "digest": "sha256:4b983545205eb442e8b85f50abdd1d696cc5be6bfa3057c300008758f456f940",
+        "size": 15102833,
+        "platform": "linux/arm64",
+        "index": "sha256:f9038539fe78ff6fd6a1335e5f2c4bd3392101dc3ae9f8e2b946513cc320c711",
+        "providers": [
+          "aws",
+          "google"
+        ]
+      },
+      {
         "image": "ghcr.io/podplane/hello:latest",
         "digest": "sha256:5ecb807fa10f0a6719656820ec26d4b76c96ce1da6c8c866e81f052a4bdff30c",
         "size": 3512540,
@@ -51,238 +253,74 @@
         "index": "sha256:7f472cc199b57f6b638f9f46212c1809e2510f5ea7c130722000b6f5586e17b0"
       },
       {
-        "image": "registry.k8s.io/pause:3.10.2",
-        "digest": "sha256:412c4a7219cb8a299a37337f3d87810c5340095322e15594a1637785adad0f17",
-        "size": 318043,
+        "components": [
+          "podplane-operator"
+        ],
+        "image": "ghcr.io/podplane/operator:v0.4.3",
+        "digest": "sha256:7a041d04847e572fdafbb2e885ed52944f5ec61286a033af80a360dbfa1e9dc8",
+        "size": 24642744,
         "platform": "linux/amd64",
-        "index": "sha256:f548e0e8e3dc1896ca956272154dde3314e8cc4fde0a57577ee9fa1c63f5baf4"
+        "index": "sha256:2eab7cb180f01f88777ff62aa709662315470810a0ee21e60a3b27161029f7da",
+        "addon": true
       },
       {
-        "image": "registry.k8s.io/pause:3.10.2",
-        "digest": "sha256:a433214620b407678934ebd69690a9ed6066247231eacfba181fab20dbc3dbf1",
-        "size": 265534,
+        "components": [
+          "podplane-operator"
+        ],
+        "image": "ghcr.io/podplane/operator:v0.4.3",
+        "digest": "sha256:03591c79b5fd51dd73578f37f514a3c53af56a4175d46797a16a8b75fd78e347",
+        "size": 22054222,
         "platform": "linux/arm64",
-        "index": "sha256:f548e0e8e3dc1896ca956272154dde3314e8cc4fde0a57577ee9fa1c63f5baf4"
+        "index": "sha256:2eab7cb180f01f88777ff62aa709662315470810a0ee21e60a3b27161029f7da",
+        "addon": true
       },
       {
         "components": [
-          "agent-sandbox"
+          "zot-registry"
         ],
-        "image": "registry.k8s.io/agent-sandbox/agent-sandbox-controller:v0.5.0",
-        "digest": "sha256:c33439351fcb5e6b85fed69e9b81e7fa1a7d8d5fce1e311f6b4086ca6bcf3502",
-        "size": 15779996,
+        "image": "ghcr.io/project-zot/zot:v2.1.18",
+        "digest": "sha256:34f18f783037f967dba10df02f9d4086c4d626f5643ef9f5e51e4a4547280a0b",
+        "size": 74148805,
         "platform": "linux/amd64",
-        "index": "sha256:e99cac42f10cac69cab09a91e59f982c9d525b2933a5f5b7dfd52dae09340aa2",
-        "addon": true
+        "index": "sha256:6f7bf2b8e43437c7c3a121bc80214845c85f27321e66f2ff4be6bf4220775fd7"
       },
       {
         "components": [
-          "agent-sandbox"
+          "zot-registry"
         ],
-        "image": "registry.k8s.io/agent-sandbox/agent-sandbox-controller:v0.5.0",
-        "digest": "sha256:236c28895bb77bca8ac9a6247f8f16323652fbfab470ebf0310e065ccbca413c",
-        "size": 14088501,
-        "platform": "linux/arm64",
-        "index": "sha256:e99cac42f10cac69cab09a91e59f982c9d525b2933a5f5b7dfd52dae09340aa2",
-        "addon": true
-      },
-      {
-        "components": [
-          "cert-manager"
-        ],
-        "image": "quay.io/jetstack/cert-manager-approver-policy:v0.21.0",
-        "digest": "sha256:a4aae6050f663c00d6342e4c8e21b878050d00a7a95cbd61c768857f383382d0",
-        "size": 21169646,
-        "platform": "linux/amd64",
-        "index": "sha256:b5b83719ee3093e59db0f778f143eab9c28828f239073e20695c0f2a3175a104",
-        "addon": true
-      },
-      {
-        "components": [
-          "cert-manager"
-        ],
-        "image": "quay.io/jetstack/cert-manager-approver-policy:v0.21.0",
-        "digest": "sha256:da08a1fa898ea499c3fa74ad84987c45ab68692ae1f2e1c0b63cfe5debc58544",
-        "size": 19027104,
-        "platform": "linux/arm64",
-        "index": "sha256:b5b83719ee3093e59db0f778f143eab9c28828f239073e20695c0f2a3175a104",
-        "addon": true
-      },
-      {
-        "components": [
-          "cert-manager"
-        ],
-        "image": "quay.io/jetstack/cert-manager-cainjector:v1.16.2",
-        "digest": "sha256:0a1f62ea3390a73239c0b4214e0ada1fb89c52d30677aebcdc3ca54508996511",
-        "size": 15426291,
-        "platform": "linux/amd64",
-        "index": "sha256:593abc7bf8b926d6fcb9c63b91504ad85e1379b25056aa5dee90b35505ab3211",
-        "addon": true
-      },
-      {
-        "components": [
-          "cert-manager"
-        ],
-        "image": "quay.io/jetstack/cert-manager-cainjector:v1.16.2",
-        "digest": "sha256:a858ac7d3ea0f54c71b0db1e4b12f34013d6fafe0e364c663aa900049402c5fb",
-        "size": 14072803,
+        "image": "ghcr.io/project-zot/zot:v2.1.18",
+        "digest": "sha256:96913b282b93ee7bc415555c14887e81ece9078631f3189c2e8c1fbb5f888af6",
+        "size": 67685366,
         "platform": "linux/arm64/v8",
-        "index": "sha256:593abc7bf8b926d6fcb9c63b91504ad85e1379b25056aa5dee90b35505ab3211",
-        "addon": true
+        "index": "sha256:6f7bf2b8e43437c7c3a121bc80214845c85f27321e66f2ff4be6bf4220775fd7"
       },
       {
         "components": [
-          "cert-manager"
+          "secrets-store-csi-provider-aws"
         ],
-        "image": "quay.io/jetstack/cert-manager-controller:v1.16.2",
-        "digest": "sha256:de97c3767802e33d3096ad9b276598ceee3ed92a0c67907221581b36c8ad055f",
-        "size": 21191532,
+        "image": "public.ecr.aws/aws-secrets-manager/secrets-store-csi-driver-provider-aws:3.1.1",
+        "digest": "sha256:b141dc1d7b37e042e23ac5fe5512e50d0505c5824826f46b741e156df3892b56",
+        "size": 28925217,
         "platform": "linux/amd64",
-        "index": "sha256:0eec9c89554011c9aa16eea88ab89a91b32dc8d6eb96307b7fc2dcd6bbbc7fcf",
-        "addon": true
-      },
-      {
-        "components": [
-          "cert-manager"
-        ],
-        "image": "quay.io/jetstack/cert-manager-controller:v1.16.2",
-        "digest": "sha256:8b958c43c97cd0b90125ca6166e7b07428a8b75a0feb39932c940e5bf18f2beb",
-        "size": 19405152,
-        "platform": "linux/arm64/v8",
-        "index": "sha256:0eec9c89554011c9aa16eea88ab89a91b32dc8d6eb96307b7fc2dcd6bbbc7fcf",
-        "addon": true
-      },
-      {
-        "components": [
-          "cert-manager"
-        ],
-        "image": "quay.io/jetstack/cert-manager-csi-driver:v0.10.2",
-        "digest": "sha256:447820573ceccad740f031691cb778943493373be965a06c6538062028c89375",
-        "size": 17911257,
-        "platform": "linux/amd64",
-        "index": "sha256:885ed95e302972c1831df733ecba9339cba6b837ee39ba819a162b359d815370",
-        "addon": true
-      },
-      {
-        "components": [
-          "cert-manager"
-        ],
-        "image": "quay.io/jetstack/cert-manager-csi-driver:v0.10.2",
-        "digest": "sha256:b3950687329829229fbb710e94af3806dedc0b53b4515fdc063ca710550e18f2",
-        "size": 16242977,
-        "platform": "linux/arm64",
-        "index": "sha256:885ed95e302972c1831df733ecba9339cba6b837ee39ba819a162b359d815370",
-        "addon": true
-      },
-      {
-        "components": [
-          "cert-manager"
-        ],
-        "image": "quay.io/jetstack/cert-manager-webhook:v1.16.2",
-        "digest": "sha256:25d87dff68f00587a3e76a1e5d530d40b6f0f7872e6d634db01a593047849109",
-        "size": 18191549,
-        "platform": "linux/amd64",
-        "index": "sha256:64c4d5dd55d7d00e5b162e21887f9bffbf1e531ee0668eaf801fae9bd54e536d",
-        "addon": true
-      },
-      {
-        "components": [
-          "cert-manager"
-        ],
-        "image": "quay.io/jetstack/cert-manager-webhook:v1.16.2",
-        "digest": "sha256:abd7c347c84e2bb09db9618cfb0951f678b7c4378c2626b3f75d268e79813f85",
-        "size": 16643155,
-        "platform": "linux/arm64/v8",
-        "index": "sha256:64c4d5dd55d7d00e5b162e21887f9bffbf1e531ee0668eaf801fae9bd54e536d",
-        "addon": true
-      },
-      {
-        "components": [
-          "cilium"
-        ],
-        "image": "quay.io/cilium/cilium:v1.16.3@sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28",
-        "digest": "sha256:a2a37ab3ea769b85703478f1f46c3fd9696fc7037b73b0a3ba5c53821f4791a7",
-        "size": 223180302,
-        "platform": "linux/amd64",
-        "index": "sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28"
-      },
-      {
-        "components": [
-          "cilium"
-        ],
-        "image": "quay.io/cilium/cilium:v1.16.3@sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28",
-        "digest": "sha256:51fc82a040039e68bb9735aed20cc719c869ae57aeef3e2cb985132fe5f44321",
-        "size": 210788644,
-        "platform": "linux/arm64",
-        "index": "sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28"
-      },
-      {
-        "components": [
-          "cilium"
-        ],
-        "image": "quay.io/cilium/operator-generic:v1.16.3@sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b",
-        "digest": "sha256:cfcb0eec380a91542e062e8849c41e64729df1226146edd47eb74e81c88408ed",
-        "size": 31096285,
-        "platform": "linux/amd64",
-        "index": "sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b"
-      },
-      {
-        "components": [
-          "cilium"
-        ],
-        "image": "quay.io/cilium/operator-generic:v1.16.3@sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b",
-        "digest": "sha256:980398f7a1c869df9e971130fae8998af4ce549a4258dcb29bcd12244ec4d5f6",
-        "size": 28544744,
-        "platform": "linux/arm64",
-        "index": "sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b"
-      },
-      {
-        "components": [
-          "cluster-api"
-        ],
-        "image": "registry.k8s.io/cluster-api/cluster-api-controller:v1.12.10",
-        "digest": "sha256:2d3000b281748ea735d9b538e9a1dac346364cf25679cb2d270093e6300a7597",
-        "size": 40660376,
-        "platform": "linux/amd64",
-        "index": "sha256:fae17bc0513c004398671688c013a56b7d72e750429b8197e5aeb40cb53efb3f",
+        "index": "sha256:076848ab9b131eef31faeeddee68225c99a8298205501979b700e3a4b2b013c9",
         "providers": [
-          "aws",
-          "google"
-        ]
+          "aws"
+        ],
+        "addon": true
       },
       {
         "components": [
-          "cluster-api"
+          "secrets-store-csi-provider-aws"
         ],
-        "image": "registry.k8s.io/cluster-api/cluster-api-controller:v1.12.10",
-        "digest": "sha256:d0803b03e9e3ed8acc36a625d49f687e5eab262885829fcd2dbea38ec679c24a",
-        "size": 37299470,
-        "platform": "linux/arm64/v8",
-        "index": "sha256:fae17bc0513c004398671688c013a56b7d72e750429b8197e5aeb40cb53efb3f",
-        "providers": [
-          "aws",
-          "google"
-        ]
-      },
-      {
-        "components": [
-          "coredns"
-        ],
-        "image": "docker.io/coredns/coredns:1.11.3",
-        "digest": "sha256:f0b8c589314ed010a0c326e987a52b50801f0145ac9b75423af1b5c66dbd6d50",
-        "size": 18560030,
-        "platform": "linux/amd64",
-        "index": "sha256:9caabbf6238b189a65d0d6e6ac138de60d6a1c419e5a341fbbb7c78382559c6e"
-      },
-      {
-        "components": [
-          "coredns"
-        ],
-        "image": "docker.io/coredns/coredns:1.11.3",
-        "digest": "sha256:31440a2bef59e2f1ffb600113b557103740ff851e27b0aef5b849f6e3ab994a6",
-        "size": 16946411,
+        "image": "public.ecr.aws/aws-secrets-manager/secrets-store-csi-driver-provider-aws:3.1.1",
+        "digest": "sha256:faac06035eefd1db325924d2b306943bb04e37fa27a3e72ebb26372d8f1e0e21",
+        "size": 26268546,
         "platform": "linux/arm64",
-        "index": "sha256:9caabbf6238b189a65d0d6e6ac138de60d6a1c419e5a341fbbb7c78382559c6e"
+        "index": "sha256:076848ab9b131eef31faeeddee68225c99a8298205501979b700e3a4b2b013c9",
+        "providers": [
+          "aws"
+        ],
+        "addon": true
       },
       {
         "components": [
@@ -442,73 +480,273 @@
       },
       {
         "components": [
-          "fluxcd"
+          "cilium"
         ],
-        "image": "ghcr.io/fluxcd/flux-cli:v2.8.5",
-        "digest": "sha256:f3f27e59943d98c32fc1cbe6a02bb042063ba6f37e4ddc67515606ec27f4de39",
-        "size": 46155840,
+        "image": "quay.io/cilium/cilium:v1.16.3@sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28",
+        "digest": "sha256:a2a37ab3ea769b85703478f1f46c3fd9696fc7037b73b0a3ba5c53821f4791a7",
+        "size": 223180302,
         "platform": "linux/amd64",
-        "index": "sha256:f1947272d998247ce959adf8ffe13626f153e8b373ccd0322a18b4f7aad132f1"
+        "index": "sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28"
       },
       {
         "components": [
-          "fluxcd"
+          "cilium"
         ],
-        "image": "ghcr.io/fluxcd/flux-cli:v2.8.5",
-        "digest": "sha256:8ec33a6691d77be52276ed51174a2c702771e430fc871fc6718bfbd22b00f8c5",
-        "size": 42162043,
+        "image": "quay.io/cilium/cilium:v1.16.3@sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28",
+        "digest": "sha256:51fc82a040039e68bb9735aed20cc719c869ae57aeef3e2cb985132fe5f44321",
+        "size": 210788644,
         "platform": "linux/arm64",
-        "index": "sha256:f1947272d998247ce959adf8ffe13626f153e8b373ccd0322a18b4f7aad132f1"
+        "index": "sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28"
       },
       {
         "components": [
-          "fluxcd"
+          "cilium"
         ],
-        "image": "ghcr.io/fluxcd/helm-controller:v1.5.3",
-        "digest": "sha256:e9bf3dec37e7da581466d4b11f95e8723fc0494c88d3ce4116cdf4a341bcf249",
-        "size": 50825343,
+        "image": "quay.io/cilium/operator-generic:v1.16.3@sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b",
+        "digest": "sha256:cfcb0eec380a91542e062e8849c41e64729df1226146edd47eb74e81c88408ed",
+        "size": 31096285,
         "platform": "linux/amd64",
-        "index": "sha256:b150af0cd7a501dafe2374b1d22c39abf0572465df4fa1fb99b37927b0d95d75"
+        "index": "sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b"
       },
       {
         "components": [
-          "fluxcd"
+          "cilium"
         ],
-        "image": "ghcr.io/fluxcd/helm-controller:v1.5.3",
-        "digest": "sha256:fed9b381e0484fac43897e603a6025e3af56fe4abe590488a76e2ed711f5525b",
-        "size": 47372802,
+        "image": "quay.io/cilium/operator-generic:v1.16.3@sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b",
+        "digest": "sha256:980398f7a1c869df9e971130fae8998af4ce549a4258dcb29bcd12244ec4d5f6",
+        "size": 28544744,
         "platform": "linux/arm64",
-        "index": "sha256:b150af0cd7a501dafe2374b1d22c39abf0572465df4fa1fb99b37927b0d95d75"
+        "index": "sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b"
       },
       {
         "components": [
-          "fluxcd"
+          "cert-manager"
         ],
-        "image": "ghcr.io/fluxcd/source-controller:v1.8.2",
-        "digest": "sha256:d8632c80aa18a671fd0a1584f7b3814e5686fcd4c79c5e66f18ea7145fb26653",
-        "size": 63541334,
+        "image": "quay.io/jetstack/cert-manager-approver-policy:v0.21.0",
+        "digest": "sha256:a4aae6050f663c00d6342e4c8e21b878050d00a7a95cbd61c768857f383382d0",
+        "size": 21169646,
         "platform": "linux/amd64",
-        "index": "sha256:f2f6fd483b9a8b8c69f8ebe9f2277be23093a2b552b3578a6db15710d736bb0e"
+        "index": "sha256:b5b83719ee3093e59db0f778f143eab9c28828f239073e20695c0f2a3175a104",
+        "addon": true
       },
       {
         "components": [
-          "fluxcd"
+          "cert-manager"
         ],
-        "image": "ghcr.io/fluxcd/source-controller:v1.8.2",
-        "digest": "sha256:dab42ea9a5fad078113fe3b0cf7e0984725034353c2ab91d0f311a30736081e7",
-        "size": 59131493,
+        "image": "quay.io/jetstack/cert-manager-approver-policy:v0.21.0",
+        "digest": "sha256:da08a1fa898ea499c3fa74ad84987c45ab68692ae1f2e1c0b63cfe5debc58544",
+        "size": 19027104,
         "platform": "linux/arm64",
-        "index": "sha256:f2f6fd483b9a8b8c69f8ebe9f2277be23093a2b552b3578a6db15710d736bb0e"
+        "index": "sha256:b5b83719ee3093e59db0f778f143eab9c28828f239073e20695c0f2a3175a104",
+        "addon": true
       },
       {
         "components": [
-          "nstance-operator"
+          "cert-manager"
         ],
-        "image": "ghcr.io/nstance-dev/nstance-operator:1.0.0",
-        "digest": "sha256:aaa5c0f45505d258ffe28ed9aa5677b4d96752ee2eaa503a1c3e92b2947ed95c",
-        "size": 16849471,
+        "image": "quay.io/jetstack/cert-manager-cainjector:v1.16.2",
+        "digest": "sha256:0a1f62ea3390a73239c0b4214e0ada1fb89c52d30677aebcdc3ca54508996511",
+        "size": 15426291,
         "platform": "linux/amd64",
-        "index": "sha256:f9038539fe78ff6fd6a1335e5f2c4bd3392101dc3ae9f8e2b946513cc320c711",
+        "index": "sha256:593abc7bf8b926d6fcb9c63b91504ad85e1379b25056aa5dee90b35505ab3211",
+        "addon": true
+      },
+      {
+        "components": [
+          "cert-manager"
+        ],
+        "image": "quay.io/jetstack/cert-manager-cainjector:v1.16.2",
+        "digest": "sha256:a858ac7d3ea0f54c71b0db1e4b12f34013d6fafe0e364c663aa900049402c5fb",
+        "size": 14072803,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:593abc7bf8b926d6fcb9c63b91504ad85e1379b25056aa5dee90b35505ab3211",
+        "addon": true
+      },
+      {
+        "components": [
+          "cert-manager"
+        ],
+        "image": "quay.io/jetstack/cert-manager-controller:v1.16.2",
+        "digest": "sha256:de97c3767802e33d3096ad9b276598ceee3ed92a0c67907221581b36c8ad055f",
+        "size": 21191532,
+        "platform": "linux/amd64",
+        "index": "sha256:0eec9c89554011c9aa16eea88ab89a91b32dc8d6eb96307b7fc2dcd6bbbc7fcf",
+        "addon": true
+      },
+      {
+        "components": [
+          "cert-manager"
+        ],
+        "image": "quay.io/jetstack/cert-manager-controller:v1.16.2",
+        "digest": "sha256:8b958c43c97cd0b90125ca6166e7b07428a8b75a0feb39932c940e5bf18f2beb",
+        "size": 19405152,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:0eec9c89554011c9aa16eea88ab89a91b32dc8d6eb96307b7fc2dcd6bbbc7fcf",
+        "addon": true
+      },
+      {
+        "components": [
+          "cert-manager"
+        ],
+        "image": "quay.io/jetstack/cert-manager-csi-driver:v0.10.2",
+        "digest": "sha256:447820573ceccad740f031691cb778943493373be965a06c6538062028c89375",
+        "size": 17911257,
+        "platform": "linux/amd64",
+        "index": "sha256:885ed95e302972c1831df733ecba9339cba6b837ee39ba819a162b359d815370",
+        "addon": true
+      },
+      {
+        "components": [
+          "cert-manager"
+        ],
+        "image": "quay.io/jetstack/cert-manager-csi-driver:v0.10.2",
+        "digest": "sha256:b3950687329829229fbb710e94af3806dedc0b53b4515fdc063ca710550e18f2",
+        "size": 16242977,
+        "platform": "linux/arm64",
+        "index": "sha256:885ed95e302972c1831df733ecba9339cba6b837ee39ba819a162b359d815370",
+        "addon": true
+      },
+      {
+        "components": [
+          "cert-manager"
+        ],
+        "image": "quay.io/jetstack/cert-manager-webhook:v1.16.2",
+        "digest": "sha256:25d87dff68f00587a3e76a1e5d530d40b6f0f7872e6d634db01a593047849109",
+        "size": 18191549,
+        "platform": "linux/amd64",
+        "index": "sha256:64c4d5dd55d7d00e5b162e21887f9bffbf1e531ee0668eaf801fae9bd54e536d",
+        "addon": true
+      },
+      {
+        "components": [
+          "cert-manager"
+        ],
+        "image": "quay.io/jetstack/cert-manager-webhook:v1.16.2",
+        "digest": "sha256:abd7c347c84e2bb09db9618cfb0951f678b7c4378c2626b3f75d268e79813f85",
+        "size": 16643155,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:64c4d5dd55d7d00e5b162e21887f9bffbf1e531ee0668eaf801fae9bd54e536d",
+        "addon": true
+      },
+      {
+        "components": [
+          "trust-manager"
+        ],
+        "image": "quay.io/jetstack/trust-manager:v0.18.0",
+        "digest": "sha256:0f864cbc5acd3feba519fadfb6b9e9e23486ffc28b256903c4783ab52267de2c",
+        "size": 17270428,
+        "platform": "linux/amd64",
+        "index": "sha256:ef7c0ce7525066c3bf91cfc0bae6ec822b0ff9a1f6336f5a7517257f0b4e9d0d",
+        "addon": true
+      },
+      {
+        "components": [
+          "trust-manager"
+        ],
+        "image": "quay.io/jetstack/trust-manager:v0.18.0",
+        "digest": "sha256:f0df4aebfda790d67c5e4c644eaf0f3a49ccefed5582a6e02d4b93ad5022e584",
+        "size": 15453054,
+        "platform": "linux/arm64",
+        "index": "sha256:ef7c0ce7525066c3bf91cfc0bae6ec822b0ff9a1f6336f5a7517257f0b4e9d0d",
+        "addon": true
+      },
+      {
+        "components": [
+          "trust-manager"
+        ],
+        "image": "quay.io/jetstack/trust-pkg-debian-bookworm:20230311.0",
+        "digest": "sha256:24153e2ec523ff82c8f0cd352b9da68ee6652396f0adb04dd924884ea6d230b5",
+        "size": 1442349,
+        "platform": "linux/amd64",
+        "index": "sha256:f5b80f469b8c777881a35ad60590a10cd7686c2dc74011af13aac86aae3dfb0c",
+        "addon": true
+      },
+      {
+        "components": [
+          "trust-manager"
+        ],
+        "image": "quay.io/jetstack/trust-pkg-debian-bookworm:20230311.0",
+        "digest": "sha256:21a38824736533bad9341b8f477d0b7db513a58d53b0289e0b53683be076f14e",
+        "size": 1394629,
+        "platform": "linux/arm64",
+        "index": "sha256:f5b80f469b8c777881a35ad60590a10cd7686c2dc74011af13aac86aae3dfb0c",
+        "addon": true
+      },
+      {
+        "components": [
+          "secrets-store-csi-provider-openbao"
+        ],
+        "image": "quay.io/openbao/openbao-csi-provider:2.0.2",
+        "digest": "sha256:698a2f7d68b4206000d8180c189e0798f23c9e0d5f10a37407312690264fafd6",
+        "size": 17850839,
+        "platform": "linux/amd64",
+        "index": "sha256:3cb312e88c62c926caec03bf69497a16805a29daabb5ad2c7a236ab43bb241db",
+        "addon": true
+      },
+      {
+        "components": [
+          "secrets-store-csi-provider-openbao"
+        ],
+        "image": "quay.io/openbao/openbao-csi-provider:2.0.2",
+        "digest": "sha256:cb0eff68d59856f831de7800ca3451831b72baf83b1edbb506739ea24101f335",
+        "size": 16605314,
+        "platform": "linux/arm64",
+        "index": "sha256:3cb312e88c62c926caec03bf69497a16805a29daabb5ad2c7a236ab43bb241db",
+        "addon": true
+      },
+      {
+        "components": [
+          "secrets-store-csi-provider-openbao"
+        ],
+        "image": "quay.io/openbao/openbao:2.5.5",
+        "digest": "sha256:e59b4c73cfce6875363d25548222819433c6ce0af9c6d3ec9ede220e905723f9",
+        "size": 76857921,
+        "platform": "linux/amd64",
+        "index": "sha256:6150c4a6b62067db6141c8da7a6a6b5763f4f47c315343d0c848b40fecdfd452",
+        "addon": true
+      },
+      {
+        "components": [
+          "secrets-store-csi-provider-openbao"
+        ],
+        "image": "quay.io/openbao/openbao:2.5.5",
+        "digest": "sha256:272279302ac86a95368672c1a57ff3800d15a05e013dd53d038cc7552e43a62b",
+        "size": 71811204,
+        "platform": "linux/arm64",
+        "index": "sha256:6150c4a6b62067db6141c8da7a6a6b5763f4f47c315343d0c848b40fecdfd452",
+        "addon": true
+      },
+      {
+        "components": [
+          "agent-sandbox"
+        ],
+        "image": "registry.k8s.io/agent-sandbox/agent-sandbox-controller:v0.5.0",
+        "digest": "sha256:c33439351fcb5e6b85fed69e9b81e7fa1a7d8d5fce1e311f6b4086ca6bcf3502",
+        "size": 15779996,
+        "platform": "linux/amd64",
+        "index": "sha256:e99cac42f10cac69cab09a91e59f982c9d525b2933a5f5b7dfd52dae09340aa2",
+        "addon": true
+      },
+      {
+        "components": [
+          "agent-sandbox"
+        ],
+        "image": "registry.k8s.io/agent-sandbox/agent-sandbox-controller:v0.5.0",
+        "digest": "sha256:236c28895bb77bca8ac9a6247f8f16323652fbfab470ebf0310e065ccbca413c",
+        "size": 14088501,
+        "platform": "linux/arm64",
+        "index": "sha256:e99cac42f10cac69cab09a91e59f982c9d525b2933a5f5b7dfd52dae09340aa2",
+        "addon": true
+      },
+      {
+        "components": [
+          "cluster-api"
+        ],
+        "image": "registry.k8s.io/cluster-api/cluster-api-controller:v1.12.10",
+        "digest": "sha256:2d3000b281748ea735d9b538e9a1dac346364cf25679cb2d270093e6300a7597",
+        "size": 40660376,
+        "platform": "linux/amd64",
+        "index": "sha256:fae17bc0513c004398671688c013a56b7d72e750429b8197e5aeb40cb53efb3f",
         "providers": [
           "aws",
           "google"
@@ -516,39 +754,17 @@
       },
       {
         "components": [
-          "nstance-operator"
+          "cluster-api"
         ],
-        "image": "ghcr.io/nstance-dev/nstance-operator:1.0.0",
-        "digest": "sha256:4b983545205eb442e8b85f50abdd1d696cc5be6bfa3057c300008758f456f940",
-        "size": 15102833,
-        "platform": "linux/arm64",
-        "index": "sha256:f9038539fe78ff6fd6a1335e5f2c4bd3392101dc3ae9f8e2b946513cc320c711",
+        "image": "registry.k8s.io/cluster-api/cluster-api-controller:v1.12.10",
+        "digest": "sha256:d0803b03e9e3ed8acc36a625d49f687e5eab262885829fcd2dbea38ec679c24a",
+        "size": 37299470,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:fae17bc0513c004398671688c013a56b7d72e750429b8197e5aeb40cb53efb3f",
         "providers": [
           "aws",
           "google"
         ]
-      },
-      {
-        "components": [
-          "podplane-operator"
-        ],
-        "image": "ghcr.io/podplane/operator:v0.4.3",
-        "digest": "sha256:7a041d04847e572fdafbb2e885ed52944f5ec61286a033af80a360dbfa1e9dc8",
-        "size": 24642744,
-        "platform": "linux/amd64",
-        "index": "sha256:2eab7cb180f01f88777ff62aa709662315470810a0ee21e60a3b27161029f7da",
-        "addon": true
-      },
-      {
-        "components": [
-          "podplane-operator"
-        ],
-        "image": "ghcr.io/podplane/operator:v0.4.3",
-        "digest": "sha256:03591c79b5fd51dd73578f37f514a3c53af56a4175d46797a16a8b75fd78e347",
-        "size": 22054222,
-        "platform": "linux/arm64",
-        "index": "sha256:2eab7cb180f01f88777ff62aa709662315470810a0ee21e60a3b27161029f7da",
-        "addon": true
       },
       {
         "components": [
@@ -571,6 +787,20 @@
         "platform": "linux/arm64",
         "index": "sha256:110344819630bfd41e0c6d3f215d325ad1a4d5d5b1d298f8af7d0edf4df64a4e",
         "addon": true
+      },
+      {
+        "image": "registry.k8s.io/pause:3.10.2",
+        "digest": "sha256:412c4a7219cb8a299a37337f3d87810c5340095322e15594a1637785adad0f17",
+        "size": 318043,
+        "platform": "linux/amd64",
+        "index": "sha256:f548e0e8e3dc1896ca956272154dde3314e8cc4fde0a57577ee9fa1c63f5baf4"
+      },
+      {
+        "image": "registry.k8s.io/pause:3.10.2",
+        "digest": "sha256:a433214620b407678934ebd69690a9ed6066247231eacfba181fab20dbc3dbf1",
+        "size": 265534,
+        "platform": "linux/arm64",
+        "index": "sha256:f548e0e8e3dc1896ca956272154dde3314e8cc4fde0a57577ee9fa1c63f5baf4"
       },
       {
         "components": [
@@ -622,58 +852,24 @@
       },
       {
         "components": [
-          "secrets-store-csi-provider-aws"
+          "snapshot"
         ],
-        "image": "public.ecr.aws/aws-secrets-manager/secrets-store-csi-driver-provider-aws:3.1.1",
-        "digest": "sha256:b141dc1d7b37e042e23ac5fe5512e50d0505c5824826f46b741e156df3892b56",
-        "size": 28925217,
+        "image": "registry.k8s.io/sig-storage/snapshot-controller:v8.3.0",
+        "digest": "sha256:f75bd457baf7a76fdf2f0caf1ffc338404f72fc4bcf7836663fefa74fd7fd5a9",
+        "size": 31588582,
         "platform": "linux/amd64",
-        "index": "sha256:076848ab9b131eef31faeeddee68225c99a8298205501979b700e3a4b2b013c9",
-        "providers": [
-          "aws"
-        ],
+        "index": "sha256:12c2da094b02ffa8fa249e17b943b755b464604880cc2cfd85977088c1a2c458",
         "addon": true
       },
       {
         "components": [
-          "secrets-store-csi-provider-aws"
+          "snapshot"
         ],
-        "image": "public.ecr.aws/aws-secrets-manager/secrets-store-csi-driver-provider-aws:3.1.1",
-        "digest": "sha256:faac06035eefd1db325924d2b306943bb04e37fa27a3e72ebb26372d8f1e0e21",
-        "size": 26268546,
+        "image": "registry.k8s.io/sig-storage/snapshot-controller:v8.3.0",
+        "digest": "sha256:af0dc0d831ecf564dfb0079ecf44f03a66e4913eb776ce7f9ad968e3bb673279",
+        "size": 29778307,
         "platform": "linux/arm64",
-        "index": "sha256:076848ab9b131eef31faeeddee68225c99a8298205501979b700e3a4b2b013c9",
-        "providers": [
-          "aws"
-        ],
-        "addon": true
-      },
-      {
-        "components": [
-          "secrets-store-csi-provider-gcp"
-        ],
-        "image": "docker.io/library/busybox:1.36",
-        "digest": "sha256:b7f3d86d6e84fc17718c48bcde1450807faa2d56704205c697b4bd5df7b9e29f",
-        "size": 2207471,
-        "platform": "linux/amd64",
-        "index": "sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662",
-        "providers": [
-          "gcp"
-        ],
-        "addon": true
-      },
-      {
-        "components": [
-          "secrets-store-csi-provider-gcp"
-        ],
-        "image": "docker.io/library/busybox:1.36",
-        "digest": "sha256:bd44eb136a95dcc8dc58995e43abc40a413f2e8e3d4a2aae6bccbe94686acb05",
-        "size": 1897352,
-        "platform": "linux/arm64/v8",
-        "index": "sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662",
-        "providers": [
-          "gcp"
-        ],
+        "index": "sha256:12c2da094b02ffa8fa249e17b943b755b464604880cc2cfd85977088c1a2c458",
         "addon": true
       },
       {
@@ -703,202 +899,6 @@
           "gcp"
         ],
         "addon": true
-      },
-      {
-        "components": [
-          "secrets-store-csi-provider-openbao"
-        ],
-        "image": "quay.io/openbao/openbao-csi-provider:2.0.2",
-        "digest": "sha256:698a2f7d68b4206000d8180c189e0798f23c9e0d5f10a37407312690264fafd6",
-        "size": 17850839,
-        "platform": "linux/amd64",
-        "index": "sha256:3cb312e88c62c926caec03bf69497a16805a29daabb5ad2c7a236ab43bb241db",
-        "addon": true
-      },
-      {
-        "components": [
-          "secrets-store-csi-provider-openbao"
-        ],
-        "image": "quay.io/openbao/openbao-csi-provider:2.0.2",
-        "digest": "sha256:cb0eff68d59856f831de7800ca3451831b72baf83b1edbb506739ea24101f335",
-        "size": 16605314,
-        "platform": "linux/arm64",
-        "index": "sha256:3cb312e88c62c926caec03bf69497a16805a29daabb5ad2c7a236ab43bb241db",
-        "addon": true
-      },
-      {
-        "components": [
-          "secrets-store-csi-provider-openbao"
-        ],
-        "image": "quay.io/openbao/openbao:2.5.5",
-        "digest": "sha256:e59b4c73cfce6875363d25548222819433c6ce0af9c6d3ec9ede220e905723f9",
-        "size": 76857921,
-        "platform": "linux/amd64",
-        "index": "sha256:6150c4a6b62067db6141c8da7a6a6b5763f4f47c315343d0c848b40fecdfd452",
-        "addon": true
-      },
-      {
-        "components": [
-          "secrets-store-csi-provider-openbao"
-        ],
-        "image": "quay.io/openbao/openbao:2.5.5",
-        "digest": "sha256:272279302ac86a95368672c1a57ff3800d15a05e013dd53d038cc7552e43a62b",
-        "size": 71811204,
-        "platform": "linux/arm64",
-        "index": "sha256:6150c4a6b62067db6141c8da7a6a6b5763f4f47c315343d0c848b40fecdfd452",
-        "addon": true
-      },
-      {
-        "components": [
-          "secrets-store-csi-provider-vault"
-        ],
-        "image": "docker.io/hashicorp/vault-csi-provider:1.7.2",
-        "digest": "sha256:52ab988249dca0234bad0ef1bbab9752ddad49ba993bf3fff116476069ce36e6",
-        "size": 35465854,
-        "platform": "linux/amd64",
-        "index": "sha256:76540558b70ce8600780e1865a10aaf6e1b2059751ccdd03f5c93a4acf43fd85",
-        "addon": true
-      },
-      {
-        "components": [
-          "secrets-store-csi-provider-vault"
-        ],
-        "image": "docker.io/hashicorp/vault-csi-provider:1.7.2",
-        "digest": "sha256:7155edfd2003c3bc677d3f481305067439ecf374fcd0ea986b9f3ac41e9268a9",
-        "size": 33213817,
-        "platform": "linux/arm64",
-        "index": "sha256:76540558b70ce8600780e1865a10aaf6e1b2059751ccdd03f5c93a4acf43fd85",
-        "addon": true
-      },
-      {
-        "components": [
-          "secrets-store-csi-provider-vault"
-        ],
-        "image": "docker.io/hashicorp/vault:2.0.2",
-        "digest": "sha256:caaaf40018a66d8e3e65e043e3512debf726eb2170f7dce395c33335eebc8b83",
-        "size": 191699343,
-        "platform": "linux/amd64",
-        "index": "sha256:3fd53308acccd9e4e83fde3e6c6cf5b15e0f7fac1ff7510780b8b23f5e4c3de7",
-        "addon": true
-      },
-      {
-        "components": [
-          "secrets-store-csi-provider-vault"
-        ],
-        "image": "docker.io/hashicorp/vault:2.0.2",
-        "digest": "sha256:78f1c39d7bf50bf3c91cd5678b3d77ef6f02ba5381f4291556caf8f0789562d4",
-        "size": 179031609,
-        "platform": "linux/arm64",
-        "index": "sha256:3fd53308acccd9e4e83fde3e6c6cf5b15e0f7fac1ff7510780b8b23f5e4c3de7",
-        "addon": true
-      },
-      {
-        "components": [
-          "snapshot"
-        ],
-        "image": "registry.k8s.io/sig-storage/snapshot-controller:v8.3.0",
-        "digest": "sha256:f75bd457baf7a76fdf2f0caf1ffc338404f72fc4bcf7836663fefa74fd7fd5a9",
-        "size": 31588582,
-        "platform": "linux/amd64",
-        "index": "sha256:12c2da094b02ffa8fa249e17b943b755b464604880cc2cfd85977088c1a2c458",
-        "addon": true
-      },
-      {
-        "components": [
-          "snapshot"
-        ],
-        "image": "registry.k8s.io/sig-storage/snapshot-controller:v8.3.0",
-        "digest": "sha256:af0dc0d831ecf564dfb0079ecf44f03a66e4913eb776ce7f9ad968e3bb673279",
-        "size": 29778307,
-        "platform": "linux/arm64",
-        "index": "sha256:12c2da094b02ffa8fa249e17b943b755b464604880cc2cfd85977088c1a2c458",
-        "addon": true
-      },
-      {
-        "components": [
-          "traefik"
-        ],
-        "image": "docker.io/traefik:v3.7.1",
-        "digest": "sha256:72ed9e98f2395fca5a9e1c67e131910c21ff06e694955da8e0eae0e5206fc27b",
-        "size": 52994705,
-        "platform": "linux/amd64",
-        "index": "sha256:6b9cbca6fac42ab0075f5437d8dc1685cfd188626d8d515839ea94f8b6271c42",
-        "addon": true
-      },
-      {
-        "components": [
-          "traefik"
-        ],
-        "image": "docker.io/traefik:v3.7.1",
-        "digest": "sha256:1274bacf6552cf123ee4fab97d5ce64d54f2e57c91d8c8c0e87904c4a6ea2144",
-        "size": 48145289,
-        "platform": "linux/arm64/v8",
-        "index": "sha256:6b9cbca6fac42ab0075f5437d8dc1685cfd188626d8d515839ea94f8b6271c42",
-        "addon": true
-      },
-      {
-        "components": [
-          "trust-manager"
-        ],
-        "image": "quay.io/jetstack/trust-manager:v0.18.0",
-        "digest": "sha256:0f864cbc5acd3feba519fadfb6b9e9e23486ffc28b256903c4783ab52267de2c",
-        "size": 17270428,
-        "platform": "linux/amd64",
-        "index": "sha256:ef7c0ce7525066c3bf91cfc0bae6ec822b0ff9a1f6336f5a7517257f0b4e9d0d",
-        "addon": true
-      },
-      {
-        "components": [
-          "trust-manager"
-        ],
-        "image": "quay.io/jetstack/trust-manager:v0.18.0",
-        "digest": "sha256:f0df4aebfda790d67c5e4c644eaf0f3a49ccefed5582a6e02d4b93ad5022e584",
-        "size": 15453054,
-        "platform": "linux/arm64",
-        "index": "sha256:ef7c0ce7525066c3bf91cfc0bae6ec822b0ff9a1f6336f5a7517257f0b4e9d0d",
-        "addon": true
-      },
-      {
-        "components": [
-          "trust-manager"
-        ],
-        "image": "quay.io/jetstack/trust-pkg-debian-bookworm:20230311.0",
-        "digest": "sha256:24153e2ec523ff82c8f0cd352b9da68ee6652396f0adb04dd924884ea6d230b5",
-        "size": 1442349,
-        "platform": "linux/amd64",
-        "index": "sha256:f5b80f469b8c777881a35ad60590a10cd7686c2dc74011af13aac86aae3dfb0c",
-        "addon": true
-      },
-      {
-        "components": [
-          "trust-manager"
-        ],
-        "image": "quay.io/jetstack/trust-pkg-debian-bookworm:20230311.0",
-        "digest": "sha256:21a38824736533bad9341b8f477d0b7db513a58d53b0289e0b53683be076f14e",
-        "size": 1394629,
-        "platform": "linux/arm64",
-        "index": "sha256:f5b80f469b8c777881a35ad60590a10cd7686c2dc74011af13aac86aae3dfb0c",
-        "addon": true
-      },
-      {
-        "components": [
-          "zot-registry"
-        ],
-        "image": "ghcr.io/project-zot/zot:v2.1.18",
-        "digest": "sha256:34f18f783037f967dba10df02f9d4086c4d626f5643ef9f5e51e4a4547280a0b",
-        "size": 74148805,
-        "platform": "linux/amd64",
-        "index": "sha256:6f7bf2b8e43437c7c3a121bc80214845c85f27321e66f2ff4be6bf4220775fd7"
-      },
-      {
-        "components": [
-          "zot-registry"
-        ],
-        "image": "ghcr.io/project-zot/zot:v2.1.18",
-        "digest": "sha256:96913b282b93ee7bc415555c14887e81ece9078631f3189c2e8c1fbb5f888af6",
-        "size": 67685366,
-        "platform": "linux/arm64/v8",
-        "index": "sha256:6f7bf2b8e43437c7c3a121bc80214845c85f27321e66f2ff4be6bf4220775fd7"
       }
     ]
   }

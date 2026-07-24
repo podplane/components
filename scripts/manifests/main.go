@@ -190,17 +190,6 @@ func run() error {
 	}
 
 	sort.Slice(images, func(i, j int) bool {
-		owner := func(item image) string {
-			if len(item.Components) == 0 {
-				return ""
-			}
-			// Keep shared images with the last owner. Adding an earlier-sorting
-			// owner then does not reorder an existing manifest entry.
-			return item.Components[len(item.Components)-1]
-		}
-		if owner(images[i]) != owner(images[j]) {
-			return owner(images[i]) < owner(images[j])
-		}
 		if images[i].Image != images[j].Image {
 			return images[i].Image < images[j].Image
 		}
