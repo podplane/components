@@ -56,6 +56,7 @@ var (
 		"traefik":                            {Addon: true},
 		"snapshot":                           {Addon: true},
 		"metrics-server":                     {Addon: true},
+		"node-problem-detector":              {Addon: true},
 		"csi-aws-ebs":                        {Providers: []string{"aws"}},
 		"secrets-store-csi-driver":           {Addon: true},
 		"secrets-store-csi-provider-aws":     {Providers: []string{"aws"}, Addon: true},

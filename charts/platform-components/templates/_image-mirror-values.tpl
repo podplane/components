@@ -139,6 +139,10 @@ metrics-server:
   metrics-server:
     image:
       repository: {{ printf "%s/registry.k8s.io/metrics-server/metrics-server" $base | quote }}
+node-problem-detector:
+  node-problem-detector:
+    image:
+      repository: {{ printf "%s/registry.k8s.io/node-problem-detector/node-problem-detector" $base | quote }}
 snapshot:
   snapshot-controller:
     controller:

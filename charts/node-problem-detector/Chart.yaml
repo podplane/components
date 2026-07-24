@@ -1,0 +1,14 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: node-problem-detector
+description: Kubernetes Node Problem Detector chart
+type: application
+version: "1.0.0"
+appVersion: "v1.35.1" # https://github.com/kubernetes/node-problem-detector/releases
+dependencies:
+  - name: node-problem-detector
+    version: "2.4.1"
+    repository: "oci://ghcr.io/deliveryhero/helm-charts"

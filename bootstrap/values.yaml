@@ -85,5 +85,7 @@ bootstrap:
         install: [all]
       - name: metrics-server
         install: [all]
+      - name: node-problem-detector
+        install: [all]
       - name: zot-registry
         install: [recommended, all]

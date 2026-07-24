@@ -56,6 +56,8 @@ __Addons (optional, installable via `podplane install <name>`):__
   for persistent volume snapshotting (_Apache 2.0_).
 - [Kubernetes Metrics Server](https://github.com/kubernetes-sigs/metrics-server)
   for resource metrics used by autoscaling and `kubectl top` (_Apache 2.0_).
+- [Node Problem Detector](https://github.com/kubernetes/node-problem-detector)
+  for surfacing node kernel, filesystem, and runtime issues (_Apache 2.0_).
 
 __Provider-Specific Core (always installed for certain providers):__
 

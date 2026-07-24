@@ -1,0 +1,150 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+# https://github.com/deliveryhero/helm-charts/blob/master/stable/node-problem-detector/values.yaml
+node-problem-detector:
+  settings:
+    log_monitors:
+      - /config/kernel-monitor.json
+      - /config/readonly-monitor.json
+    custom_plugin_monitors:
+      - /custom-config/health-checker-containerd.json
+      - /custom-config/dns-monitor.json
+      - /custom-config/systemd-restart-monitor.json
+    custom_monitor_definitions:
+      health-checker-containerd.json: |
+        {
+          "plugin": "custom",
+          "pluginConfig": {
+            "invoke_interval": "10s",
+            "timeout": "3m",
+            "max_output_length": 80,
+            "concurrency": 1
+          },
+          "source": "health-checker",
+          "metricsReporting": true,
+          "conditions": [
+            {
+              "type": "ContainerRuntimeUnhealthy",
+              "reason": "ContainerRuntimeIsHealthy",
+              "message": "Container runtime on the node is functioning properly"
+            }
+          ],
+          "rules": [
+            {
+              "type": "permanent",
+              "condition": "ContainerRuntimeUnhealthy",
+              "reason": "ContainerdUnhealthy",
+              "path": "/home/kubernetes/bin/health-checker",
+              "args": [
+                "--component=cri",
+                "--enable-repair=false",
+                "--health-check-timeout=60s"
+              ],
+              "timeout": "3m"
+            }
+          ]
+        }
+      dns-monitor.json: |
+        {
+          "plugin": "custom",
+          "pluginConfig": {
+            "invoke_interval": "30s",
+            "timeout": "5s",
+            "max_output_length": 80,
+            "concurrency": 1
+          },
+          "source": "network-custom-plugin-monitor",
+          "metricsReporting": true,
+          "conditions": [],
+          "rules": [
+            {
+              "type": "temporary",
+              "reason": "DNSUnreachable",
+              "path": "./config/plugin/dns_problem.sh",
+              "timeout": "3s"
+            }
+          ]
+        }
+      systemd-restart-monitor.json: |
+        {
+          "plugin": "custom",
+          "pluginConfig": {
+            "invoke_interval": "5m",
+            "timeout": "1m",
+            "max_output_length": 80,
+            "concurrency": 1
+          },
+          "source": "podplane-systemd-monitor",
+          "metricsReporting": true,
+          "conditions": [
+            {
+              "type": "FrequentKubeletRestart",
+              "reason": "NoFrequentKubeletRestart",
+              "message": "kubelet is functioning properly"
+            },
+            {
+              "type": "FrequentContainerdRestart",
+              "reason": "NoFrequentContainerdRestart",
+              "message": "containerd is functioning properly"
+            }
+          ],
+          "rules": [
+            {
+              "type": "permanent",
+              "condition": "FrequentKubeletRestart",
+              "reason": "FrequentKubeletRestart",
+              "path": "/home/kubernetes/bin/log-counter",
+              "args": [
+                "--journald-source=systemd",
+                "--log-path=/run/log/journal",
+                "--lookback=20m",
+                "--delay=5m",
+                "--count=5",
+                "--pattern=Started kubelet.service - kubelet: The Kubernetes Node Agent\\.",
+                "--revert-pattern=Stopping kubelet.service - kubelet: The Kubernetes Node Agent\\.\\.\\."
+              ],
+              "timeout": "1m"
+            },
+            {
+              "type": "permanent",
+              "condition": "FrequentContainerdRestart",
+              "reason": "FrequentContainerdRestart",
+              "path": "/home/kubernetes/bin/log-counter",
+              "args": [
+                "--journald-source=systemd",
+                "--log-path=/run/log/journal",
+                "--lookback=20m",
+                "--delay=5m",
+                "--count=5",
+                "--pattern=Starting containerd.service - containerd container runtime\\.\\.\\.",
+                "--revert-pattern=Stopping containerd.service - containerd container runtime\\.\\.\\."
+              ],
+              "timeout": "1m"
+            }
+          ]
+        }
+  extraVolumes:
+    - name: containerd-socket
+      hostPath:
+        path: /var/run/containerd/containerd.sock
+        type: Socket
+    - name: crictl
+      hostPath:
+        path: /usr/local/bin/crictl
+        type: File
+    - name: systemd-journal
+      hostPath:
+        path: /run/log/journal
+        type: Directory
+  extraVolumeMounts:
+    - name: containerd-socket
+      mountPath: /var/run/containerd/containerd.sock
+      readOnly: true
+    - name: crictl
+      mountPath: /usr/bin/crictl
+      readOnly: true
+    - name: systemd-journal
+      mountPath: /run/log/journal
+      readOnly: true

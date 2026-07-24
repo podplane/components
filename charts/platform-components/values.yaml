@@ -175,6 +175,9 @@ platform:
       metrics-server:
         enabled: false
         namespace: platform-metrics-server
+      node-problem-detector:
+        enabled: false
+        namespace: platform-node-problem-detector
       zot-registry:
         enabled: false
         namespace: platform-zot-registry
