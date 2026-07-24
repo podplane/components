@@ -65,7 +65,9 @@
         "index": "sha256:f548e0e8e3dc1896ca956272154dde3314e8cc4fde0a57577ee9fa1c63f5baf4"
       },
       {
-        "component": "agent-sandbox",
+        "components": [
+          "agent-sandbox"
+        ],
         "image": "registry.k8s.io/agent-sandbox/agent-sandbox-controller:v0.5.0",
         "digest": "sha256:c33439351fcb5e6b85fed69e9b81e7fa1a7d8d5fce1e311f6b4086ca6bcf3502",
         "size": 15779996,
@@ -74,7 +76,9 @@
         "addon": true
       },
       {
-        "component": "agent-sandbox",
+        "components": [
+          "agent-sandbox"
+        ],
         "image": "registry.k8s.io/agent-sandbox/agent-sandbox-controller:v0.5.0",
         "digest": "sha256:236c28895bb77bca8ac9a6247f8f16323652fbfab470ebf0310e065ccbca413c",
         "size": 14088501,
@@ -83,7 +87,9 @@
         "addon": true
       },
       {
-        "component": "cert-manager",
+        "components": [
+          "cert-manager"
+        ],
         "image": "quay.io/jetstack/cert-manager-approver-policy:v0.21.0",
         "digest": "sha256:a4aae6050f663c00d6342e4c8e21b878050d00a7a95cbd61c768857f383382d0",
         "size": 21169646,
@@ -92,7 +98,9 @@
         "addon": true
       },
       {
-        "component": "cert-manager",
+        "components": [
+          "cert-manager"
+        ],
         "image": "quay.io/jetstack/cert-manager-approver-policy:v0.21.0",
         "digest": "sha256:da08a1fa898ea499c3fa74ad84987c45ab68692ae1f2e1c0b63cfe5debc58544",
         "size": 19027104,
@@ -101,7 +109,9 @@
         "addon": true
       },
       {
-        "component": "cert-manager",
+        "components": [
+          "cert-manager"
+        ],
         "image": "quay.io/jetstack/cert-manager-cainjector:v1.16.2",
         "digest": "sha256:0a1f62ea3390a73239c0b4214e0ada1fb89c52d30677aebcdc3ca54508996511",
         "size": 15426291,
@@ -110,7 +120,9 @@
         "addon": true
       },
       {
-        "component": "cert-manager",
+        "components": [
+          "cert-manager"
+        ],
         "image": "quay.io/jetstack/cert-manager-cainjector:v1.16.2",
         "digest": "sha256:a858ac7d3ea0f54c71b0db1e4b12f34013d6fafe0e364c663aa900049402c5fb",
         "size": 14072803,
@@ -119,7 +131,9 @@
         "addon": true
       },
       {
-        "component": "cert-manager",
+        "components": [
+          "cert-manager"
+        ],
         "image": "quay.io/jetstack/cert-manager-controller:v1.16.2",
         "digest": "sha256:de97c3767802e33d3096ad9b276598ceee3ed92a0c67907221581b36c8ad055f",
         "size": 21191532,
@@ -128,7 +142,9 @@
         "addon": true
       },
       {
-        "component": "cert-manager",
+        "components": [
+          "cert-manager"
+        ],
         "image": "quay.io/jetstack/cert-manager-controller:v1.16.2",
         "digest": "sha256:8b958c43c97cd0b90125ca6166e7b07428a8b75a0feb39932c940e5bf18f2beb",
         "size": 19405152,
@@ -137,7 +153,31 @@
         "addon": true
       },
       {
-        "component": "cert-manager",
+        "components": [
+          "cert-manager"
+        ],
+        "image": "quay.io/jetstack/cert-manager-csi-driver:v0.10.2",
+        "digest": "sha256:447820573ceccad740f031691cb778943493373be965a06c6538062028c89375",
+        "size": 17911257,
+        "platform": "linux/amd64",
+        "index": "sha256:885ed95e302972c1831df733ecba9339cba6b837ee39ba819a162b359d815370",
+        "addon": true
+      },
+      {
+        "components": [
+          "cert-manager"
+        ],
+        "image": "quay.io/jetstack/cert-manager-csi-driver:v0.10.2",
+        "digest": "sha256:b3950687329829229fbb710e94af3806dedc0b53b4515fdc063ca710550e18f2",
+        "size": 16242977,
+        "platform": "linux/arm64",
+        "index": "sha256:885ed95e302972c1831df733ecba9339cba6b837ee39ba819a162b359d815370",
+        "addon": true
+      },
+      {
+        "components": [
+          "cert-manager"
+        ],
         "image": "quay.io/jetstack/cert-manager-webhook:v1.16.2",
         "digest": "sha256:25d87dff68f00587a3e76a1e5d530d40b6f0f7872e6d634db01a593047849109",
         "size": 18191549,
@@ -146,7 +186,9 @@
         "addon": true
       },
       {
-        "component": "cert-manager",
+        "components": [
+          "cert-manager"
+        ],
         "image": "quay.io/jetstack/cert-manager-webhook:v1.16.2",
         "digest": "sha256:abd7c347c84e2bb09db9618cfb0951f678b7c4378c2626b3f75d268e79813f85",
         "size": 16643155,
@@ -155,7 +197,9 @@
         "addon": true
       },
       {
-        "component": "cilium",
+        "components": [
+          "cilium"
+        ],
         "image": "quay.io/cilium/cilium:v1.16.3@sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28",
         "digest": "sha256:a2a37ab3ea769b85703478f1f46c3fd9696fc7037b73b0a3ba5c53821f4791a7",
         "size": 223180302,
@@ -163,7 +207,9 @@
         "index": "sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28"
       },
       {
-        "component": "cilium",
+        "components": [
+          "cilium"
+        ],
         "image": "quay.io/cilium/cilium:v1.16.3@sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28",
         "digest": "sha256:51fc82a040039e68bb9735aed20cc719c869ae57aeef3e2cb985132fe5f44321",
         "size": 210788644,
@@ -171,7 +217,9 @@
         "index": "sha256:62d2a09bbef840a46099ac4c69421c90f84f28d018d479749049011329aa7f28"
       },
       {
-        "component": "cilium",
+        "components": [
+          "cilium"
+        ],
         "image": "quay.io/cilium/operator-generic:v1.16.3@sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b",
         "digest": "sha256:cfcb0eec380a91542e062e8849c41e64729df1226146edd47eb74e81c88408ed",
         "size": 31096285,
@@ -179,7 +227,9 @@
         "index": "sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b"
       },
       {
-        "component": "cilium",
+        "components": [
+          "cilium"
+        ],
         "image": "quay.io/cilium/operator-generic:v1.16.3@sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b",
         "digest": "sha256:980398f7a1c869df9e971130fae8998af4ce549a4258dcb29bcd12244ec4d5f6",
         "size": 28544744,
@@ -187,7 +237,9 @@
         "index": "sha256:6e2925ef47a1c76e183c48f95d4ce0d34a1e5e848252f910476c3e11ce1ec94b"
       },
       {
-        "component": "cluster-api",
+        "components": [
+          "cluster-api"
+        ],
         "image": "registry.k8s.io/cluster-api/cluster-api-controller:v1.12.10",
         "digest": "sha256:2d3000b281748ea735d9b538e9a1dac346364cf25679cb2d270093e6300a7597",
         "size": 40660376,
@@ -199,7 +251,9 @@
         ]
       },
       {
-        "component": "cluster-api",
+        "components": [
+          "cluster-api"
+        ],
         "image": "registry.k8s.io/cluster-api/cluster-api-controller:v1.12.10",
         "digest": "sha256:d0803b03e9e3ed8acc36a625d49f687e5eab262885829fcd2dbea38ec679c24a",
         "size": 37299470,
@@ -211,7 +265,9 @@
         ]
       },
       {
-        "component": "coredns",
+        "components": [
+          "coredns"
+        ],
         "image": "docker.io/coredns/coredns:1.11.3",
         "digest": "sha256:f0b8c589314ed010a0c326e987a52b50801f0145ac9b75423af1b5c66dbd6d50",
         "size": 18560030,
@@ -219,7 +275,9 @@
         "index": "sha256:9caabbf6238b189a65d0d6e6ac138de60d6a1c419e5a341fbbb7c78382559c6e"
       },
       {
-        "component": "coredns",
+        "components": [
+          "coredns"
+        ],
         "image": "docker.io/coredns/coredns:1.11.3",
         "digest": "sha256:31440a2bef59e2f1ffb600113b557103740ff851e27b0aef5b849f6e3ab994a6",
         "size": 16946411,
@@ -227,7 +285,9 @@
         "index": "sha256:9caabbf6238b189a65d0d6e6ac138de60d6a1c419e5a341fbbb7c78382559c6e"
       },
       {
-        "component": "csi-aws-ebs",
+        "components": [
+          "csi-aws-ebs"
+        ],
         "image": "public.ecr.aws/csi-components/csi-attacher:v4.9.0-eksbuild.3",
         "digest": "sha256:43fb02723ec1ae932fcc49b9f64aa22df05a730876da9523b7c4883e40f4db60",
         "size": 35624561,
@@ -238,7 +298,9 @@
         ]
       },
       {
-        "component": "csi-aws-ebs",
+        "components": [
+          "csi-aws-ebs"
+        ],
         "image": "public.ecr.aws/csi-components/csi-attacher:v4.9.0-eksbuild.3",
         "digest": "sha256:e6b5ccff54af09640dc353b12ac143ffbde751ddea3792ee341aeb336e7c4b9a",
         "size": 33714293,
@@ -249,7 +311,9 @@
         ]
       },
       {
-        "component": "csi-aws-ebs",
+        "components": [
+          "csi-aws-ebs"
+        ],
         "image": "public.ecr.aws/csi-components/csi-node-driver-registrar:v2.14.0-eksbuild.4",
         "digest": "sha256:6b5eb44989be420cd748e111946834c0888a5dd01e2dc90d6ec07bcb683c941a",
         "size": 17493386,
@@ -260,7 +324,9 @@
         ]
       },
       {
-        "component": "csi-aws-ebs",
+        "components": [
+          "csi-aws-ebs"
+        ],
         "image": "public.ecr.aws/csi-components/csi-node-driver-registrar:v2.14.0-eksbuild.4",
         "digest": "sha256:65d0fd8cd818bd6787167d67fef6c6efd286ffdcfa3e5561d1e55668c68f484a",
         "size": 16533001,
@@ -271,7 +337,9 @@
         ]
       },
       {
-        "component": "csi-aws-ebs",
+        "components": [
+          "csi-aws-ebs"
+        ],
         "image": "public.ecr.aws/csi-components/csi-provisioner:v5.3.0-eksbuild.3",
         "digest": "sha256:f046337226f438e7d0fb94a1faee2e7121ef8c84561f86a77c2c167d0c99057c",
         "size": 37661457,
@@ -282,7 +350,9 @@
         ]
       },
       {
-        "component": "csi-aws-ebs",
+        "components": [
+          "csi-aws-ebs"
+        ],
         "image": "public.ecr.aws/csi-components/csi-provisioner:v5.3.0-eksbuild.3",
         "digest": "sha256:e7bbf29048880b344d399072e811ccb69190a54ba70206cf4118760f89a4b461",
         "size": 35657438,
@@ -293,7 +363,9 @@
         ]
       },
       {
-        "component": "csi-aws-ebs",
+        "components": [
+          "csi-aws-ebs"
+        ],
         "image": "public.ecr.aws/csi-components/csi-resizer:v1.14.0-eksbuild.3",
         "digest": "sha256:9957e746920d982668f858ee045c4d70a574951a2d587ee1b424a1d42cb2ab02",
         "size": 35652422,
@@ -304,7 +376,9 @@
         ]
       },
       {
-        "component": "csi-aws-ebs",
+        "components": [
+          "csi-aws-ebs"
+        ],
         "image": "public.ecr.aws/csi-components/csi-resizer:v1.14.0-eksbuild.3",
         "digest": "sha256:da6590a619b666e2968605a93c1227d0bad78c15277cf873b64195cf18765eae",
         "size": 33718513,
@@ -315,7 +389,9 @@
         ]
       },
       {
-        "component": "csi-aws-ebs",
+        "components": [
+          "csi-aws-ebs"
+        ],
         "image": "public.ecr.aws/csi-components/livenessprobe:v2.16.0-eksbuild.4",
         "digest": "sha256:f625c4b68cf5a991e6d736d91102da7e00fa7ef3398c76d21f4d058dc4984d4e",
         "size": 17474164,
@@ -326,7 +402,9 @@
         ]
       },
       {
-        "component": "csi-aws-ebs",
+        "components": [
+          "csi-aws-ebs"
+        ],
         "image": "public.ecr.aws/csi-components/livenessprobe:v2.16.0-eksbuild.4",
         "digest": "sha256:2fe47b516f23856d9f98552a6271533698a2090f4ceb6a210c1402083b52f3dd",
         "size": 16513343,
@@ -337,7 +415,9 @@
         ]
       },
       {
-        "component": "csi-aws-ebs",
+        "components": [
+          "csi-aws-ebs"
+        ],
         "image": "public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.47.0",
         "digest": "sha256:e5f82fa48d6d8e0d378978cba4586393f6ee6ffbb72b78f940496526d5a93f61",
         "size": 35941677,
@@ -348,7 +428,9 @@
         ]
       },
       {
-        "component": "csi-aws-ebs",
+        "components": [
+          "csi-aws-ebs"
+        ],
         "image": "public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.47.0",
         "digest": "sha256:d7abd41a1fc272c131a8dc09ddd689a12e280c661ea5277506da9147fdab3561",
         "size": 32811299,
@@ -359,7 +441,9 @@
         ]
       },
       {
-        "component": "fluxcd",
+        "components": [
+          "fluxcd"
+        ],
         "image": "ghcr.io/fluxcd/flux-cli:v2.8.5",
         "digest": "sha256:f3f27e59943d98c32fc1cbe6a02bb042063ba6f37e4ddc67515606ec27f4de39",
         "size": 46155840,
@@ -367,7 +451,9 @@
         "index": "sha256:f1947272d998247ce959adf8ffe13626f153e8b373ccd0322a18b4f7aad132f1"
       },
       {
-        "component": "fluxcd",
+        "components": [
+          "fluxcd"
+        ],
         "image": "ghcr.io/fluxcd/flux-cli:v2.8.5",
         "digest": "sha256:8ec33a6691d77be52276ed51174a2c702771e430fc871fc6718bfbd22b00f8c5",
         "size": 42162043,
@@ -375,7 +461,9 @@
         "index": "sha256:f1947272d998247ce959adf8ffe13626f153e8b373ccd0322a18b4f7aad132f1"
       },
       {
-        "component": "fluxcd",
+        "components": [
+          "fluxcd"
+        ],
         "image": "ghcr.io/fluxcd/helm-controller:v1.5.3",
         "digest": "sha256:e9bf3dec37e7da581466d4b11f95e8723fc0494c88d3ce4116cdf4a341bcf249",
         "size": 50825343,
@@ -383,7 +471,9 @@
         "index": "sha256:b150af0cd7a501dafe2374b1d22c39abf0572465df4fa1fb99b37927b0d95d75"
       },
       {
-        "component": "fluxcd",
+        "components": [
+          "fluxcd"
+        ],
         "image": "ghcr.io/fluxcd/helm-controller:v1.5.3",
         "digest": "sha256:fed9b381e0484fac43897e603a6025e3af56fe4abe590488a76e2ed711f5525b",
         "size": 47372802,
@@ -391,7 +481,9 @@
         "index": "sha256:b150af0cd7a501dafe2374b1d22c39abf0572465df4fa1fb99b37927b0d95d75"
       },
       {
-        "component": "fluxcd",
+        "components": [
+          "fluxcd"
+        ],
         "image": "ghcr.io/fluxcd/source-controller:v1.8.2",
         "digest": "sha256:d8632c80aa18a671fd0a1584f7b3814e5686fcd4c79c5e66f18ea7145fb26653",
         "size": 63541334,
@@ -399,7 +491,9 @@
         "index": "sha256:f2f6fd483b9a8b8c69f8ebe9f2277be23093a2b552b3578a6db15710d736bb0e"
       },
       {
-        "component": "fluxcd",
+        "components": [
+          "fluxcd"
+        ],
         "image": "ghcr.io/fluxcd/source-controller:v1.8.2",
         "digest": "sha256:dab42ea9a5fad078113fe3b0cf7e0984725034353c2ab91d0f311a30736081e7",
         "size": 59131493,
@@ -407,7 +501,9 @@
         "index": "sha256:f2f6fd483b9a8b8c69f8ebe9f2277be23093a2b552b3578a6db15710d736bb0e"
       },
       {
-        "component": "nstance-operator",
+        "components": [
+          "nstance-operator"
+        ],
         "image": "ghcr.io/nstance-dev/nstance-operator:1.0.0",
         "digest": "sha256:aaa5c0f45505d258ffe28ed9aa5677b4d96752ee2eaa503a1c3e92b2947ed95c",
         "size": 16849471,
@@ -419,7 +515,9 @@
         ]
       },
       {
-        "component": "nstance-operator",
+        "components": [
+          "nstance-operator"
+        ],
         "image": "ghcr.io/nstance-dev/nstance-operator:1.0.0",
         "digest": "sha256:4b983545205eb442e8b85f50abdd1d696cc5be6bfa3057c300008758f456f940",
         "size": 15102833,
@@ -431,7 +529,9 @@
         ]
       },
       {
-        "component": "podplane-operator",
+        "components": [
+          "podplane-operator"
+        ],
         "image": "ghcr.io/podplane/operator:v0.4.3",
         "digest": "sha256:7a041d04847e572fdafbb2e885ed52944f5ec61286a033af80a360dbfa1e9dc8",
         "size": 24642744,
@@ -440,7 +540,9 @@
         "addon": true
       },
       {
-        "component": "podplane-operator",
+        "components": [
+          "podplane-operator"
+        ],
         "image": "ghcr.io/podplane/operator:v0.4.3",
         "digest": "sha256:03591c79b5fd51dd73578f37f514a3c53af56a4175d46797a16a8b75fd78e347",
         "size": 22054222,
@@ -449,7 +551,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-driver",
+        "components": [
+          "secrets-store-csi-driver"
+        ],
         "image": "registry.k8s.io/csi-secrets-store/driver:v1.6.0",
         "digest": "sha256:6f9dcaa06df8603b07145326cedbd8eb1802308730450a2de873172fca71ab3e",
         "size": 59162878,
@@ -458,7 +562,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-driver",
+        "components": [
+          "secrets-store-csi-driver"
+        ],
         "image": "registry.k8s.io/csi-secrets-store/driver:v1.6.0",
         "digest": "sha256:b004d789ad25ec82450d3a1a10b419d86aa6da00fac6aceba49a4e79c9f10e2c",
         "size": 57900995,
@@ -467,7 +573,10 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-driver",
+        "components": [
+          "cert-manager",
+          "secrets-store-csi-driver"
+        ],
         "image": "registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.16.0",
         "digest": "sha256:aeecba5b171b50558bab359fdb8e28b9da185f666cef35cd87ac9784e51956c5",
         "size": 14107192,
@@ -476,7 +585,10 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-driver",
+        "components": [
+          "cert-manager",
+          "secrets-store-csi-driver"
+        ],
         "image": "registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.16.0",
         "digest": "sha256:108aadeb3bcdea7c60199f83ff53358bdcf42c365ed274b754baac2f81dd3883",
         "size": 13064276,
@@ -485,7 +597,10 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-driver",
+        "components": [
+          "cert-manager",
+          "secrets-store-csi-driver"
+        ],
         "image": "registry.k8s.io/sig-storage/livenessprobe:v2.18.0",
         "digest": "sha256:7fe80915b3cb9fb1d09dbd300a0682cafa8ab93947cd3ddc3e15a8250621bf24",
         "size": 14219446,
@@ -494,7 +609,10 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-driver",
+        "components": [
+          "cert-manager",
+          "secrets-store-csi-driver"
+        ],
         "image": "registry.k8s.io/sig-storage/livenessprobe:v2.18.0",
         "digest": "sha256:857cc375c99c4e610df0b47c8935456ad6ef81cfbb4479dfe5edee837a34abe3",
         "size": 13164909,
@@ -503,7 +621,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-aws",
+        "components": [
+          "secrets-store-csi-provider-aws"
+        ],
         "image": "public.ecr.aws/aws-secrets-manager/secrets-store-csi-driver-provider-aws:3.1.1",
         "digest": "sha256:b141dc1d7b37e042e23ac5fe5512e50d0505c5824826f46b741e156df3892b56",
         "size": 28925217,
@@ -515,7 +635,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-aws",
+        "components": [
+          "secrets-store-csi-provider-aws"
+        ],
         "image": "public.ecr.aws/aws-secrets-manager/secrets-store-csi-driver-provider-aws:3.1.1",
         "digest": "sha256:faac06035eefd1db325924d2b306943bb04e37fa27a3e72ebb26372d8f1e0e21",
         "size": 26268546,
@@ -527,7 +649,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-gcp",
+        "components": [
+          "secrets-store-csi-provider-gcp"
+        ],
         "image": "docker.io/library/busybox:1.36",
         "digest": "sha256:b7f3d86d6e84fc17718c48bcde1450807faa2d56704205c697b4bd5df7b9e29f",
         "size": 2207471,
@@ -539,7 +663,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-gcp",
+        "components": [
+          "secrets-store-csi-provider-gcp"
+        ],
         "image": "docker.io/library/busybox:1.36",
         "digest": "sha256:bd44eb136a95dcc8dc58995e43abc40a413f2e8e3d4a2aae6bccbe94686acb05",
         "size": 1897352,
@@ -551,7 +677,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-gcp",
+        "components": [
+          "secrets-store-csi-provider-gcp"
+        ],
         "image": "us-docker.pkg.dev/secretmanager-csi/secrets-store-csi-driver-provider-gcp/plugin@sha256:c87cfa3e8be097c0034f136fb56e37d76966430b69223c12d179398ea0584576",
         "digest": "sha256:76217f31f082d5afe651e001b6097eccaadba09e1fa4204e792fb208a5632b44",
         "size": 16407866,
@@ -563,7 +691,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-gcp",
+        "components": [
+          "secrets-store-csi-provider-gcp"
+        ],
         "image": "us-docker.pkg.dev/secretmanager-csi/secrets-store-csi-driver-provider-gcp/plugin@sha256:c87cfa3e8be097c0034f136fb56e37d76966430b69223c12d179398ea0584576",
         "digest": "sha256:64c43693af64a3132bd0572743a09e00feab7415e075205b24691528b0796944",
         "size": 14684706,
@@ -575,7 +705,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-openbao",
+        "components": [
+          "secrets-store-csi-provider-openbao"
+        ],
         "image": "quay.io/openbao/openbao-csi-provider:2.0.2",
         "digest": "sha256:698a2f7d68b4206000d8180c189e0798f23c9e0d5f10a37407312690264fafd6",
         "size": 17850839,
@@ -584,7 +716,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-openbao",
+        "components": [
+          "secrets-store-csi-provider-openbao"
+        ],
         "image": "quay.io/openbao/openbao-csi-provider:2.0.2",
         "digest": "sha256:cb0eff68d59856f831de7800ca3451831b72baf83b1edbb506739ea24101f335",
         "size": 16605314,
@@ -593,7 +727,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-openbao",
+        "components": [
+          "secrets-store-csi-provider-openbao"
+        ],
         "image": "quay.io/openbao/openbao:2.5.5",
         "digest": "sha256:e59b4c73cfce6875363d25548222819433c6ce0af9c6d3ec9ede220e905723f9",
         "size": 76857921,
@@ -602,7 +738,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-openbao",
+        "components": [
+          "secrets-store-csi-provider-openbao"
+        ],
         "image": "quay.io/openbao/openbao:2.5.5",
         "digest": "sha256:272279302ac86a95368672c1a57ff3800d15a05e013dd53d038cc7552e43a62b",
         "size": 71811204,
@@ -611,7 +749,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-vault",
+        "components": [
+          "secrets-store-csi-provider-vault"
+        ],
         "image": "docker.io/hashicorp/vault-csi-provider:1.7.2",
         "digest": "sha256:52ab988249dca0234bad0ef1bbab9752ddad49ba993bf3fff116476069ce36e6",
         "size": 35465854,
@@ -620,7 +760,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-vault",
+        "components": [
+          "secrets-store-csi-provider-vault"
+        ],
         "image": "docker.io/hashicorp/vault-csi-provider:1.7.2",
         "digest": "sha256:7155edfd2003c3bc677d3f481305067439ecf374fcd0ea986b9f3ac41e9268a9",
         "size": 33213817,
@@ -629,7 +771,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-vault",
+        "components": [
+          "secrets-store-csi-provider-vault"
+        ],
         "image": "docker.io/hashicorp/vault:2.0.2",
         "digest": "sha256:caaaf40018a66d8e3e65e043e3512debf726eb2170f7dce395c33335eebc8b83",
         "size": 191699343,
@@ -638,7 +782,9 @@
         "addon": true
       },
       {
-        "component": "secrets-store-csi-provider-vault",
+        "components": [
+          "secrets-store-csi-provider-vault"
+        ],
         "image": "docker.io/hashicorp/vault:2.0.2",
         "digest": "sha256:78f1c39d7bf50bf3c91cd5678b3d77ef6f02ba5381f4291556caf8f0789562d4",
         "size": 179031609,
@@ -647,7 +793,9 @@
         "addon": true
       },
       {
-        "component": "snapshot",
+        "components": [
+          "snapshot"
+        ],
         "image": "registry.k8s.io/sig-storage/snapshot-controller:v8.3.0",
         "digest": "sha256:f75bd457baf7a76fdf2f0caf1ffc338404f72fc4bcf7836663fefa74fd7fd5a9",
         "size": 31588582,
@@ -656,7 +804,9 @@
         "addon": true
       },
       {
-        "component": "snapshot",
+        "components": [
+          "snapshot"
+        ],
         "image": "registry.k8s.io/sig-storage/snapshot-controller:v8.3.0",
         "digest": "sha256:af0dc0d831ecf564dfb0079ecf44f03a66e4913eb776ce7f9ad968e3bb673279",
         "size": 29778307,
@@ -665,7 +815,9 @@
         "addon": true
       },
       {
-        "component": "traefik",
+        "components": [
+          "traefik"
+        ],
         "image": "docker.io/traefik:v3.7.1",
         "digest": "sha256:72ed9e98f2395fca5a9e1c67e131910c21ff06e694955da8e0eae0e5206fc27b",
         "size": 52994705,
@@ -674,7 +826,9 @@
         "addon": true
       },
       {
-        "component": "traefik",
+        "components": [
+          "traefik"
+        ],
         "image": "docker.io/traefik:v3.7.1",
         "digest": "sha256:1274bacf6552cf123ee4fab97d5ce64d54f2e57c91d8c8c0e87904c4a6ea2144",
         "size": 48145289,
@@ -683,7 +837,9 @@
         "addon": true
       },
       {
-        "component": "trust-manager",
+        "components": [
+          "trust-manager"
+        ],
         "image": "quay.io/jetstack/trust-manager:v0.18.0",
         "digest": "sha256:0f864cbc5acd3feba519fadfb6b9e9e23486ffc28b256903c4783ab52267de2c",
         "size": 17270428,
@@ -692,7 +848,9 @@
         "addon": true
       },
       {
-        "component": "trust-manager",
+        "components": [
+          "trust-manager"
+        ],
         "image": "quay.io/jetstack/trust-manager:v0.18.0",
         "digest": "sha256:f0df4aebfda790d67c5e4c644eaf0f3a49ccefed5582a6e02d4b93ad5022e584",
         "size": 15453054,
@@ -701,7 +859,9 @@
         "addon": true
       },
       {
-        "component": "trust-manager",
+        "components": [
+          "trust-manager"
+        ],
         "image": "quay.io/jetstack/trust-pkg-debian-bookworm:20230311.0",
         "digest": "sha256:24153e2ec523ff82c8f0cd352b9da68ee6652396f0adb04dd924884ea6d230b5",
         "size": 1442349,
@@ -710,7 +870,9 @@
         "addon": true
       },
       {
-        "component": "trust-manager",
+        "components": [
+          "trust-manager"
+        ],
         "image": "quay.io/jetstack/trust-pkg-debian-bookworm:20230311.0",
         "digest": "sha256:21a38824736533bad9341b8f477d0b7db513a58d53b0289e0b53683be076f14e",
         "size": 1394629,
@@ -719,7 +881,9 @@
         "addon": true
       },
       {
-        "component": "zot-registry",
+        "components": [
+          "zot-registry"
+        ],
         "image": "ghcr.io/project-zot/zot:v2.1.18",
         "digest": "sha256:34f18f783037f967dba10df02f9d4086c4d626f5643ef9f5e51e4a4547280a0b",
         "size": 74148805,
@@ -727,7 +891,9 @@
         "index": "sha256:6f7bf2b8e43437c7c3a121bc80214845c85f27321e66f2ff4be6bf4220775fd7"
       },
       {
-        "component": "zot-registry",
+        "components": [
+          "zot-registry"
+        ],
         "image": "ghcr.io/project-zot/zot:v2.1.18",
         "digest": "sha256:96913b282b93ee7bc415555c14887e81ece9078631f3189c2e8c1fbb5f888af6",
         "size": 67685366,

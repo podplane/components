@@ -18,9 +18,11 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -95,15 +97,15 @@ type sourceRef struct {
 }
 
 type image struct {
-	Component string   `json:"component,omitempty"`
-	Image     string   `json:"image"`
-	Digest    string   `json:"digest"`
-	Size      int64    `json:"size"`
-	Platform  string   `json:"platform,omitempty"`
-	Index     string   `json:"index,omitempty"`
-	Providers []string `json:"providers,omitempty"`
-	Addon     bool     `json:"addon,omitempty"`
-	Cached    bool     `json:"cached,omitempty"`
+	Components []string `json:"components,omitempty"`
+	Image      string   `json:"image"`
+	Digest     string   `json:"digest"`
+	Size       int64    `json:"size"`
+	Platform   string   `json:"platform,omitempty"`
+	Index      string   `json:"index,omitempty"`
+	Providers  []string `json:"providers,omitempty"`
+	Addon      bool     `json:"addon,omitempty"`
+	Cached     bool     `json:"cached,omitempty"`
 }
 
 // main parses flags and exits non-zero when manifest generation fails.
@@ -133,8 +135,8 @@ func run() error {
 		}
 	}
 
-	images := []image{}
 	imageRefs := map[string]string{}
+	componentsByImage := map[string]map[string]bool{}
 	sort.Slice(extraImages, func(i, j int) bool {
 		if extraImages[i].Repo != extraImages[j].Repo {
 			return extraImages[i].Repo < extraImages[j].Repo
@@ -142,17 +144,12 @@ func run() error {
 		return extraImages[i].Tag < extraImages[j].Tag
 	})
 	fmt.Fprintf(os.Stderr, "resolving %d static extra image(s)\n", len(extraImages))
-	for i, extra := range extraImages {
-		imageRef := extra.Repo + ":" + extra.Tag
+	for _, extra := range extraImages {
+		imageRef := normalizeImage(extra.Repo + ":" + extra.Tag)
 		if err := validateImageRef(imageRefs, imageRef); err != nil {
 			return err
 		}
-		fmt.Fprintf(os.Stderr, "[static] resolving image %d/%d: %s\n", i+1, len(extraImages), imageRef)
-		items, err := resolveImage("", imageRef)
-		if err != nil {
-			return err
-		}
-		images = append(images, items...)
+		componentsByImage[imageRef] = map[string]bool{}
 	}
 
 	fmt.Fprintf(os.Stderr, "scanning %d non-CRD charts\n", len(chartNames))
@@ -164,21 +161,45 @@ func run() error {
 		}
 		fmt.Fprintf(os.Stderr, "[%d/%d] found %d image(s) in %s\n", i+1, len(chartNames), len(chartImages), component)
 		for j, chartImage := range chartImages {
+			chartImage = normalizeImage(chartImage)
 			if err := validateImageRef(imageRefs, chartImage); err != nil {
 				return err
 			}
-			fmt.Fprintf(os.Stderr, "[%d/%d] resolving image %d/%d: %s\n", i+1, len(chartNames), j+1, len(chartImages), chartImage)
-			items, err := resolveImage(component, chartImage)
-			if err != nil {
-				return err
+			fmt.Fprintf(os.Stderr, "[%d/%d] recording image %d/%d: %s\n", i+1, len(chartNames), j+1, len(chartImages), chartImage)
+			if componentsByImage[chartImage] == nil {
+				componentsByImage[chartImage] = map[string]bool{}
 			}
-			images = append(images, items...)
+			componentsByImage[chartImage][component] = true
 		}
 	}
 
+	sources := make([]string, 0, len(componentsByImage))
+	for source := range componentsByImage {
+		sources = append(sources, source)
+	}
+	sort.Strings(sources)
+	images := []image{}
+	for i, source := range sources {
+		components := slices.Sorted(maps.Keys(componentsByImage[source]))
+		fmt.Fprintf(os.Stderr, "resolving image %d/%d: %s\n", i+1, len(sources), source)
+		items, err := resolveImage(components, source)
+		if err != nil {
+			return err
+		}
+		images = append(images, items...)
+	}
+
 	sort.Slice(images, func(i, j int) bool {
-		if images[i].Component != images[j].Component {
-			return images[i].Component < images[j].Component
+		owner := func(item image) string {
+			if len(item.Components) == 0 {
+				return ""
+			}
+			// Keep shared images with the last owner. Adding an earlier-sorting
+			// owner then does not reorder an existing manifest entry.
+			return item.Components[len(item.Components)-1]
+		}
+		if owner(images[i]) != owner(images[j]) {
+			return owner(images[i]) < owner(images[j])
 		}
 		if images[i].Image != images[j].Image {
 			return images[i].Image < images[j].Image
@@ -226,8 +247,11 @@ func componentsSource(version string) source {
 // resolveImage resolves a source image reference to one entry per supported
 // platform. For multi-platform indexes, digest is the platform manifest digest
 // and indexDigest records the resolved upstream index digest.
-func resolveImage(component, sourceImage string) ([]image, error) {
-	metadata := componentMetadata[component]
+func resolveImage(components []string, sourceImage string) ([]image, error) {
+	metadata, err := sharedMetadata(components)
+	if err != nil {
+		return nil, fmt.Errorf("resolve metadata for %s: %w", sourceImage, err)
+	}
 	repo, tag, digest := splitRef(sourceImage)
 	resolvedImage := repo + "@" + digest
 	if digest == "" {
@@ -255,7 +279,7 @@ func resolveImage(component, sourceImage string) ([]image, error) {
 		if err != nil {
 			return nil, fmt.Errorf("calculate image size for %s: %w", resolvedImage, err)
 		}
-		return []image{{Component: component, Image: sourceImage, Digest: digest, Size: size, Providers: metadata.Providers, Addon: metadata.Addon}}, nil
+		return []image{{Components: components, Image: sourceImage, Digest: digest, Size: size, Providers: metadata.Providers, Addon: metadata.Addon}}, nil
 	}
 
 	items := []image{}
@@ -275,20 +299,36 @@ func resolveImage(component, sourceImage string) ([]image, error) {
 			return nil, fmt.Errorf("calculate image size for %s: %w", childRef, err)
 		}
 		items = append(items, image{
-			Component: component,
-			Image:     sourceImage,
-			Digest:    child.Digest,
-			Size:      size,
-			Platform:  platform,
-			Index:     digest,
-			Providers: metadata.Providers,
-			Addon:     metadata.Addon,
+			Components: components,
+			Image:      sourceImage,
+			Digest:     child.Digest,
+			Size:       size,
+			Platform:   platform,
+			Index:      digest,
+			Providers:  metadata.Providers,
+			Addon:      metadata.Addon,
 		})
 	}
 	if len(items) == 0 {
 		return nil, fmt.Errorf("%s has no supported linux/amd64 or linux/arm64 platform", sourceImage)
 	}
 	return items, nil
+}
+
+// sharedMetadata returns the common selection metadata for components that use
+// the same image. Differing metadata cannot be represented on one manifest row.
+func sharedMetadata(components []string) (metadata, error) {
+	if len(components) == 0 {
+		return metadata{}, nil
+	}
+	shared := componentMetadata[components[0]]
+	for _, component := range components[1:] {
+		current := componentMetadata[component]
+		if shared.Addon != current.Addon || !slices.Equal(shared.Providers, current.Providers) {
+			return metadata{}, fmt.Errorf("components %q and %q use different provider/addon metadata", components[0], component)
+		}
+	}
+	return shared, nil
 }
 
 // chartImages renders a chart and extracts normalized images from pod specs.
@@ -400,20 +440,41 @@ func listOfMaps(value any) []map[string]any {
 	return maps
 }
 
-// normalizeImage expands Docker Hub shorthand to fully-qualified references.
+// normalizeImage returns one canonical reference for equivalent Docker Hub
+// spellings and materializes the implicit latest tag.
 func normalizeImage(value string) string {
 	value = strings.TrimSpace(value)
-	first := value
-	if slash := strings.Index(value, "/"); slash >= 0 {
-		first = value[:slash]
+	if slash := strings.Index(value, "/"); slash < 0 {
+		value = "docker.io/library/" + value
+	} else {
+		first := value[:slash]
+		if !strings.Contains(first, ".") && !strings.Contains(first, ":") && first != "localhost" {
+			value = "docker.io/" + value
+		}
 	}
-	if strings.Contains(first, ".") || strings.Contains(first, ":") || first == "localhost" {
-		return value
+	for _, alias := range []string{"index.docker.io/", "registry-1.docker.io/"} {
+		if strings.HasPrefix(value, alias) {
+			value = "docker.io/" + strings.TrimPrefix(value, alias)
+		}
 	}
-	if strings.Contains(value, "/") {
-		return "docker.io/" + value
+	if !strings.Contains(value, "/") {
+		value = "docker.io/library/" + value
 	}
-	return "docker.io/library/" + value
+	repo, tag, digest := splitRef(value)
+	if strings.HasPrefix(repo, "docker.io/") && !strings.Contains(strings.TrimPrefix(repo, "docker.io/"), "/") {
+		repo = "docker.io/library/" + strings.TrimPrefix(repo, "docker.io/")
+	}
+	if tag == "" && digest == "" {
+		tag = "latest"
+	}
+	canonical := repo
+	if tag != "" {
+		canonical += ":" + tag
+	}
+	if digest != "" {
+		canonical += "@" + digest
+	}
+	return canonical
 }
 
 // splitRef separates an image reference into repository, tag, and digest parts.
@@ -434,10 +495,7 @@ func splitRef(value string) (repo string, tag string, digest string) {
 // validateImageRef rejects different source references for the same repository.
 func validateImageRef(seen map[string]string, value string) error {
 	value = normalizeImage(value)
-	repo, tag, digest := splitRef(value)
-	if tag == "" && digest == "" {
-		value = repo + ":latest"
-	}
+	repo, _, _ := splitRef(value)
 	if previous, ok := seen[repo]; ok && previous != value {
 		return fmt.Errorf("image repository %s uses conflicting references %q and %q", repo, previous, value)
 	}

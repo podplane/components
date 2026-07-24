@@ -35,6 +35,13 @@ cert-manager:
   cert-manager-approver-policy:
     image:
       repository: {{ printf "%s/quay.io/jetstack/cert-manager-approver-policy" $base | quote }}
+  cert-manager-csi-driver:
+    image:
+      repository: {{ printf "%s/quay.io/jetstack/cert-manager-csi-driver" $base | quote }}
+    nodeDriverRegistrarImage:
+      repository: {{ printf "%s/registry.k8s.io/sig-storage/csi-node-driver-registrar" $base | quote }}
+    livenessProbeImage:
+      repository: {{ printf "%s/registry.k8s.io/sig-storage/livenessprobe" $base | quote }}
 platform-certs:
   platform:
     certs:

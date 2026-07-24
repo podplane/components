@@ -18,3 +18,7 @@ dependencies:
     version: "v0.21.0"
     # https://cert-manager.io/docs/policy/approval/approver-policy/installation/
     repository: "https://charts.jetstack.io"
+  - name: cert-manager-csi-driver
+    version: "v0.10.2"
+    # https://cert-manager.io/docs/usage/csi-driver/
+    repository: "https://charts.jetstack.io"
