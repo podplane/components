@@ -1,0 +1,143 @@
+# Nstance <https://nstance.dev>
+# Copyright The Nstance Authors
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for nstance-operator
+
+# Operator image configuration
+image:
+  repository: ghcr.io/nstance-dev/nstance-operator
+  pullPolicy: IfNotPresent
+  # Defaults to the chart appVersion.
+  tag: ""
+imagePullSecrets: []
+
+# Number of replicas (leader election ensures only one is active at any given time)
+replicaCount: 2
+
+# Cluster CA used to authenticate nstance-server. When enabled is false, an
+# existing ConfigMap with a ca.crt key must be supplied.
+clusterCA:
+  enabled: false
+  name: nstance-cluster-ca
+  certificate: ""
+
+# Registration nonce used only for the operator's initial registration. When
+# enabled is false, an existing Secret with a nonce.jwt key must be supplied.
+registrationSecret:
+  enabled: false
+  name: nstance-operator-nonce
+  nonceJWT: ""
+
+# Names for secrets that will be auto-created by the operator
+managedSecretNames:
+  # Operator's private key
+  privateKey: nstance-operator-key
+  # Operator's client certificate from server
+  clientCert: nstance-operator-cert
+
+# Configuration for the operator ConfigMap
+operatorConfigMap:
+  enabled: true
+  name: ""
+
+# Operator configuration rendered into config.yaml when the ConfigMap is enabled
+config:
+  clusterID: ""
+  tenant: ""
+  shards: {}
+  # Example:
+  #   us-east-1a:
+  #     registration_addr: "172.16.0.100:8992"
+  #     operator_addr: "172.16.0.100:8993"
+  #   us-east-1b:
+  #     registration_addr: "172.16.1.100:8992"
+  #     operator_addr: "172.16.1.100:8993"
+
+# Deployment configuration
+deployment:
+  enabled: true
+
+# Leader election settings
+leaderElection:
+  enabled: true
+
+# Metrics server configuration
+metrics:
+  enabled: true
+  port: 8080
+  service:
+    enabled: true
+    annotations: {}
+
+# Health probe configuration
+healthProbe:
+  port: 8081
+
+# The operator's validating webhook requires cert-manager when enabled.
+webhooks:
+  enabled: true
+  failurePolicy: Fail
+  certificate:
+    duration: 8760h
+    renewBefore: 720h
+
+# Log level (debug, info, warn, error)
+logLevel: info
+
+# Service account configuration
+serviceAccount:
+  enabled: true
+  annotations: {}
+  name: ""
+
+# RBAC configuration
+rbac:
+  enabled: true
+
+# CAPI workload-cluster access. For self-managed clusters, the operator mints
+# tokens for this ServiceAccount. For an external workload cluster, set
+# endpoint and pre-provision the <clusterID>--<tenant>-kubeconfig Secret.
+capi:
+  endpoint: ""
+  serviceAccount:
+    enabled: true
+    name: ""
+
+# Use JSON rather than protobuf when talking to the Kubernetes API.
+kubernetesJSON: false
+
+# Pod resource limits
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity rules
+affinity: {}
+
+# Pod security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+# Container security context
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+

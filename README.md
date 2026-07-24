@@ -61,6 +61,8 @@ __Provider-Specific Core (always installed for certain providers):__
   for persistent storage on AWS (_Apache 2.0_).
 - [Cluster API](https://cluster-api.sigs.k8s.io/) core controller and CRDs for
   declarative infrastructure-provider cluster lifecycle management (_Apache 2.0_).
+- [Nstance Operator](https://nstance.dev/) as the Cluster API infrastructure
+  provider for Nstance-managed machines on AWS and Google Cloud (_Apache 2.0_).
 
 ## Usage
 

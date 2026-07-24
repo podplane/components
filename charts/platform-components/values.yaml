@@ -34,6 +34,9 @@ platform:
       cluster-api-crds:
         enabled: false
         core: true
+      nstance-operator-crds:
+        enabled: false
+        core: true
       agent-sandbox-crds:
         enabled: false
       cert-manager-crds:
@@ -87,6 +90,13 @@ platform:
         dependsOn:
           - cluster-api-crds
           - cert-manager
+      nstance-operator:
+        enabled: false
+        core: true
+        namespace: platform-nstance-operator
+        dependsOn:
+          - nstance-operator-crds
+          - cluster-api
       csi-aws-ebs:
         enabled: false
         core: true

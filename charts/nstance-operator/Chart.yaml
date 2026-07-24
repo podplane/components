@@ -1,0 +1,21 @@
+# Nstance <https://nstance.dev>
+# Copyright The Nstance Authors
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v2
+name: nstance-operator
+description: Nstance Operator for Kubernetes with support for Cluster API
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - nstance
+  - infrastructure
+  - autoscaling
+  - cluster-api
+home: https://nstance.dev
+sources:
+  - https://github.com/nstance-dev/nstance
+maintainers:
+  - name: The Podplane Authors
+    url: https://podplane.dev

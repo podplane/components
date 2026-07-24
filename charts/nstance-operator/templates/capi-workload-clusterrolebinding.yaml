@@ -1,0 +1,20 @@
+# Nstance <https://nstance.dev>
+# Copyright The Nstance Authors
+# SPDX-License-Identifier: Apache-2.0
+
+{{- if and (not .Values.capi.endpoint) .Values.rbac.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "nstance-operator.fullname" . }}-capi-workload
+  labels:
+    {{- include "nstance-operator.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "nstance-operator.fullname" . }}-capi-workload
+subjects:
+- kind: ServiceAccount
+  name: {{ include "nstance-operator.capiServiceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+{{- end }}

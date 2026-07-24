@@ -55,6 +55,9 @@ coredns:
 cluster-api:
   image:
     repository: {{ printf "%s/registry.k8s.io/cluster-api/cluster-api-controller" $base | quote }}
+nstance-operator:
+  image:
+    repository: {{ printf "%s/ghcr.io/nstance-dev/nstance-operator" $base | quote }}
 csi-aws-ebs:
   aws-ebs-csi-driver:
     image:

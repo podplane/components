@@ -407,6 +407,30 @@
         "index": "sha256:f2f6fd483b9a8b8c69f8ebe9f2277be23093a2b552b3578a6db15710d736bb0e"
       },
       {
+        "component": "nstance-operator",
+        "image": "ghcr.io/nstance-dev/nstance-operator:1.0.0",
+        "digest": "sha256:aaa5c0f45505d258ffe28ed9aa5677b4d96752ee2eaa503a1c3e92b2947ed95c",
+        "size": 16849471,
+        "platform": "linux/amd64",
+        "index": "sha256:f9038539fe78ff6fd6a1335e5f2c4bd3392101dc3ae9f8e2b946513cc320c711",
+        "providers": [
+          "aws",
+          "google"
+        ]
+      },
+      {
+        "component": "nstance-operator",
+        "image": "ghcr.io/nstance-dev/nstance-operator:1.0.0",
+        "digest": "sha256:4b983545205eb442e8b85f50abdd1d696cc5be6bfa3057c300008758f456f940",
+        "size": 15102833,
+        "platform": "linux/arm64",
+        "index": "sha256:f9038539fe78ff6fd6a1335e5f2c4bd3392101dc3ae9f8e2b946513cc320c711",
+        "providers": [
+          "aws",
+          "google"
+        ]
+      },
+      {
         "component": "podplane-operator",
         "image": "ghcr.io/podplane/operator:v0.4.3",
         "digest": "sha256:7a041d04847e572fdafbb2e885ed52944f5ec61286a033af80a360dbfa1e9dc8",

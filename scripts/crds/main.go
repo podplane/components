@@ -62,6 +62,27 @@ var charts = []crdChart{
 		},
 	},
 	{
+		Name: "nstance-operator-crds",
+		Env:  "NSTANCE_OPERATOR_VERSION",
+		Update: func(ctx updateContext) error {
+			version := firstNonEmpty(ctx.Version, "909bd8cc69d5e1e272af4fa7ee1bd6fe874f0fbc")
+			files := []string{
+				"nstanceclusters.infrastructure.cluster.x-k8s.io.yaml",
+				"nstancemachinepools.infrastructure.cluster.x-k8s.io.yaml",
+				"nstancemachines.infrastructure.cluster.x-k8s.io.yaml",
+				"nstancemachinetemplates.infrastructure.cluster.x-k8s.io.yaml",
+				"nstanceshardgroups.infrastructure.cluster.x-k8s.io.yaml",
+			}
+			baseURL := fmt.Sprintf("https://raw.githubusercontent.com/nstance-dev/nstance/%s/deploy/helm/files/crds", version)
+			for _, file := range files {
+				if err := downloadFile(baseURL+"/"+file, filepath.Join(ctx.OutDir, file)); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	},
+	{
 		Name: "agent-sandbox-crds",
 		Env:  "AGENT_SANDBOX_VERSION",
 		Update: func(ctx updateContext) error {
