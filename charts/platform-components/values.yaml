@@ -167,6 +167,11 @@ platform:
           - platform-certs
           - traefik-crds
           - gateway-api-crds
+      cluster-autoscaler:
+        enabled: false
+        namespace: platform-cluster-autoscaler
+        dependsOn:
+          - nstance-operator
       snapshot:
         enabled: false
         namespace: platform-snapshot

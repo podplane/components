@@ -62,6 +62,10 @@ coredns:
 cluster-api:
   image:
     repository: {{ printf "%s/registry.k8s.io/cluster-api/cluster-api-controller" $base | quote }}
+cluster-autoscaler:
+  cluster-autoscaler:
+    image:
+      repository: {{ printf "%s/registry.k8s.io/autoscaling/cluster-autoscaler" $base | quote }}
 nstance-operator:
   image:
     repository: {{ printf "%s/ghcr.io/nstance-dev/nstance-operator" $base | quote }}

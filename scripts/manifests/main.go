@@ -47,6 +47,7 @@ var (
 	componentMetadata = map[string]metadata{
 		"agent-sandbox":                      {Addon: true},
 		"cluster-api":                        {Providers: []string{"aws", "google"}},
+		"cluster-autoscaler":                 {Providers: []string{"aws", "google"}, Addon: true},
 		"nstance-operator":                   {Providers: []string{"aws", "google"}},
 		"cert-manager":                       {Addon: true},
 		"platform-certs":                     {Addon: true},

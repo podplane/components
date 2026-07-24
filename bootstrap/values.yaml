@@ -87,5 +87,7 @@ bootstrap:
         install: [all]
       - name: node-problem-detector
         install: [all]
+      - name: cluster-autoscaler
+        install: [all]
       - name: zot-registry
         install: [recommended, all]

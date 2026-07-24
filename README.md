@@ -58,6 +58,8 @@ __Addons (optional, installable via `podplane install <name>`):__
   for resource metrics used by autoscaling and `kubectl top` (_Apache 2.0_).
 - [Node Problem Detector](https://github.com/kubernetes/node-problem-detector)
   for surfacing node kernel, filesystem, and runtime issues (_Apache 2.0_).
+- [Kubernetes Cluster Autoscaler](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler)
+  for automatic node scaling through Cluster API (_Apache 2.0_).
 
 __Provider-Specific Core (always installed for certain providers):__
 

@@ -740,6 +740,36 @@
       },
       {
         "components": [
+          "cluster-autoscaler"
+        ],
+        "image": "registry.k8s.io/autoscaling/cluster-autoscaler:v1.36.0",
+        "digest": "sha256:5676144ae4b092059755a45b70bf863c9f272eb3d05cee5451ac533ff513a329",
+        "size": 50020570,
+        "platform": "linux/amd64",
+        "index": "sha256:dc5d62770338c2902f31b01f95c9fc8c456fd88baa5364ca154d6e47069ec885",
+        "providers": [
+          "aws",
+          "google"
+        ],
+        "addon": true
+      },
+      {
+        "components": [
+          "cluster-autoscaler"
+        ],
+        "image": "registry.k8s.io/autoscaling/cluster-autoscaler:v1.36.0",
+        "digest": "sha256:6ae3ab9ad799b77ecd74a0f96cdd92a33c553c079ce10279f0d275b55c7ecaa4",
+        "size": 44860561,
+        "platform": "linux/arm64",
+        "index": "sha256:dc5d62770338c2902f31b01f95c9fc8c456fd88baa5364ca154d6e47069ec885",
+        "providers": [
+          "aws",
+          "google"
+        ],
+        "addon": true
+      },
+      {
+        "components": [
           "cluster-api"
         ],
         "image": "registry.k8s.io/cluster-api/cluster-api-controller:v1.12.10",
