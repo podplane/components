@@ -135,6 +135,10 @@ fluxcd:
       image: {{ printf "%s/ghcr.io/fluxcd/helm-controller" $base | quote }}
     sourceController:
       image: {{ printf "%s/ghcr.io/fluxcd/source-controller" $base | quote }}
+metrics-server:
+  metrics-server:
+    image:
+      repository: {{ printf "%s/registry.k8s.io/metrics-server/metrics-server" $base | quote }}
 snapshot:
   snapshot-controller:
     controller:

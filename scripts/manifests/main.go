@@ -55,6 +55,7 @@ var (
 		"platform-trust":                     {Addon: true},
 		"traefik":                            {Addon: true},
 		"snapshot":                           {Addon: true},
+		"metrics-server":                     {Addon: true},
 		"csi-aws-ebs":                        {Providers: []string{"aws"}},
 		"secrets-store-csi-driver":           {Addon: true},
 		"secrets-store-csi-provider-aws":     {Providers: []string{"aws"}, Addon: true},

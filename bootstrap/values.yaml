@@ -83,5 +83,7 @@ bootstrap:
         install: [recommended, all]
       - name: snapshot
         install: [all]
+      - name: metrics-server
+        install: [all]
       - name: zot-registry
         install: [recommended, all]

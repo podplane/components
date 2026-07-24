@@ -172,6 +172,9 @@ platform:
         namespace: platform-snapshot
         dependsOn:
           - snapshot-crds
+      metrics-server:
+        enabled: false
+        namespace: platform-metrics-server
       zot-registry:
         enabled: false
         namespace: platform-zot-registry

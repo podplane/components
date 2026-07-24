@@ -54,6 +54,8 @@ __Addons (optional, installable via `podplane install <name>`):__
   certificate trust store management (_Apache 2.0_).
 - [Snapshot Controller](https://github.com/kubernetes-csi/external-snapshotter)
   for persistent volume snapshotting (_Apache 2.0_).
+- [Kubernetes Metrics Server](https://github.com/kubernetes-sigs/metrics-server)
+  for resource metrics used by autoscaling and `kubectl top` (_Apache 2.0_).
 
 __Provider-Specific Core (always installed for certain providers):__
 
