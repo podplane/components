@@ -95,6 +95,7 @@ ci: check lint render check-crds test ## Full CI suite (fetches deps, renders al
 
 check-crds: ## Validate vendored CRDs with the compatibility checker
 	@for chart in charts/*-crds; do \
+		test -d $$chart/templates/external || continue; \
 		echo "==> $$chart"; \
 		go run ./scripts/crds --old $$chart/templates/external --new $$chart/templates/external || exit 1; \
 	done

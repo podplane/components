@@ -102,15 +102,4 @@ spec:
                   dnsNames:
                     - {{ .Values.bootstrap.domain | quote }}
                     - {{ printf "*.%s" .Values.bootstrap.domain | quote }}
-          traefik:
-            platform:
-              traefik:
-                ingress:
-                  enabled: true
-                  issuerRef:
-                    kind: ClusterIssuer
-                    name: platform-ingress-selfsigned-clusterissuer
-                  domains:
-                    - zone: {{ .Values.bootstrap.domain }}
-                      default: true
 {{- end }}

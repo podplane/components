@@ -250,26 +250,6 @@ var charts = []crdChart{
 		},
 	},
 	{
-		Name: "traefik-crds",
-		Env:  "TRAEFIK_CHART_VERSION",
-		Update: func(ctx updateContext) error {
-			version := ctx.Version
-			if version == "" {
-				latest, err := githubLatestTag("traefik/traefik-helm-chart")
-				if err != nil {
-					return err
-				}
-				version = latest
-			}
-			return renderHelmCRDs(ctx.OutDir, helmDependency{
-				Name:       "traefik",
-				Release:    "traefik-crds",
-				Version:    version,
-				Repository: "https://traefik.github.io/charts",
-			}, map[string]any{})
-		},
-	},
-	{
 		Name: "trust-manager-crds",
 		Env:  "TRUST_MANAGER_VERSION",
 		Update: func(ctx updateContext) error {

@@ -2,3 +2,9 @@
 # Copyright The Podplane Authors
 # SPDX-License-Identifier: Apache-2.0
 ---
+gateway-crds-helm:
+  crds:
+    gatewayAPI:
+      enabled: false
+    envoyGateway:
+      enabled: true

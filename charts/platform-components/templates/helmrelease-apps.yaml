@@ -59,6 +59,12 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
+{{ if and (eq $name "envoy-gateway") (dig "platform" "envoyGateway" "ingress" "enabled" false (index $values $name | default dict)) }}
+{{- $envoyValues := index $values $name }}
+{{- $providerComponent := required "platform.components.values.envoy-gateway.platform.envoyGateway.ingress.certificates.csiProviderComponent is required" (dig "platform" "envoyGateway" "ingress" "certificates" "csiProviderComponent" "" $envoyValues) }}
+    - name: {{ $providerComponent }}
+      namespace: {{ (index $components.apps $providerComponent).namespace }}
+{{- end }}
 {{ include "podplane.platform.values" (dict "name" $name "values" $values "mirrorEnabled" $mirrorEnabled "mirrorHostname" $mirrorHostname "mirrorPrefix" $mirrorPrefix) }}
 {{- end }}
 {{- end }}

@@ -55,7 +55,7 @@ or `make all` against a real cluster without explicit user approval.
   missing CRDs themselves.
 - **Component charts** (`charts/<name>`): each is a thin
   Helm chart that depends on an upstream chart (cilium, cert-manager,
-  traefik, etc.) or vendors upstream CRDs in `templates/external/`. Vendored
+  Envoy Gateway, etc.) or vendors upstream CRDs in `templates/external/`. Vendored
   CRDs are updated through the shared `scripts/crds` Go command.
 - **Post-bootstrap changes**: edit the platform chart's values and let Flux
   reconcile. The `podplane install` / `podplane uninstall` CLI commands

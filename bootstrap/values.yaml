@@ -6,7 +6,7 @@ bootstrap:
   # Select the additional platform-components CRDs/apps to install:
   #   minimal     - core only; no addon overrides are rendered.
   #   recommended - core + curated addons: agent-sandbox, cert-manager,
-  #                 trust-manager, traefik, podplane-operator,
+  #                 trust-manager, envoy gateway, podplane-operator,
   #                 secrets-store-csi-driver, OpenBao secrets provider.
   #   all         - every addon CRD/app listed below.
   install: minimal
@@ -52,7 +52,7 @@ bootstrap:
         install: [recommended, all]
       - name: trust-manager-crds
         install: [recommended, all]
-      - name: traefik-crds
+      - name: envoy-gateway-crds
         install: [recommended, all]
       - name: snapshot-crds
         install: [all]
@@ -79,7 +79,7 @@ bootstrap:
         install: [recommended, all]
       - name: platform-trust
         install: [recommended, all]
-      - name: traefik
+      - name: envoy-gateway
         install: [recommended, all]
       - name: snapshot
         install: [all]

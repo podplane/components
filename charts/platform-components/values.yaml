@@ -45,7 +45,7 @@ platform:
         enabled: false
       trust-manager-crds:
         enabled: false
-      traefik-crds:
+      envoy-gateway-crds:
         enabled: false
       snapshot-crds:
         enabled: false
@@ -160,13 +160,14 @@ platform:
         namespace: platform-trust
         dependsOn:
           - trust-manager
-      traefik:
+      envoy-gateway:
         enabled: false
-        namespace: platform-traefik
+        namespace: platform-envoy-gateway
         dependsOn:
-          - platform-certs
-          - traefik-crds
+          - envoy-gateway-crds
           - gateway-api-crds
+          - secrets-store-csi-driver
+          - podplane-operator
       cluster-autoscaler:
         enabled: false
         namespace: platform-cluster-autoscaler
@@ -208,10 +209,10 @@ platform:
     #                   - example.com
     #                 route53:
     #                   hostedZoneID: Z123456789
-    #   traefik:
+    #   envoy-gateway:
     #     platform:
-    #       traefik:
+    #       envoyGateway:
     #         ingress:
     #           enabled: true
     #           domains:
-    #             - zone: example.com
+    #             - apex: example.com

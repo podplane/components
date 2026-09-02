@@ -54,11 +54,11 @@ RESOLVED_REGISTRY="${REGISTRY_HOSTNAME:+${REGISTRY_HOSTNAME}/mirror/}"
 bootstrap_args=(--namespace platform-components)
 set_bootstrap_args bootstrap.install "${PLATFORM_INSTALL:-}"
 set_bootstrap_args bootstrap.clusterID "${CLUSTER_ID:-}"
-# DOMAIN wires platform-components values so Traefik ingress uses a real
+# DOMAIN wires platform-components values so Envoy Gateway ingress uses a real
 # cluster domain. This matches what `podplane hooks netsy-seed` derives from
-# cluster.domains. With PLATFORM_INSTALL=recommended or all, it makes a bare
-# bootstrap usable without ACME credentials by using the platform self-signed
-# ClusterIssuer.
+# cluster.domains. With PLATFORM_INSTALL=recommended or all, the operator makes
+# a bare bootstrap usable without ACME credentials by publishing a self-signed
+# fallback certificate.
 set_bootstrap_args bootstrap.domain "${DOMAIN:-}"
 set_bootstrap_args bootstrap.flux.git.url "${PLATFORM_GIT_REPOSITORY_URL:-}"
 set_bootstrap_args bootstrap.flux.git.ref.branch "${PLATFORM_GIT_REPOSITORY_BRANCH:-}"

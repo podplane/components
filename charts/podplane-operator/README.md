@@ -187,7 +187,7 @@ Common values:
 | `podplane.operator.aggregatedApiService.securePort` | HTTPS container port for aggregated API backends. |
 | `podplane.operator.registry.auth.securePort` | HTTPS container port for Docker registry auth; the Service exposes port 443. |
 | `podplane.operator.registry.auth.backendTLSPolicy.enabled` | Renders Gateway backend TLS trust for the registry auth Service. |
-| `podplane.operator.registry.auth.backendTLSPolicy.caCertificateRef.name` | ConfigMap containing the CA bundle Traefik/Gateway trusts for registry auth backend TLS. |
+| `podplane.operator.registry.auth.backendTLSPolicy.caCertificateRef.name` | ConfigMap containing the CA bundle the Gateway trusts for registry auth backend TLS. |
 | `podplane.operator.config.cluster.id` | Podplane cluster ID; required for real installs. |
 | `podplane.operator.config.cluster.oidc.issuerURL` | Podplane OIDC issuer; required when registry auth is enabled. |
 | `podplane.operator.config.cluster.oidc.clientID` | Podplane OIDC audience/client ID; defaults to `cluster.id` in operator config. |

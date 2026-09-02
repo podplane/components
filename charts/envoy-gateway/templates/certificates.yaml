@@ -1,0 +1,44 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+{{- if .Values.platform.envoyGateway.ingress.enabled }}
+{{- $certs := .Values.platform.envoyGateway.ingress.certificates -}}
+{{- $provider := required "platform.envoyGateway.ingress.certificates.provider is required" $certs.provider -}}
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: platform-envoy-gateway-ingress-certificates
+spec:
+{{- if or (eq $provider "aws-secretsmanager") (eq $provider "aws-ssm") }}
+  provider: aws
+  parameters:
+    objects: |
+{{- range .Values.platform.envoyGateway.ingress.domains }}
+      - objectName: {{ printf "/%s/platform-cluster/ingress-certificates/%s" (trimAll "/" $certs.keyPrefix) (include "podplane.envoyGateway.bundle" .) | quote }}
+        objectType: {{ if eq $provider "aws-secretsmanager" }}secretsmanager{{ else }}ssmparameter{{ end }}
+        objectAlias: {{ include "podplane.envoyGateway.bundle" . | quote }}
+{{- end }}
+{{- else if eq $provider "gcp" }}
+  provider: gcp
+  parameters:
+    secrets: |
+{{- range .Values.platform.envoyGateway.ingress.domains }}
+      - resourceName: {{ printf "projects/%s/secrets/%s_platform-cluster_ingress-certificates_%s/versions/latest" $certs.gcpProjectID (trimAll "_" $certs.keyPrefix) (include "podplane.envoyGateway.bundle" .) | quote }}
+        path: {{ include "podplane.envoyGateway.bundle" . | quote }}
+{{- end }}
+{{- else }}
+{{- fail "platform.envoyGateway.ingress.certificates.provider must be aws-secretsmanager, aws-ssm, or gcp" }}
+{{- end }}
+{{- range .Values.platform.envoyGateway.ingress.domains }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "podplane.envoyGateway.bundle" . }}
+type: gateway.envoyproxy.io/sds
+stringData:
+  url: unix:///var/run/podplane-sds/sds.sock
+  secretName: {{ include "podplane.envoyGateway.bundle" . }}
+{{- end }}
+{{- end }}

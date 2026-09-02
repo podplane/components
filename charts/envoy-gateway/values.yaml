@@ -1,0 +1,35 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+platform:
+  envoyGateway:
+    ingress:
+      enabled: false
+      httpToHTTPSRedirect:
+        enabled: true
+      domains: []
+      certificates:
+        provider: ""
+        objectType: ""
+        gcpProjectID: ""
+        keyPrefix: ""
+        csiProviderComponent: ""
+    sdsSidecar:
+      image:
+        repository: ghcr.io/podplane/operator
+        tag: "v0.5.0"
+        pullPolicy: IfNotPresent
+
+gateway-helm:
+  crds:
+    enabled: false
+  config:
+    envoyGateway:
+      extensionApis:
+        enableSDSSecretRef: true
+      provider:
+        type: Kubernetes
+        kubernetes:
+          deploy:
+            type: GatewayNamespace

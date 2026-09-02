@@ -1,0 +1,14 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: envoy-gateway-crds
+description: Podplane Envoy Gateway CRDs chart
+type: application
+version: "1.0.0"
+appVersion: "1.9.0"
+dependencies:
+  - name: gateway-crds-helm
+    version: "v1.9.0"
+    repository: "oci://docker.io/envoyproxy"

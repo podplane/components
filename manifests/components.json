@@ -30,6 +30,28 @@
       },
       {
         "components": [
+          "envoy-gateway"
+        ],
+        "image": "docker.io/envoyproxy/gateway:v1.9.0",
+        "digest": "sha256:7709b70c6be63bba5b487f05239cb5c71c6065dac8bcd14bdea9273a589786a1",
+        "size": 74718795,
+        "platform": "linux/amd64",
+        "index": "sha256:6f40c7b218b4ff1c4cb481923ed2c9a7634580365913434dd5dda9e954c0114b",
+        "addon": true
+      },
+      {
+        "components": [
+          "envoy-gateway"
+        ],
+        "image": "docker.io/envoyproxy/gateway:v1.9.0",
+        "digest": "sha256:47db1ae68eead0ca7ba96ca23e7654fd95a43c1c8fdc63f55b9e77054107f6c5",
+        "size": 69876898,
+        "platform": "linux/arm64",
+        "index": "sha256:6f40c7b218b4ff1c4cb481923ed2c9a7634580365913434dd5dda9e954c0114b",
+        "addon": true
+      },
+      {
+        "components": [
           "secrets-store-csi-provider-vault"
         ],
         "image": "docker.io/hashicorp/vault-csi-provider:1.7.2",
@@ -127,28 +149,6 @@
         "size": 68612075,
         "platform": "linux/arm64/v8",
         "index": "sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2"
-      },
-      {
-        "components": [
-          "traefik"
-        ],
-        "image": "docker.io/traefik:v3.7.1",
-        "digest": "sha256:72ed9e98f2395fca5a9e1c67e131910c21ff06e694955da8e0eae0e5206fc27b",
-        "size": 52994705,
-        "platform": "linux/amd64",
-        "index": "sha256:6b9cbca6fac42ab0075f5437d8dc1685cfd188626d8d515839ea94f8b6271c42",
-        "addon": true
-      },
-      {
-        "components": [
-          "traefik"
-        ],
-        "image": "docker.io/traefik:v3.7.1",
-        "digest": "sha256:1274bacf6552cf123ee4fab97d5ce64d54f2e57c91d8c8c0e87904c4a6ea2144",
-        "size": 48145289,
-        "platform": "linux/arm64/v8",
-        "index": "sha256:6b9cbca6fac42ab0075f5437d8dc1685cfd188626d8d515839ea94f8b6271c42",
-        "addon": true
       },
       {
         "components": [

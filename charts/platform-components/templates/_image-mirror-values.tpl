@@ -152,17 +152,19 @@ snapshot:
     controller:
       image:
         repository: {{ printf "%s/registry.k8s.io/sig-storage/snapshot-controller" $base | quote }}
-traefik:
-  traefik:
-    image:
-      registry: {{ printf "%s/docker.io" $base | quote }}
-      repository: traefik
+envoy-gateway:
+  gateway-helm:
+    global:
+      images:
+        envoyGateway:
+          image: {{ printf "%s/docker.io/envoyproxy/gateway:v1.9.0" $base | quote }}
+        envoyProxy:
+          image: {{ printf "%s/docker.io/envoyproxy/envoy:distroless-v1.37.0" $base | quote }}
   platform:
-    traefik:
-      ingress:
-        bootstrapTLS:
-          image:
-            repository: {{ printf "%s/docker.io/library/golang" $base | quote }}
+    envoyGateway:
+      sdsSidecar:
+        image:
+          repository: {{ printf "%s/ghcr.io/podplane/operator" $base | quote }}
 trust-manager:
   trust-manager:
     image:
