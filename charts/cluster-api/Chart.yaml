@@ -8,3 +8,4 @@ description: Cluster API core controller for Podplane
 type: application
 version: "1.0.0"
 appVersion: "v1.12.10"
+kubeVersion: ">=1.37.0-0"

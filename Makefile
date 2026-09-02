@@ -6,6 +6,7 @@ CURRENT_DIR := $(abspath $(dir $(firstword $(MAKEFILE_LIST))))
 CHARTS := $(patsubst %/Chart.yaml,%,$(wildcard charts/*/Chart.yaml))
 JSON_FILES := $(shell find manifests -name '*.json' -type f 2>/dev/null | sort)
 PODPLANE_GIT_CACHE_DIR ?= $(HOME)/.podplane/cache/deps/git
+KUBE_VERSION := 1.37.0
 
 .DEFAULT_GOAL := help
 
@@ -61,7 +62,7 @@ lint: deps ## Run helm lint on every chart
 		extra_args=""; \
 		values_file="tests/values/$$(basename $$chart).yaml"; \
 		if [ -f "$$values_file" ]; then extra_args="-f $$values_file"; fi; \
-		helm lint $$chart $$extra_args || exit 1; \
+		helm lint --kube-version $(KUBE_VERSION) $$chart $$extra_args || exit 1; \
 	done
 
 render: deps ## Run helm template on every chart
@@ -70,7 +71,7 @@ render: deps ## Run helm template on every chart
 		extra_args=""; \
 		values_file="tests/values/$$(basename $$chart).yaml"; \
 		if [ -f "$$values_file" ]; then extra_args="-f $$values_file"; fi; \
-		helm template $$chart $$extra_args >/dev/null || exit 1; \
+		helm template --kube-version $(KUBE_VERSION) $$chart $$extra_args >/dev/null || exit 1; \
 	done
 
 validate: render ## Alias for render
@@ -84,7 +85,7 @@ precommit: check ## Fast local pre-commit check: JSON fmt + helm lint (no networ
 		extra_args=""; \
 		values_file="tests/values/$$(basename $$chart).yaml"; \
 		if [ -f "$$values_file" ]; then extra_args="-f $$values_file"; fi; \
-		helm lint --quiet $$chart $$extra_args >/dev/null || { helm lint $$chart $$extra_args; exit 1; }; \
+		helm lint --quiet --kube-version $(KUBE_VERSION) $$chart $$extra_args >/dev/null || { helm lint --kube-version $(KUBE_VERSION) $$chart $$extra_args; exit 1; }; \
 	done
 	@go vet ./...
 	@echo "precommit ok"

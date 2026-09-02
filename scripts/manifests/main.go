@@ -326,7 +326,7 @@ func sharedMetadata(components []string) (metadata, error) {
 // chartImages renders a chart and extracts normalized images from pod specs.
 func chartImages(chartPath string) ([]string, error) {
 	chartName := filepath.Base(chartPath)
-	args := []string{"template", chartPath}
+	args := []string{"template", chartPath, "--kube-version", "1.37.0"}
 	valuesPath := filepath.Join("tests", "values", chartName+".yaml")
 	if _, err := os.Stat(valuesPath); err == nil {
 		args = append(args, "-f", valuesPath)
