@@ -8,7 +8,7 @@
 cert-manager:
   crds:
     enabled: false
-  clusterResourceNamespace: "platform-certs"
+  clusterResourceNamespace: "platform-cert-manager"
   global:
     leaderElection:
       namespace: "platform-cert-manager"

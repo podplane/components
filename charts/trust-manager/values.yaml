@@ -19,7 +19,7 @@ trust-manager:
     trust:
       # https://cert-manager.io/docs/trust/trust-manager/
       # note: configmap and secret sources can only come from the 'Trust Namespace'
-      namespace: platform-certs
+      namespace: platform-trust-manager
     webhook:
       tls:
         approverPolicy:

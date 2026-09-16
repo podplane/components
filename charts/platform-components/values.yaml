@@ -143,17 +143,11 @@ platform:
         namespace: platform-cert-manager
         dependsOn:
           - cert-manager-crds
-      platform-certs:
-        enabled: false
-        namespace: platform-certs
-        dependsOn:
-          - cert-manager
       trust-manager:
         enabled: false
         namespace: platform-trust-manager
         dependsOn:
           - trust-manager-crds
-          - platform-certs
       platform-trust:
         enabled: false
         namespace: platform-trust
@@ -186,8 +180,6 @@ platform:
       zot-registry:
         enabled: false
         namespace: platform-zot-registry
-        dependsOn:
-          - platform-certs
 
     # Per-component values merged into each HelmRelease's `values:`.
     # Keys must match entries in `platform.components.{apps,crds}`. Component
@@ -195,19 +187,6 @@ platform:
     values: {}
     # Example:
     # values:
-    #   platform-certs:
-    #     platform:
-    #       certs:
-    #         ingress:
-    #           acme:
-    #             enabled: true
-    #             server: https://acme-v02.api.letsencrypt.org/directory
-    #             email: ops@example.com
-    #             solvers:
-    #               - dnsZones:
-    #                   - example.com
-    #                 route53:
-    #                   hostedZoneID: Z123456789
     #   envoy-gateway:
     #     platform:
     #       envoyGateway:

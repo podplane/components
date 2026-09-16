@@ -42,12 +42,6 @@ cert-manager:
       repository: {{ printf "%s/registry.k8s.io/sig-storage/csi-node-driver-registrar" $base | quote }}
     livenessProbeImage:
       repository: {{ printf "%s/registry.k8s.io/sig-storage/livenessprobe" $base | quote }}
-platform-certs:
-  platform:
-    certs:
-      secretSync:
-        image:
-          repository: {{ printf "%s/registry.k8s.io/pause" $base | quote }}
 cilium:
   cilium:
     image:

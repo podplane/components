@@ -149,11 +149,9 @@ The chart passes scoped serving flags for each HTTPS endpoint:
 `--aggregated-api-*` for the aggregated Kubernetes API backend and
 `--registry-auth-*` for Docker registry token exchange. When
 `registry.auth.enabled` is true, the chart exposes a separate HTTPS registry auth
-Service. The auth service reuses the same service-DNS certificate as the
-aggregated API. The chart adds the `svc.cluster.local` SAN for the
-`registry-auth` Service and renders a Gateway `BackendTLSPolicy` that trusts
-`platform-selfsigned-ca-bundle`, matching the Podplane web template workload
-ingress pattern.
+Service with its own workload-CA-signed service-DNS certificate. A Gateway
+`BackendTLSPolicy` validates that identity against the workload
+`ClusterTrustBundle`.
 
 ## Mounting provider credentials
 

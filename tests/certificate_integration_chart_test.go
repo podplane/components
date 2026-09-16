@@ -112,3 +112,25 @@ func TestCAPIWorkloadCertificateContract(t *testing.T) {
 		t.Error("CAPI CRDs must use the Podplane workload CA injection annotation")
 	}
 }
+
+// TestPlatformTrustDefaultCABundle verifies the namespace selector matches the remaining bundle.
+func TestPlatformTrustDefaultCABundle(t *testing.T) {
+	components := render(t, "../charts/platform-components",
+		"--namespace", "platform-components",
+		"--set", "platform.components.apps.platform-trust.enabled=true",
+	)
+	trust := render(t, "../charts/platform-trust")
+	if !strings.Contains(components, "cluster.podplane.dev/bundles-default-ca: from-platform-trust") {
+		t.Error("platform components do not select the default CA bundle")
+	}
+	for _, required := range []string{"name: platform-default-ca-bundle", "useDefaultCAs: true", "cluster.podplane.dev/bundles-default-ca: from-platform-trust"} {
+		if !strings.Contains(trust, required) {
+			t.Errorf("platform trust is missing %q", required)
+		}
+	}
+	for _, forbidden := range []string{"platform-selfsigned", "bundles-selfsigned"} {
+		if strings.Contains(components+trust, forbidden) {
+			t.Errorf("platform trust still references %q", forbidden)
+		}
+	}
+}

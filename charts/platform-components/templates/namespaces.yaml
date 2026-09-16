@@ -29,7 +29,7 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: Helm
 {{- if $tbEnabled }}
-    cluster.podplane.dev/bundles-selfsigned-ca: from-platform-trust
+    cluster.podplane.dev/bundles-default-ca: from-platform-trust
 {{- end }}
 {{ range $name, $app := $apps }}
 {{- $manage := true -}}
@@ -49,8 +49,6 @@ metadata:
     app.kubernetes.io/managed-by: Helm
 {{- if and $tbEnabled (eq $app.namespace $tbNamespace) }}
     cluster.podplane.dev/bundles-default-ca: from-platform-trust
-    cluster.podplane.dev/bundles-selfsigned-ca: from-platform-trust
-    cluster.podplane.dev/bundles-selfsigned-and-default-ca: from-platform-trust
 {{- end }}
 {{- end }}
 {{- end }}

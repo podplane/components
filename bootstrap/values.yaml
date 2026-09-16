@@ -61,8 +61,6 @@ bootstrap:
         install: [recommended, all]
       - name: cert-manager
         install: [recommended, all]
-      - name: platform-certs
-        install: [recommended, all]
       - name: podplane-operator
         install: [recommended, all]
       - name: secrets-store-csi-driver
