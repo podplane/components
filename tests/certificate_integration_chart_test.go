@@ -87,3 +87,28 @@ func TestWorkloadCAInjectorRBAC(t *testing.T) {
 		}
 	}
 }
+
+// TestCAPIWorkloadCertificateContract verifies Cluster API uses workload certificates.
+func TestCAPIWorkloadCertificateContract(t *testing.T) {
+	rendered := render(t, "../charts/cluster-api", "--namespace", "platform-cluster-api")
+	for _, required := range []string{
+		"podCertificate:", "signerName: certificates.podplane.dev/workload", "keyType: ED25519",
+		"keyPath: tls.key", "certificateChainPath: tls.crt", "userAnnotations:",
+		"certificates.podplane.dev/mode: service", "certificates.podplane.dev/service: capi-webhook-service",
+		workloadInjectionAnnotation,
+	} {
+		if !strings.Contains(rendered, required) {
+			t.Errorf("CAPI render is missing %q", required)
+		}
+	}
+	for _, forbidden := range []string{"apiVersion: cert-manager.io/", "kind: Certificate", "kind: Issuer", "capi-webhook-service-cert", "cert-manager.io/inject-ca-from"} {
+		if strings.Contains(rendered, forbidden) {
+			t.Errorf("CAPI render unexpectedly contains %q", forbidden)
+		}
+	}
+
+	crds := render(t, "../charts/cluster-api-crds")
+	if strings.Contains(crds, "cert-manager.io/inject-ca-from") || !strings.Contains(crds, workloadInjectionAnnotation) {
+		t.Error("CAPI CRDs must use the Podplane workload CA injection annotation")
+	}
+}

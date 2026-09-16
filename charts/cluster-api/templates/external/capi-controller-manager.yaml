@@ -87,5 +87,13 @@ spec:
         key: node-role.kubernetes.io/control-plane
       volumes:
       - name: cert
-        secret:
-          secretName: capi-webhook-service-cert
+        projected:
+          sources:
+          - podCertificate:
+              signerName: certificates.podplane.dev/workload
+              keyType: ED25519
+              keyPath: tls.key
+              certificateChainPath: tls.crt
+              userAnnotations:
+                certificates.podplane.dev/mode: service
+                certificates.podplane.dev/service: capi-webhook-service

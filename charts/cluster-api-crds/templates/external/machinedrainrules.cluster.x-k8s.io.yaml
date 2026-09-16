@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: platform-cluster-api/capi-serving-cert
+    certificates.podplane.dev/inject-ca-from: workload
     controller-gen.kubebuilder.io/version: v0.19.0
   labels:
     cluster.x-k8s.io/provider: cluster-api

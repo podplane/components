@@ -89,7 +89,7 @@ platform:
         namespace: platform-cluster-api
         dependsOn:
           - cluster-api-crds
-          - cert-manager
+          - podplane-operator
       nstance-operator:
         enabled: false
         core: true

@@ -3,7 +3,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: platform-cluster-api/capi-serving-cert
+    certificates.podplane.dev/inject-ca-from: workload
   labels:
     cluster.x-k8s.io/provider: cluster-api
   name: capi-validating-webhook-configuration
