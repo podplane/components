@@ -22,26 +22,6 @@ This helper itself is invoked by the `podplane.platform.values` helper in _helpe
 agent-sandbox:
   image:
     repository: {{ printf "%s/registry.k8s.io/agent-sandbox/agent-sandbox-controller" $base | quote }}
-cert-manager:
-  cert-manager:
-    image:
-      repository: {{ printf "%s/quay.io/jetstack/cert-manager-controller" $base | quote }}
-    webhook:
-      image:
-        repository: {{ printf "%s/quay.io/jetstack/cert-manager-webhook" $base | quote }}
-    cainjector:
-      image:
-        repository: {{ printf "%s/quay.io/jetstack/cert-manager-cainjector" $base | quote }}
-  cert-manager-approver-policy:
-    image:
-      repository: {{ printf "%s/quay.io/jetstack/cert-manager-approver-policy" $base | quote }}
-  cert-manager-csi-driver:
-    image:
-      repository: {{ printf "%s/quay.io/jetstack/cert-manager-csi-driver" $base | quote }}
-    nodeDriverRegistrarImage:
-      repository: {{ printf "%s/registry.k8s.io/sig-storage/csi-node-driver-registrar" $base | quote }}
-    livenessProbeImage:
-      repository: {{ printf "%s/registry.k8s.io/sig-storage/livenessprobe" $base | quote }}
 cilium:
   cilium:
     image:
@@ -159,12 +139,6 @@ envoy-gateway:
       sdsSidecar:
         image:
           repository: {{ printf "%s/ghcr.io/podplane/operator" $base | quote }}
-trust-manager:
-  trust-manager:
-    image:
-      repository: {{ printf "%s/quay.io/jetstack/trust-manager" $base | quote }}
-    defaultPackageImage:
-      repository: {{ printf "%s/quay.io/jetstack/trust-pkg-debian-bookworm" $base | quote }}
 zot-registry:
   zot:
     image:

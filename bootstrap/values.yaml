@@ -5,9 +5,9 @@
 bootstrap:
   # Select the additional platform-components CRDs/apps to install:
   #   minimal     - core only; no addon overrides are rendered.
-  #   recommended - core + curated addons: agent-sandbox, cert-manager,
-  #                 trust-manager, envoy gateway, podplane-operator,
-  #                 secrets-store-csi-driver, OpenBao secrets provider.
+  #   recommended - core + curated addons: agent-sandbox, envoy gateway,
+  #                 podplane-operator, secrets-store-csi-driver,
+  #                 OpenBao secrets provider.
   #   all         - every addon CRD/app listed below.
   install: minimal
   clusterID: default
@@ -44,13 +44,9 @@ bootstrap:
     crds:
       - name: agent-sandbox-crds
         install: [recommended, all]
-      - name: cert-manager-crds
-        install: [recommended, all]
       - name: podplane-operator-crds
         install: [recommended, all]
       - name: secrets-store-csi-driver-crds
-        install: [recommended, all]
-      - name: trust-manager-crds
         install: [recommended, all]
       - name: envoy-gateway-crds
         install: [recommended, all]
@@ -58,8 +54,6 @@ bootstrap:
         install: [all]
     apps:
       - name: agent-sandbox
-        install: [recommended, all]
-      - name: cert-manager
         install: [recommended, all]
       - name: podplane-operator
         install: [recommended, all]
@@ -72,10 +66,6 @@ bootstrap:
       - name: secrets-store-csi-provider-vault
         install: [all]
       - name: secrets-store-csi-provider-openbao
-        install: [recommended, all]
-      - name: trust-manager
-        install: [recommended, all]
-      - name: platform-trust
         install: [recommended, all]
       - name: envoy-gateway
         install: [recommended, all]

@@ -4,10 +4,6 @@ Copyright The Podplane Authors
 SPDX-License-Identifier: Apache-2.0
 */}}
 {{- $apps := .Values.platform.components.apps -}}
-{{- $tb := index $apps "platform-trust" -}}
-{{- $tbEnabled := and $tb $tb.enabled -}}
-{{- $tbNamespace := "" -}}
-{{- if and $tb $tb.namespace -}}{{- $tbNamespace = $tb.namespace -}}{{- end -}}
 ---
 # Cluster-wide namespace used as the target for cluster-scoped Helm releases (e.g. CRDs).
 apiVersion: v1
@@ -18,19 +14,6 @@ metadata:
     helm.sh/resource-policy: keep
   labels:
     app.kubernetes.io/managed-by: Helm
----
-# Default namespace - relabelled so platform-trust can target it when enabled.
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: default
-  annotations:
-    helm.sh/resource-policy: keep
-  labels:
-    app.kubernetes.io/managed-by: Helm
-{{- if $tbEnabled }}
-    cluster.podplane.dev/bundles-default-ca: from-platform-trust
-{{- end }}
 {{ range $name, $app := $apps }}
 {{- $manage := true -}}
 {{- if hasKey $app "manageNamespace" -}}{{- $manage = $app.manageNamespace -}}{{- end -}}
@@ -47,8 +30,5 @@ metadata:
 {{- end }}
   labels:
     app.kubernetes.io/managed-by: Helm
-{{- if and $tbEnabled (eq $app.namespace $tbNamespace) }}
-    cluster.podplane.dev/bundles-default-ca: from-platform-trust
-{{- end }}
 {{- end }}
 {{- end }}

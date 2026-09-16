@@ -49,12 +49,8 @@ var (
 		"cluster-api":                        {Providers: []string{"aws", "google"}},
 		"cluster-autoscaler":                 {Providers: []string{"aws", "google"}, Addon: true},
 		"nstance-operator":                   {Providers: []string{"aws", "google"}},
-		"cert-manager":                       {Addon: true},
-		"platform-certs":                     {Addon: true},
 		"envoy-gateway":                      {Addon: true},
 		"podplane-operator":                  {Addon: true},
-		"trust-manager":                      {Addon: true},
-		"platform-trust":                     {Addon: true},
 		"snapshot":                           {Addon: true},
 		"metrics-server":                     {Addon: true},
 		"node-problem-detector":              {Addon: true},
@@ -67,31 +63,37 @@ var (
 	}
 )
 
+// extraImage identifies a static image that chart rendering cannot discover.
 type extraImage struct {
 	Repo string
 	Tag  string
 }
 
+// metadata records component selection attributes for an image.
 type metadata struct {
 	Providers []string
 	Addon     bool
 }
 
+// manifest is the top-level component manifest document.
 type manifest struct {
 	Components components `json:"components"`
 }
 
+// components contains the versioned component source and image entries.
 type components struct {
 	Version string  `json:"version"`
 	Source  source  `json:"source"`
 	Images  []image `json:"images"`
 }
 
+// source identifies the Git repository used by Flux.
 type source struct {
 	URL string    `json:"url"`
 	Ref sourceRef `json:"ref"`
 }
 
+// sourceRef identifies a Git revision selector.
 type sourceRef struct {
 	Branch string `json:"branch,omitempty"`
 	Tag    string `json:"tag,omitempty"`
@@ -99,6 +101,7 @@ type sourceRef struct {
 	Commit string `json:"commit,omitempty"`
 }
 
+// image describes a resolved component image manifest.
 type image struct {
 	Components []string `json:"components,omitempty"`
 	Image      string   `json:"image"`
@@ -133,7 +136,8 @@ func run() error {
 	}
 	chartNames := []string{}
 	for _, entry := range entries {
-		if entry.IsDir() && !strings.HasSuffix(entry.Name(), "-crds") {
+		_, chartErr := os.Stat(filepath.Join(chartsDir, entry.Name(), "Chart.yaml"))
+		if entry.IsDir() && !strings.HasSuffix(entry.Name(), "-crds") && chartErr == nil {
 			chartNames = append(chartNames, entry.Name())
 		}
 	}
@@ -495,6 +499,7 @@ func validateImageRef(seen map[string]string, value string) error {
 	return nil
 }
 
+// imageIndex contains platform manifests from an OCI image index.
 type imageIndex struct {
 	Manifests []struct {
 		Digest   string `json:"digest"`
@@ -506,6 +511,7 @@ type imageIndex struct {
 	} `json:"manifests"`
 }
 
+// parseImageIndex decodes an OCI image index.
 func parseImageIndex(body []byte) (imageIndex, error) {
 	var index imageIndex
 	if err := json.Unmarshal(body, &index); err != nil {
@@ -514,6 +520,7 @@ func parseImageIndex(body []byte) (imageIndex, error) {
 	return index, nil
 }
 
+// platformString formats an OCI platform as an OS and architecture string.
 func platformString(platform struct {
 	OS           string `json:"os"`
 	Architecture string `json:"architecture"`
@@ -529,6 +536,7 @@ func platformString(platform struct {
 	return value
 }
 
+// supportedPlatform reports whether a platform is included in the manifest.
 func supportedPlatform(platform string) bool {
 	if supportedPlatforms[platform] {
 		return true

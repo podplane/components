@@ -29,18 +29,21 @@ var (
 	updateChart = flag.String("update", "", "CRD chart to update, or 'all'.")
 )
 
+// crdChart describes a managed CRD chart and its update operation.
 type crdChart struct {
 	Name   string
 	Env    string
 	Update func(ctx updateContext) error
 }
 
+// updateContext contains paths and version data for a CRD update.
 type updateContext struct {
 	OutDir    string
 	AppOutDir string
 	Version   string
 }
 
+// crdInfo records a CRD's source file and served versions.
 type crdInfo struct {
 	Name           string
 	File           string
@@ -105,39 +108,6 @@ var charts = []crdChart{
 				}
 			}
 			return excludeCRDVersions(ctx.OutDir, []string{"v1alpha1"}, []string{"conversion"})
-		},
-	},
-	{
-		Name: "cert-manager-crds",
-		Env:  "CERT_MANAGER_VERSION",
-		Update: func(ctx updateContext) error {
-			version := ctx.Version
-			if version == "" {
-				latest, err := githubLatestTag("cert-manager/cert-manager")
-				if err != nil {
-					return err
-				}
-				version = latest
-			}
-			url := fmt.Sprintf("https://github.com/cert-manager/cert-manager/releases/download/%s/cert-manager.crds.yaml", version)
-			if err := downloadAndSplit(url, ctx.OutDir); err != nil {
-				return err
-			}
-
-			approverVersion := firstNonEmpty(os.Getenv("CERT_MANAGER_APPROVER_POLICY_VERSION"), os.Getenv("APPROVER_POLICY_VERSION"))
-			if approverVersion == "" {
-				latest, err := githubLatestTag("cert-manager/approver-policy")
-				if err != nil {
-					return err
-				}
-				approverVersion = latest
-			}
-			return renderHelmCRDs(ctx.OutDir, helmDependency{
-				Name:       "cert-manager-approver-policy",
-				Release:    "cert-manager-crds",
-				Version:    approverVersion,
-				Repository: "https://charts.jetstack.io",
-			}, map[string]any{})
 		},
 	},
 	{
@@ -249,28 +219,9 @@ var charts = []crdChart{
 			}, map[string]any{})
 		},
 	},
-	{
-		Name: "trust-manager-crds",
-		Env:  "TRUST_MANAGER_VERSION",
-		Update: func(ctx updateContext) error {
-			version := ctx.Version
-			if version == "" {
-				latest, err := githubLatestTag("cert-manager/trust-manager")
-				if err != nil {
-					return err
-				}
-				version = latest
-			}
-			return renderHelmCRDs(ctx.OutDir, helmDependency{
-				Name:       "trust-manager",
-				Release:    "trust-manager-crds",
-				Version:    version,
-				Repository: "https://charts.jetstack.io",
-			}, map[string]any{})
-		},
-	},
 }
 
+// main parses flags and exits non-zero when CRD processing fails.
 func main() {
 	flag.Parse()
 	if err := run(); err != nil {
@@ -279,6 +230,7 @@ func main() {
 	}
 }
 
+// run dispatches the requested CRD update or compatibility check.
 func run() error {
 	if *updateChart != "" {
 		return updateCRDs(*updateChart)
@@ -289,6 +241,7 @@ func run() error {
 	return checkCompatibility(*oldDir, *newDir)
 }
 
+// updateCRDs updates the named CRD chart or all managed charts.
 func updateCRDs(name string) error {
 	repoRoot, err := os.Getwd()
 	if err != nil {
@@ -318,6 +271,7 @@ func updateCRDs(name string) error {
 	return nil
 }
 
+// updateOne regenerates and validates one CRD chart.
 func updateOne(repoRoot string, chart crdChart) error {
 	targetDir := filepath.Join(repoRoot, "charts", chart.Name, "templates", "external")
 	appTargetDir := ""
@@ -424,6 +378,7 @@ ${1}imagePullPolicy: {{ .Values.image.pullPolicy }}`))
 	return nil
 }
 
+// checkCompatibility rejects removed CRDs and previously served versions.
 func checkCompatibility(oldPath, newPath string) error {
 	oldCRDs, err := readCRDs(oldPath)
 	if err != nil {
@@ -457,6 +412,7 @@ func checkCompatibility(oldPath, newPath string) error {
 	return nil
 }
 
+// preserveFilenames retains existing filenames for matching CRDs.
 func preserveFilenames(oldPath, newPath string) error {
 	oldCRDs, err := readCRDs(oldPath)
 	if err != nil {
@@ -483,6 +439,7 @@ func preserveFilenames(oldPath, newPath string) error {
 	return nil
 }
 
+// helmDependency identifies an upstream Helm chart used to render CRDs.
 type helmDependency struct {
 	Name       string
 	Release    string
@@ -490,6 +447,7 @@ type helmDependency struct {
 	Repository string
 }
 
+// renderHelmCRDs renders an upstream Helm chart and writes its CRDs.
 func renderHelmCRDs(outDir string, dep helmDependency, values map[string]any) error {
 	release := firstNonEmpty(dep.Release, dep.Name)
 	if len(values) == 0 {
@@ -528,6 +486,7 @@ func renderHelmCRDs(outDir string, dep helmDependency, values map[string]any) er
 	return splitCRDs([]byte(rendered), outDir)
 }
 
+// downloadAndSplit downloads a YAML stream and writes its CRDs separately.
 func downloadAndSplit(url, outDir string) error {
 	body, err := download(url)
 	if err != nil {
@@ -536,6 +495,7 @@ func downloadAndSplit(url, outDir string) error {
 	return splitCRDs(body, outDir)
 }
 
+// splitCRDs writes each CRD in a YAML stream to its source file.
 func splitCRDs(body []byte, outDir string) error {
 	files := map[string][][]byte{}
 	for _, rawDoc := range splitYAMLDocuments(body) {
@@ -566,6 +526,7 @@ func splitCRDs(body []byte, outDir string) error {
 	return nil
 }
 
+// splitYAMLDocuments separates a YAML stream into documents.
 func splitYAMLDocuments(body []byte) [][]byte {
 	lines := bytes.Split(body, []byte("\n"))
 	docs := [][]byte{}
@@ -586,6 +547,7 @@ func splitYAMLDocuments(body []byte) [][]byte {
 	return docs
 }
 
+// sourceBasename extracts a YAML document's Helm source filename.
 func sourceBasename(doc []byte) string {
 	for _, line := range bytes.Split(doc, []byte("\n")) {
 		line = bytes.TrimSpace(line)
@@ -601,6 +563,7 @@ func sourceBasename(doc []byte) string {
 	return ""
 }
 
+// githubLatestTag returns the tag of a repository's latest GitHub release.
 func githubLatestTag(repo string) (string, error) {
 	body, err := download("https://api.github.com/repos/" + repo + "/releases/latest")
 	if err != nil {
@@ -618,6 +581,7 @@ func githubLatestTag(repo string) (string, error) {
 	return response.TagName, nil
 }
 
+// githubYAMLFiles lists YAML files at a GitHub repository path and ref.
 func githubYAMLFiles(repo, path, ref string) ([]string, error) {
 	body, err := download(fmt.Sprintf("https://api.github.com/repos/%s/contents/%s?ref=%s", repo, path, ref))
 	if err != nil {
@@ -640,6 +604,7 @@ func githubYAMLFiles(repo, path, ref string) ([]string, error) {
 	return files, nil
 }
 
+// downloadFile downloads a URL to a local path.
 func downloadFile(url, path string) error {
 	body, err := download(url)
 	if err != nil {
@@ -724,6 +689,7 @@ func excludeCRDVersions(dir string, excludedVersions, deleteSpecKeysWhenSingleVe
 	})
 }
 
+// download retrieves a URL and returns its response body.
 func download(url string) ([]byte, error) {
 	fmt.Printf("GET %s\n", url)
 	resp, err := http.Get(url)
@@ -737,6 +703,7 @@ func download(url string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
+// readCRDs reads all CRDs beneath a directory keyed by CRD name.
 func readCRDs(dir string) (map[string]crdInfo, error) {
 	crds := map[string]crdInfo{}
 	err := filepath.WalkDir(dir, func(path string, entry os.DirEntry, err error) error {
@@ -759,6 +726,7 @@ func readCRDs(dir string) (map[string]crdInfo, error) {
 	return crds, err
 }
 
+// readCRDFile reads CRD metadata from a YAML file.
 func readCRDFile(path string) ([]crdInfo, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -789,6 +757,7 @@ func readCRDFile(path string) ([]crdInfo, error) {
 	return items, nil
 }
 
+// parseCRD validates and extracts metadata from a decoded CRD.
 func parseCRD(doc map[string]any, path string) (crdInfo, error) {
 	metadata, ok := doc["metadata"].(map[string]any)
 	if !ok {
@@ -827,6 +796,7 @@ func parseCRD(doc map[string]any, path string) (crdInfo, error) {
 	return crdInfo{Name: name, ServedVersions: servedVersions}, nil
 }
 
+// copyDir recursively copies a directory's files.
 func copyDir(source, target string) error {
 	return filepath.WalkDir(source, func(path string, entry os.DirEntry, err error) error {
 		if err != nil {
@@ -848,6 +818,7 @@ func copyDir(source, target string) error {
 	})
 }
 
+// commandOutput runs a command and returns its standard output.
 func commandOutput(name string, args ...string) (string, error) {
 	cmd := exec.Command(name, args...)
 	cmd.Stderr = os.Stderr
@@ -858,6 +829,7 @@ func commandOutput(name string, args ...string) (string, error) {
 	return string(out), nil
 }
 
+// firstNonEmpty returns the first non-empty value.
 func firstNonEmpty(values ...string) string {
 	for _, value := range values {
 		if value != "" {

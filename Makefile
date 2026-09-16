@@ -76,8 +76,8 @@ render: deps ## Run helm template on every chart
 
 validate: render ## Alias for render
 
-test: ## Run Go tests
-	go test ./...
+test: ## Run Go tests with the race detector
+	go test -race ./...
 
 precommit: check ## Fast local pre-commit check: JSON fmt + helm lint (no network)
 	@command -v helm >/dev/null 2>&1 || { echo "helm is required but not installed"; exit 1; }

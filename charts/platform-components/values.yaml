@@ -39,11 +39,7 @@ platform:
         core: true
       agent-sandbox-crds:
         enabled: false
-      cert-manager-crds:
-        enabled: false
       podplane-operator-crds:
-        enabled: false
-      trust-manager-crds:
         enabled: false
       envoy-gateway-crds:
         enabled: false
@@ -138,21 +134,6 @@ platform:
         namespace: platform-agent-sandbox
         dependsOn:
           - agent-sandbox-crds
-      cert-manager:
-        enabled: false
-        namespace: platform-cert-manager
-        dependsOn:
-          - cert-manager-crds
-      trust-manager:
-        enabled: false
-        namespace: platform-trust-manager
-        dependsOn:
-          - trust-manager-crds
-      platform-trust:
-        enabled: false
-        namespace: platform-trust
-        dependsOn:
-          - trust-manager
       envoy-gateway:
         enabled: false
         namespace: platform-envoy-gateway

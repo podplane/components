@@ -9,6 +9,7 @@ import (
 	"testing"
 )
 
+// TestValidateImageRef verifies conflicting references to one image are rejected.
 func TestValidateImageRef(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -39,6 +40,7 @@ func TestValidateImageRef(t *testing.T) {
 	}
 }
 
+// TestNormalizeImage verifies image references are converted to canonical form.
 func TestNormalizeImage(t *testing.T) {
 	tests := map[string]string{
 		"busybox":                         "docker.io/library/busybox:latest",
@@ -55,8 +57,9 @@ func TestNormalizeImage(t *testing.T) {
 	}
 }
 
+// TestSharedMetadata verifies metadata is shared only by compatible components.
 func TestSharedMetadata(t *testing.T) {
-	got, err := sharedMetadata([]string{"cert-manager", "secrets-store-csi-driver"})
+	got, err := sharedMetadata([]string{"agent-sandbox", "secrets-store-csi-driver"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +68,7 @@ func TestSharedMetadata(t *testing.T) {
 		t.Fatalf("sharedMetadata() = %#v, want %#v", got, want)
 	}
 
-	if _, err := sharedMetadata([]string{"cert-manager", "cluster-api"}); err == nil {
+	if _, err := sharedMetadata([]string{"agent-sandbox", "cluster-api"}); err == nil {
 		t.Fatal("sharedMetadata() returned nil error for differing component metadata")
 	}
 }

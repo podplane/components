@@ -39,12 +39,11 @@ or `make all` against a real cluster without explicit user approval.
   of truth at runtime. Its `values.yaml` lists every Core and Addon
   component. The chart renders:
     - One Flux `HelmRelease` per enabled CRD chart and per enabled app chart.
-    - Cluster-scoped namespaces (`platform-cluster`, `default`, plus a
-      `platform-<name>` namespace per enabled app where
+    - Cluster-scoped namespaces (`platform-cluster`, plus a `platform-<name>`
+      namespace per enabled app where
       `manageNamespace` is not `false`).
 - **Platform policy charts**: `charts/platform-rbac` contains Podplane RBAC and
-  admission policy resources; `charts/platform-trust` contains Podplane trust
-  bundle and trust policy resources.
+  admission policy resources.
 - **Flux CD** ([`charts/fluxcd`](./charts/fluxcd) + [`charts/fluxcd-crds`](./charts/fluxcd-crds)):
   Helm-only. Only `source-controller` and `helm-controller` are deployed;
   `kustomize-controller`, `notification-controller`,
@@ -54,8 +53,8 @@ or `make all` against a real cluster without explicit user approval.
   controllers alongside the system installation don't have to install
   missing CRDs themselves.
 - **Component charts** (`charts/<name>`): each is a thin
-  Helm chart that depends on an upstream chart (cilium, cert-manager,
-  Envoy Gateway, etc.) or vendors upstream CRDs in `templates/external/`. Vendored
+  Helm chart that depends on an upstream chart (Cilium, Envoy Gateway, etc.)
+  or vendors upstream CRDs in `templates/external/`. Vendored
   CRDs are updated through the shared `scripts/crds` Go command.
 - **Post-bootstrap changes**: edit the platform chart's values and let Flux
   reconcile. The `podplane install` / `podplane uninstall` CLI commands
@@ -69,7 +68,7 @@ or `make all` against a real cluster without explicit user approval.
   users may run their own Flux installation in `flux-system` alongside ours
   if they choose.
 - **Helm release names**: `platform-<name>` (e.g. `platform-cilium`,
-  `platform-cert-manager`). Bootstrap uses the same names so Flux can adopt
+  `platform-envoy-gateway`). Bootstrap uses the same names so Flux can adopt
   the existing releases when it takes over.
 - **Network**: dual-stack IPv4/IPv6 with Podplane's standard CIDRs:
   Pod IPv4 `100.64.0.0/10`, IPv6 `fd64::/48`,
