@@ -7,7 +7,7 @@ podplane:
     namePrefix: platform-podplane-operator
     image:
       repository: ghcr.io/podplane/operator
-      tag: "v0.4.3"
+      tag: "v0.6.0"
       pullPolicy: IfNotPresent
     serviceAccountName: platform-podplane-operator
     registry:
@@ -16,12 +16,14 @@ podplane:
         backendTLSPolicy:
           enabled: true
           caCertificateRef:
-            name: platform-selfsigned-ca-bundle
+            name: certificates.podplane.dev:workload:roots
     aggregatedApiService:
       securePort: 8443
     config:
       cluster:
         id: ""
+        spiffe:
+          trustDomain: ""
         oidc:
           issuerURL: ""
           clientID: ""
@@ -30,10 +32,20 @@ podplane:
       secrets:
         keyRotation: 6h
         allowSyncToKubernetesSecrets: false
+        defaultProvider: ""
         providers: {}
       registry:
         auth:
           enabled: false
+      ingressCertificates:
+        provider: ""
+        keyPrefix: ""
+        checkInterval: 1h
+        renewBefore: 720h
+        acme: null
+        domains: {}
+      workloadCertificates:
+        caPath: /var/run/podplane/certificates/workload-ca-key.pem
     # Additional environment variables for the operator container. Useful for
     # cloud/provider SDK configuration sourced from Kubernetes Secrets,
     # but using volumes for mounting secrets instead is the recommended approach.
@@ -48,11 +60,6 @@ podplane:
     nodeSelector: {}
     tolerations: []
     affinity: {}
-    tls:
-      secretName: platform-podplane-operator-tls
-      issuerRef:
-        kind: ClusterIssuer
-        name: platform-service-certificate-clusterissuer
     apiService:
       enabled: true
       group: secrets-api.podplane.dev

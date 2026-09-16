@@ -30,13 +30,16 @@ spec:
           imagePullPolicy: {{ .Values.podplane.operator.image.pullPolicy }}
           args:
             - --config=/config/config.json
+            - --serving-namespace={{ .Release.Namespace }}
             - --aggregated-api-bind-address=:{{ .Values.podplane.operator.aggregatedApiService.securePort }}
-            - --aggregated-api-tls-cert-file=/tls/tls.crt
-            - --aggregated-api-tls-private-key-file=/tls/tls.key
+            - --aggregated-api-tls-cert-file=/var/run/podplane/serving/aggregated-api/tls.crt
+            - --aggregated-api-tls-private-key-file=/var/run/podplane/serving/aggregated-api/tls.key
+            - --aggregated-api-service-name={{ include "podplane-operator.namePrefix" . }}-aggregated-api
 {{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}
             - --registry-auth-bind-address=:{{ .Values.podplane.operator.registry.auth.securePort }}
-            - --registry-auth-tls-cert-file=/tls/tls.crt
-            - --registry-auth-tls-private-key-file=/tls/tls.key
+            - --registry-auth-tls-cert-file=/var/run/podplane/serving/registry-auth/tls.crt
+            - --registry-auth-tls-private-key-file=/var/run/podplane/serving/registry-auth/tls.key
+            - --registry-auth-service-name={{ include "podplane-operator.namePrefix" . }}-registry-auth
 {{- end }}
           ports:
             - name: aggregated-api
@@ -68,9 +71,15 @@ spec:
             periodSeconds: 10
             failureThreshold: 6
           volumeMounts:
-            - name: tls
-              mountPath: /tls
+            - name: workload-ca-key
+              mountPath: /var/run/podplane/certificates
               readOnly: true
+            - name: aggregated-api-serving-tls
+              mountPath: /var/run/podplane/serving/aggregated-api
+{{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}
+            - name: registry-auth-serving-tls
+              mountPath: /var/run/podplane/serving/registry-auth
+{{- end }}
             - name: config
               mountPath: /config
               readOnly: true
@@ -80,9 +89,18 @@ spec:
           resources:
 {{ toYaml .Values.podplane.operator.resources | indent 12 }}
       volumes:
-        - name: tls
-          secret:
-            secretName: {{ .Values.podplane.operator.tls.secretName }}
+        - name: workload-ca-key
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: platform-podplane-operator
+        - name: aggregated-api-serving-tls
+          emptyDir: {}
+{{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}
+        - name: registry-auth-serving-tls
+          emptyDir: {}
+{{- end }}
         - name: config
           configMap:
             name: {{ include "podplane-operator.namePrefix" . }}-config

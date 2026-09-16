@@ -56,3 +56,36 @@ spec:
     namespaceSelector: {}
 {{- end }}
 {{- end }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: {{ include "podplane-operator.namePrefix" . }}-reserved-workload-ca-spc-vap
+  labels:
+{{ include "podplane-operator.labels" . | indent 4 }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["secrets-store.csi.x-k8s.io"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["secretproviderclasses"]
+  validations:
+    - expression: >
+        !object.spec.parameters.exists(key, value, value.contains('workload-ca-key')) ||
+        (object.metadata.namespace == {{ .Release.Namespace | squote }} &&
+         object.metadata.name == 'platform-podplane-operator')
+      message: "The reserved workload-ca-key may only be referenced by the managed platform-podplane-operator SecretProviderClass."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: {{ include "podplane-operator.namePrefix" . }}-reserved-workload-ca-spc-vapb
+  labels:
+{{ include "podplane-operator.labels" . | indent 4 }}
+spec:
+  policyName: {{ include "podplane-operator.namePrefix" . }}-reserved-workload-ca-spc-vap
+  validationActions: ["Deny", "Audit"]
+  matchResources:
+    namespaceSelector: {}

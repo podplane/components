@@ -20,5 +20,5 @@ spec:
     caCertificateRefs:
       - group: ""
         name: {{ .Values.podplane.operator.registry.auth.backendTLSPolicy.caCertificateRef.name }}
-        kind: ConfigMap
+        kind: ClusterTrustBundle
 {{- end }}

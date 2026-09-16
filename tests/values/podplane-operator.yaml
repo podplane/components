@@ -9,3 +9,25 @@ podplane:
     config:
       cluster:
         id: test-cluster
+        spiffe:
+          trustDomain: test-cluster.example
+      secrets:
+        defaultProvider: aws
+        providers:
+          aws:
+            kind: aws
+            objectType: secretsmanager
+            region: us-east-1
+      ingressCertificates:
+        provider: aws
+        acme:
+          server: https://acme.example/directory
+          email: ops@example.com
+        domains:
+          example.com:
+            dnsProvider:
+              kind: aws-route53
+              region: us-east-1
+              hostedZoneID: Z123
+              roleARN: arn:aws:iam::123:role/acme
+          internal.example.com: {}

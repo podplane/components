@@ -28,6 +28,7 @@ platform:
                   issuerURL: https://oidc.example/dev-cluster
                   clientID: dev-cluster
               secrets:
+                defaultProvider: openbao-local
                 allowSyncToKubernetesSecrets: false
                 providers:
                   openbao-local:
@@ -38,6 +39,18 @@ platform:
               registry:
                 auth:
                   enabled: true
+              ingressCertificates:
+                provider: openbao-local
+                acme:
+                  server: https://acme-v02.api.letsencrypt.org/directory
+                  email: ops@example.com
+                domains:
+                  staging.example.com:
+                    dnsProvider:
+                      kind: aws-route53
+                      region: us-east-1
+                      hostedZoneID: Z123456789
+                      roleARN: arn:aws:iam::123456789012:role/podplane-acme
 ```
 
 `podplane.operator.config.cluster.id` is required.
@@ -70,6 +83,23 @@ The chart renders a JSON config file and passes it to the operator with the real
       }
     }
   },
+  "ingress_certificates": {
+    "provider": "openbao-local",
+    "acme": {
+      "server": "https://acme-v02.api.letsencrypt.org/directory",
+      "email": "ops@example.com"
+    },
+    "domains": {
+      "staging.example.com": {
+        "dns_provider": {
+          "kind": "aws-route53",
+          "region": "us-east-1",
+          "hosted_zone_id": "Z123456789",
+          "role_arn": "arn:aws:iam::123456789012:role/podplane-acme"
+        }
+      }
+    }
+  },
   "registry": {
     "auth": {
       "enabled": true
@@ -95,6 +125,7 @@ platform:
                   issuerURL: https://oidc.example/dev-cluster
                   clientID: dev-cluster
               secrets:
+                defaultProvider: openbao-local
                 allowSyncToKubernetesSecrets: false
                 providers:
                   openbao-local:
@@ -105,6 +136,10 @@ platform:
               registry:
                 auth:
                   enabled: true
+              ingressCertificates:
+                provider: openbao-local
+                domains:
+                  staging.example.com: {}
 ```
 
 Secret material must not be placed in the operator config. Use Kubernetes
@@ -193,10 +228,10 @@ Common values:
 | `podplane.operator.config.cluster.oidc.clientID` | Podplane OIDC audience/client ID; defaults to `cluster.id` in operator config. |
 | `podplane.operator.config.secrets.keyRotation` | Operator public-key rotation interval. |
 | `podplane.operator.config.secrets.allowSyncToKubernetesSecrets` | Allows `syncToKubernetesSecrets` when namespaces opt in. |
+| `podplane.operator.config.secrets.defaultProvider` | Default external backend; also used for operator-owned ingress certificate state unless overridden. |
 | `podplane.operator.config.secrets.providers` | Non-sensitive provider config map. Each provider may set `keyPrefix`; it defaults to `cluster.id` when omitted. |
+| `podplane.operator.config.ingressCertificates` | Apex-keyed ingress certificate configuration. The operator always publishes a self-signed fallback and optionally replaces supported domains through ACME. |
 | `podplane.operator.config.registry.auth.enabled` | Enables the HTTPS Docker registry auth endpoint. |
-| `podplane.operator.tls.secretName` | TLS Secret mounted by the operator Deployment. |
-| `podplane.operator.tls.issuerRef` | cert-manager issuer reference for the serving certificate. |
 | `podplane.operator.apiService.enabled` | Renders the Kubernetes APIService registration. |
 | `podplane.operator.apiService.group` | APIService group served by the operator. |
 | `podplane.operator.apiService.version` | APIService version served by the operator. |

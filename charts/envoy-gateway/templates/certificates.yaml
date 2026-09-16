@@ -10,13 +10,17 @@ kind: SecretProviderClass
 metadata:
   name: platform-envoy-gateway-ingress-certificates
 spec:
-{{- if or (eq $provider "aws-secretsmanager") (eq $provider "aws-ssm") }}
+{{- if eq $provider "aws" }}
+{{- $objectType := required "platform.envoyGateway.ingress.certificates.objectType is required for aws" $certs.objectType -}}
+{{- if not (has $objectType (list "secretsmanager" "ssmparameter")) -}}
+{{- fail "platform.envoyGateway.ingress.certificates.objectType must be secretsmanager or ssmparameter" -}}
+{{- end }}
   provider: aws
   parameters:
     objects: |
 {{- range .Values.platform.envoyGateway.ingress.domains }}
       - objectName: {{ printf "/%s/platform-cluster/ingress-certificates/%s" (trimAll "/" $certs.keyPrefix) (include "podplane.envoyGateway.bundle" .) | quote }}
-        objectType: {{ if eq $provider "aws-secretsmanager" }}secretsmanager{{ else }}ssmparameter{{ end }}
+        objectType: {{ $objectType | quote }}
         objectAlias: {{ include "podplane.envoyGateway.bundle" . | quote }}
 {{- end }}
 {{- else if eq $provider "gcp" }}
@@ -24,11 +28,11 @@ spec:
   parameters:
     secrets: |
 {{- range .Values.platform.envoyGateway.ingress.domains }}
-      - resourceName: {{ printf "projects/%s/secrets/%s_platform-cluster_ingress-certificates_%s/versions/latest" $certs.gcpProjectID (trimAll "_" $certs.keyPrefix) (include "podplane.envoyGateway.bundle" .) | quote }}
+      - resourceName: {{ printf "projects/%s/secrets/%s_platform-cluster_ingress-certificates_%s/versions/latest" (required "platform.envoyGateway.ingress.certificates.projectID is required for gcp" $certs.projectID) (trimAll "_" $certs.keyPrefix) (include "podplane.envoyGateway.bundle" .) | quote }}
         path: {{ include "podplane.envoyGateway.bundle" . | quote }}
 {{- end }}
 {{- else }}
-{{- fail "platform.envoyGateway.ingress.certificates.provider must be aws-secretsmanager, aws-ssm, or gcp" }}
+{{- fail "platform.envoyGateway.ingress.certificates.provider must be aws or gcp" }}
 {{- end }}
 {{- range .Values.platform.envoyGateway.ingress.domains }}
 ---

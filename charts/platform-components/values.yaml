@@ -106,8 +106,7 @@ platform:
         namespace: platform-podplane-operator
         dependsOn:
           - podplane-operator-crds
-          - cert-manager
-          - platform-certs
+          - secrets-store-csi-driver
       secrets-store-csi-driver:
         enabled: false
         namespace: platform-secrets-store-csi-driver

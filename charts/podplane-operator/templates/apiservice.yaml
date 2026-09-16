@@ -10,7 +10,7 @@ metadata:
   labels:
 {{ include "podplane-operator.labels" . | indent 4 }}
   annotations:
-    cert-manager.io/inject-ca-from: {{ printf "%s/%s-serving-cert" .Release.Namespace (include "podplane-operator.namePrefix" .) | quote }}
+    certificates.podplane.dev/inject-ca-from: workload
 spec:
   group: {{ .Values.podplane.operator.apiService.group }}
   version: {{ .Values.podplane.operator.apiService.version }}

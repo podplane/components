@@ -15,5 +15,5 @@ secrets-store-csi-driver:
     enabled: false
   syncSecret:
     enabled: false
-  enableSecretRotation: false
+  enableSecretRotation: true
   providerHealthCheck: true

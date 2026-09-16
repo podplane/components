@@ -12,13 +12,12 @@ platform:
       certificates:
         provider: ""
         objectType: ""
-        gcpProjectID: ""
+        projectID: ""
         keyPrefix: ""
-        csiProviderComponent: ""
     sdsSidecar:
       image:
         repository: ghcr.io/podplane/operator
-        tag: "v0.5.0"
+        tag: "v0.6.0"
         pullPolicy: IfNotPresent
 
 gateway-helm:
