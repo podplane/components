@@ -10,7 +10,7 @@ metadata:
   labels:
     {{- include "nstance-operator.labels" . | nindent 4 }}
   annotations:
-    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "nstance-operator.fullname" . }}-webhook
+    certificates.podplane.dev/inject-ca-from: workload
 webhooks:
 - name: vnstancemachinepool.infrastructure.cluster.x-k8s.io
   admissionReviewVersions:

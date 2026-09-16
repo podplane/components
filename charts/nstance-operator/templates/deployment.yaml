@@ -121,8 +121,16 @@ spec:
           name: {{ include "nstance-operator.configMapName" . }}
       {{- if .Values.webhooks.enabled }}
       - name: webhook-cert
-        secret:
-          secretName: {{ include "nstance-operator.webhookSecretName" . }}
+        projected:
+          sources:
+          - podCertificate:
+              signerName: certificates.podplane.dev/workload
+              keyType: ED25519
+              keyPath: tls.key
+              certificateChainPath: tls.crt
+              userAnnotations:
+                certificates.podplane.dev/mode: service
+                certificates.podplane.dev/service: {{ include "nstance-operator.webhookServiceName" . }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

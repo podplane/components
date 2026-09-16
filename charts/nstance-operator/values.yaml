@@ -74,13 +74,10 @@ metrics:
 healthProbe:
   port: 8081
 
-# The operator's validating webhook requires cert-manager when enabled.
+# Validating webhook configuration
 webhooks:
   enabled: true
   failurePolicy: Fail
-  certificate:
-    duration: 8760h
-    renewBefore: 720h
 
 # Log level (debug, info, warn, error)
 logLevel: info
@@ -140,4 +137,3 @@ containerSecurityContext:
     drop:
     - ALL
   readOnlyRootFilesystem: true
-

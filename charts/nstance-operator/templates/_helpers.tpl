@@ -77,8 +77,3 @@ Create the name of the service account to use
 {{- define "nstance-operator.webhookServiceName" -}}
 {{- printf "%s-webhook" (include "nstance-operator.fullname" .) | trunc 63 | trimSuffix "-" }}
 {{- end }}
-
-{{/* Name of the webhook serving certificate Secret. */}}
-{{- define "nstance-operator.webhookSecretName" -}}
-{{- printf "%s-webhook-cert" (include "nstance-operator.fullname" .) | trunc 63 | trimSuffix "-" }}
-{{- end }}

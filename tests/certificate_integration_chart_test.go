@@ -65,22 +65,17 @@ func TestOperatorIngressCertificateConfig(t *testing.T) {
 	}
 }
 
-// TestWorkloadCAInjectorRBAC verifies injection access is restricted to named targets.
+// TestWorkloadCAInjectorRBAC verifies injection access covers supported API extensions.
 func TestWorkloadCAInjectorRBAC(t *testing.T) {
 	rendered := render(t, "../charts/podplane-operator",
 		"--namespace", "platform-podplane-operator", "-f", "../tests/values/podplane-operator.yaml",
 		"--set", "podplane.operator.config.cluster.spiffe.trustDomain=cluster.example",
 	)
 	for _, required := range []string{
-		"resources: [\"apiservices\"]",
-		"resourceNames: [\"v1beta1.secrets-api.podplane.dev\"]",
-		"resources: [\"mutatingwebhookconfigurations\"]",
-		"resourceNames: [\"capi-mutating-webhook-configuration\"]",
-		"resources: [\"validatingwebhookconfigurations\"]",
-		"resourceNames: [\"capi-validating-webhook-configuration\"]",
-		"resources: [\"customresourcedefinitions\"]",
-		"- machinesets.cluster.x-k8s.io",
-		"verbs: [\"get\", \"patch\"]",
+		"resources: [\"apiservices\"]\n    verbs: [\"get\", \"list\", \"patch\"]",
+		"resources: [\"mutatingwebhookconfigurations\"]\n    verbs: [\"get\", \"list\", \"patch\"]",
+		"resources: [\"validatingwebhookconfigurations\"]\n    verbs: [\"get\", \"list\", \"patch\"]",
+		"resources: [\"customresourcedefinitions\"]\n    verbs: [\"get\", \"list\", \"patch\"]",
 	} {
 		if !strings.Contains(rendered, required) {
 			t.Errorf("CA injector RBAC is missing %q", required)
@@ -110,6 +105,29 @@ func TestCAPIWorkloadCertificateContract(t *testing.T) {
 	crds := render(t, "../charts/cluster-api-crds")
 	if strings.Contains(crds, "cert-manager.io/inject-ca-from") || !strings.Contains(crds, workloadInjectionAnnotation) {
 		t.Error("CAPI CRDs must use the Podplane workload CA injection annotation")
+	}
+}
+
+// TestNstanceWorkloadCertificateContract verifies Nstance uses workload certificates.
+func TestNstanceWorkloadCertificateContract(t *testing.T) {
+	rendered := render(t, "../charts/nstance-operator",
+		"--namespace", "platform-nstance-operator", "-f", "../tests/values/nstance-operator.yaml",
+		"--set", "fullnameOverride=platform-nstance-operator",
+	)
+	for _, required := range []string{
+		"podCertificate:", "signerName: certificates.podplane.dev/workload", "keyType: ED25519",
+		"keyPath: tls.key", "certificateChainPath: tls.crt", "userAnnotations:",
+		"certificates.podplane.dev/mode: service", "certificates.podplane.dev/service: platform-nstance-operator-webhook",
+		workloadInjectionAnnotation,
+	} {
+		if !strings.Contains(rendered, required) {
+			t.Errorf("Nstance render is missing %q", required)
+		}
+	}
+	for _, forbidden := range []string{"apiVersion: cert-manager.io/", "kind: Certificate", "kind: Issuer", "cert-manager.io/inject-ca-from", "secretName:"} {
+		if strings.Contains(rendered, forbidden) {
+			t.Errorf("Nstance render unexpectedly contains %q", forbidden)
+		}
 	}
 }
 
