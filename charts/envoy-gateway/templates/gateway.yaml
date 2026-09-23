@@ -81,7 +81,8 @@ spec:
                           readOnly: true
                   volumes:
                     - name: podplane-sds
-                      emptyDir: {}
+                      emptyDir:
+                        medium: Memory
                     - name: ingress-certificates
                       csi:
                         driver: secrets-store.csi.k8s.io
