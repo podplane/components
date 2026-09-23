@@ -83,6 +83,32 @@ func TestOpenBaoWorkloadCertificateContract(t *testing.T) {
 	}
 }
 
+// TestVaultWorkloadCertificateContract verifies the Vault workload key mount.
+func TestVaultWorkloadCertificateContract(t *testing.T) {
+	rendered := render(t, "../charts/podplane-operator", "--namespace", "platform-podplane-operator",
+		"--set", "podplane.operator.config.cluster.id=prod",
+		"--set", "podplane.operator.config.cluster.spiffe.trustDomain=k8s.example.com",
+		"--set", "podplane.operator.config.secrets.defaultProvider=vault",
+		"--set", "podplane.operator.config.secrets.providers.vault.kind=vault",
+		"--set", "podplane.operator.config.secrets.providers.vault.address=https://vault.example",
+		"--set", "podplane.operator.config.secrets.providers.vault.mountPath=platform",
+		"--set", "podplane.operator.config.secrets.providers.vault.authPath=auth/podplane",
+		"--set", "podplane.operator.config.secrets.providers.vault.caCert=private-ca")
+	for _, required := range []string{
+		"provider: vault",
+		`vaultAddress: "https://vault.example"`,
+		`vaultAuthMountPath: "podplane"`,
+		`vaultCACertPath: "/var/run/podplane/secrets-providers/vault/ca.crt"`,
+		`roleName: "podplane-operator"`,
+		`secretPath: "platform/data/prod/workload-ca-key"`,
+		"secretKey: value",
+	} {
+		if !strings.Contains(rendered, required) {
+			t.Errorf("Vault workload certificate render is missing %q", required)
+		}
+	}
+}
+
 // TestWorkloadCertificateGatewayTrustContract verifies direct Gateway API workload trust.
 func TestWorkloadCertificateGatewayTrustContract(t *testing.T) {
 	rendered := render(t, "../charts/podplane-operator",
@@ -122,5 +148,23 @@ func TestWorkloadCertificateOrdering(t *testing.T) {
 		if !strings.Contains(operator, dependency) {
 			t.Errorf("operator ordering is missing %q", dependency)
 		}
+	}
+}
+
+// TestVaultWorkloadCertificateOrdering verifies a Vault-backed operator waits
+// for the Vault CSI provider.
+func TestVaultWorkloadCertificateOrdering(t *testing.T) {
+	rendered := render(t, "../charts/platform-components",
+		"--namespace", "platform-components",
+		"--set", "platform.components.apps.podplane-operator.enabled=true",
+		"--set", "platform.components.values.podplane-operator.podplane.operator.config.secrets.defaultProvider=vault",
+		"--set", "platform.components.values.podplane-operator.podplane.operator.config.secrets.providers.vault.kind=vault",
+	)
+	operatorStart := strings.Index(rendered, "name: podplane-operator\n")
+	if operatorStart < 0 {
+		t.Fatal("operator HelmRelease not rendered")
+	}
+	if !strings.Contains(rendered[operatorStart:], "name: secrets-store-csi-provider-vault") {
+		t.Fatal("operator ordering is missing the Vault CSI provider")
 	}
 }

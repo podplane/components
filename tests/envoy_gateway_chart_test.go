@@ -66,6 +66,32 @@ func TestEnvoyGatewayOpenBaoCertificateDelivery(t *testing.T) {
 	}
 }
 
+// TestEnvoyGatewayVaultCertificateDelivery verifies Vault certificate mounts.
+func TestEnvoyGatewayVaultCertificateDelivery(t *testing.T) {
+	rendered := render(t, "../charts/envoy-gateway", "--namespace", "platform-envoy-gateway",
+		"--set", "platform.envoyGateway.ingress.enabled=true",
+		"--set", "platform.envoyGateway.ingress.certificates.provider=vault",
+		"--set", "platform.envoyGateway.ingress.certificates.address=https://vault.example",
+		"--set", "platform.envoyGateway.ingress.certificates.mountPath=platform",
+		"--set", "platform.envoyGateway.ingress.certificates.authMountPath=podplane",
+		"--set", "platform.envoyGateway.ingress.certificates.caCertPath=/var/run/podplane/secrets-providers/vault/ca.crt",
+		"--set", "platform.envoyGateway.ingress.certificates.keyPrefix=prod",
+		"--set", "platform.envoyGateway.ingress.domains[0].apex=example.com")
+	for _, required := range []string{
+		"provider: vault",
+		`vaultAddress: "https://vault.example"`,
+		`vaultAuthMountPath: "podplane"`,
+		`vaultCACertPath: "/var/run/podplane/secrets-providers/vault/ca.crt"`,
+		"roleName: platform-envoy-gateway-ingress-certificates",
+		`secretPath: "platform/data/prod/platform-cluster/ingress-certificates/bundle-a379a6f6eeafb9a55e378c11"`,
+		"secretKey: value",
+	} {
+		if !strings.Contains(rendered, required) {
+			t.Errorf("Envoy Gateway Vault certificate render is missing %q", required)
+		}
+	}
+}
+
 // TestEnvoyGatewayGoogleCertificateDelivery verifies the upstream GCP provider mapping.
 func TestEnvoyGatewayGoogleCertificateDelivery(t *testing.T) {
 	rendered := render(t, "../charts/envoy-gateway", "--namespace", "platform-envoy-gateway",
@@ -99,13 +125,17 @@ func TestEnvoyGatewayHTTPRedirectCanBeDisabled(t *testing.T) {
 
 // TestEnvoyGatewayComponentOrdering verifies the selected CSI provider is ordered dynamically.
 func TestEnvoyGatewayComponentOrdering(t *testing.T) {
-	rendered := render(t, "../charts/platform-components", "--namespace", "platform-components",
-		"--set", "platform.components.apps.envoy-gateway.enabled=true",
-		"--set", "platform.components.values.envoy-gateway.platform.envoyGateway.ingress.enabled=true",
-		"--set", "platform.components.values.envoy-gateway.platform.envoyGateway.ingress.certificates.provider=openbao")
-	for _, required := range []string{"chart: ./charts/envoy-gateway", "name: envoy-gateway-crds", "name: gateway-api-crds", "name: secrets-store-csi-driver", "name: podplane-operator", "name: secrets-store-csi-provider-openbao"} {
-		if !strings.Contains(rendered, required) {
-			t.Errorf("component ordering is missing %q", required)
-		}
+	for _, provider := range []string{"vault", "openbao"} {
+		t.Run(provider, func(t *testing.T) {
+			rendered := render(t, "../charts/platform-components", "--namespace", "platform-components",
+				"--set", "platform.components.apps.envoy-gateway.enabled=true",
+				"--set", "platform.components.values.envoy-gateway.platform.envoyGateway.ingress.enabled=true",
+				"--set", "platform.components.values.envoy-gateway.platform.envoyGateway.ingress.certificates.provider="+provider)
+			for _, required := range []string{"chart: ./charts/envoy-gateway", "name: envoy-gateway-crds", "name: gateway-api-crds", "name: secrets-store-csi-driver", "name: podplane-operator", "name: secrets-store-csi-provider-" + provider} {
+				if !strings.Contains(rendered, required) {
+					t.Errorf("component ordering is missing %q", required)
+				}
+			}
+		})
 	}
 }
