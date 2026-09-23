@@ -66,8 +66,8 @@ spec:
 {{- $providers := get $secrets "providers" | default dict -}}
 {{- $provider := get $providers $providerName | default dict -}}
 {{- $providerKind := required (printf "platform.components.values.podplane-operator.podplane.operator.config.secrets.providers.%s.kind is required" $providerName) (get $provider "kind") -}}
-{{- if not (has $providerKind (list "aws" "gcp")) -}}
-{{- fail (printf "podplane-operator workload certificates require an aws or gcp default provider, got %q" $providerKind) -}}
+{{- if not (has $providerKind (list "aws" "gcp" "openbao")) -}}
+{{- fail (printf "podplane-operator workload certificates require an aws, gcp, or openbao default provider, got %q" $providerKind) -}}
 {{- end }}
 {{- $providerComponent := printf "secrets-store-csi-provider-%s" $providerKind }}
     - name: {{ $providerComponent }}
@@ -76,8 +76,8 @@ spec:
 {{ if and (eq $name "envoy-gateway") (dig "platform" "envoyGateway" "ingress" "enabled" false (index $values $name | default dict)) }}
 {{- $envoyValues := index $values $name }}
 {{- $providerKind := required "platform.components.values.envoy-gateway.platform.envoyGateway.ingress.certificates.provider is required" (dig "platform" "envoyGateway" "ingress" "certificates" "provider" "" $envoyValues) }}
-{{- if not (has $providerKind (list "aws" "gcp")) -}}
-{{- fail (printf "envoy-gateway ingress certificates require an aws or gcp provider, got %q" $providerKind) -}}
+{{- if not (has $providerKind (list "aws" "gcp" "openbao")) -}}
+{{- fail (printf "envoy-gateway ingress certificates require an aws, gcp, or openbao provider, got %q" $providerKind) -}}
 {{- end }}
 {{- $providerComponent := printf "secrets-store-csi-provider-%s" $providerKind }}
     - name: {{ $providerComponent }}

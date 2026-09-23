@@ -20,6 +20,7 @@ func TestEnvoyGatewaySDSContract(t *testing.T) {
 	for _, required := range []string{
 		"apiVersion: gateway.envoyproxy.io/v1alpha1", "kind: EnvoyProxy", "envoyDaemonSet:", "type: ClusterIP", "name: http-80", "containerPort: 10080", "hostPort: 80",
 		"name: https-443", "containerPort: 10443", "hostPort: 443", "name: podplane-sds", `image: "ghcr.io/podplane/operator:v0.7.0"`, "emptyDir: {}",
+		"kind: ServiceAccount", "name: platform-envoy-gateway-ingress-certificates", "serviceAccountName: platform-envoy-gateway-ingress-certificates",
 		"driver: secrets-store.csi.k8s.io", "--socket=/var/run/podplane-sds/sds.sock",
 		"--certificates-dir=/var/run/podplane/ingress-certificates", "--certificate=bundle-a379a6f6eeafb9a55e378c11=example.com",
 		"type: gateway.envoyproxy.io/sds", "url: unix:///var/run/podplane-sds/sds.sock",
@@ -34,6 +35,33 @@ func TestEnvoyGatewaySDSContract(t *testing.T) {
 	for _, forbidden := range []string{"tls.crt:", "tls.key:", "kubernetes.io/tls", "cert-manager.io/", "traefik.io/", "platform-acme"} {
 		if strings.Contains(rendered, forbidden) {
 			t.Errorf("Envoy Gateway render unexpectedly contains %q", forbidden)
+		}
+	}
+}
+
+// TestEnvoyGatewayOpenBaoCertificateDelivery verifies local OpenBao certificate mounts.
+func TestEnvoyGatewayOpenBaoCertificateDelivery(t *testing.T) {
+	rendered := render(t, "../charts/envoy-gateway", "--namespace", "platform-envoy-gateway",
+		"--set", "platform.envoyGateway.ingress.enabled=true",
+		"--set", "platform.envoyGateway.ingress.certificates.provider=openbao",
+		"--set", "platform.envoyGateway.ingress.certificates.address=https://10.0.2.15:19443/vault/local",
+		"--set", "platform.envoyGateway.ingress.certificates.mountPath=secret",
+		"--set", "platform.envoyGateway.ingress.certificates.authMountPath=podplane",
+		"--set", "platform.envoyGateway.ingress.certificates.caCertPath=/var/run/podplane/secrets-providers/local-fakevault/ca.crt",
+		"--set", "platform.envoyGateway.ingress.certificates.keyPrefix=local",
+		"--set", "platform.envoyGateway.ingress.domains[0].apex=local.localhost")
+	for _, required := range []string{
+		"provider: openbao",
+		`baoAddress: "https://10.0.2.15:19443/vault/local"`,
+		`baoAuthMountPath: "podplane"`,
+		`baoCACertPath: "/var/run/podplane/secrets-providers/local-fakevault/ca.crt"`,
+		"roleName: platform-envoy-gateway-ingress-certificates",
+		`objectName: "bundle-1f63c9f85391a14121a67337"`,
+		`secretPath: "secret/data/local/platform-cluster/ingress-certificates/bundle-1f63c9f85391a14121a67337"`,
+		"secretKey: value",
+	} {
+		if !strings.Contains(rendered, required) {
+			t.Errorf("Envoy Gateway OpenBao certificate render is missing %q", required)
 		}
 	}
 }
@@ -74,8 +102,8 @@ func TestEnvoyGatewayComponentOrdering(t *testing.T) {
 	rendered := render(t, "../charts/platform-components", "--namespace", "platform-components",
 		"--set", "platform.components.apps.envoy-gateway.enabled=true",
 		"--set", "platform.components.values.envoy-gateway.platform.envoyGateway.ingress.enabled=true",
-		"--set", "platform.components.values.envoy-gateway.platform.envoyGateway.ingress.certificates.provider=aws")
-	for _, required := range []string{"chart: ./charts/envoy-gateway", "name: envoy-gateway-crds", "name: gateway-api-crds", "name: secrets-store-csi-driver", "name: podplane-operator", "name: secrets-store-csi-provider-aws"} {
+		"--set", "platform.components.values.envoy-gateway.platform.envoyGateway.ingress.certificates.provider=openbao")
+	for _, required := range []string{"chart: ./charts/envoy-gateway", "name: envoy-gateway-crds", "name: gateway-api-crds", "name: secrets-store-csi-driver", "name: podplane-operator", "name: secrets-store-csi-provider-openbao"} {
 		if !strings.Contains(rendered, required) {
 			t.Errorf("component ordering is missing %q", required)
 		}

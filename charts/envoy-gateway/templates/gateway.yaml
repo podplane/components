@@ -5,6 +5,12 @@
 {{- $ingress := .Values.platform.envoyGateway.ingress -}}
 {{- if not $ingress.domains }}{{ fail "platform.envoyGateway.ingress.domains must contain at least one domain when ingress is enabled" }}{{- end }}
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: platform-envoy-gateway-ingress-certificates
+automountServiceAccountToken: false
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
@@ -29,6 +35,7 @@ spec:
             spec:
               template:
                 spec:
+                  serviceAccountName: platform-envoy-gateway-ingress-certificates
                   securityContext:
                     runAsNonRoot: true
                     fsGroup: 65532

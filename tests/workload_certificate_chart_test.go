@@ -57,6 +57,32 @@ func TestGoogleWorkloadCertificateContract(t *testing.T) {
 	}
 }
 
+// TestOpenBaoWorkloadCertificateContract verifies the OpenBao workload key mount.
+func TestOpenBaoWorkloadCertificateContract(t *testing.T) {
+	rendered := render(t, "../charts/podplane-operator", "--namespace", "platform-podplane-operator",
+		"--set", "podplane.operator.config.cluster.id=local",
+		"--set", "podplane.operator.config.cluster.spiffe.trustDomain=local.k8s.localhost",
+		"--set", "podplane.operator.config.secrets.defaultProvider=local-fakevault",
+		"--set", "podplane.operator.config.secrets.providers.local-fakevault.kind=openbao",
+		"--set", "podplane.operator.config.secrets.providers.local-fakevault.address=https://10.0.2.15:19443/vault/local",
+		"--set", "podplane.operator.config.secrets.providers.local-fakevault.mountPath=secret",
+		"--set", "podplane.operator.config.secrets.providers.local-fakevault.authPath=auth/podplane",
+		"--set", "podplane.operator.config.secrets.providers.local-fakevault.caCert=local-ca")
+	for _, required := range []string{
+		"provider: openbao",
+		`baoAddress: "https://10.0.2.15:19443/vault/local"`,
+		`baoAuthMountPath: "podplane"`,
+		`baoCACertPath: "/var/run/podplane/secrets-providers/local-fakevault/ca.crt"`,
+		`roleName: "podplane-operator"`,
+		`secretPath: "secret/data/local/workload-ca-key"`,
+		"secretKey: value",
+	} {
+		if !strings.Contains(rendered, required) {
+			t.Errorf("OpenBao workload certificate render is missing %q", required)
+		}
+	}
+}
+
 // TestWorkloadCertificateGatewayTrustContract verifies direct Gateway API workload trust.
 func TestWorkloadCertificateGatewayTrustContract(t *testing.T) {
 	rendered := render(t, "../charts/podplane-operator",

@@ -31,8 +31,23 @@ spec:
       - resourceName: {{ printf "projects/%s/secrets/%s_platform-cluster_ingress-certificates_%s/versions/latest" (required "platform.envoyGateway.ingress.certificates.projectID is required for gcp" $certs.projectID) (trimAll "_" $certs.keyPrefix) (include "podplane.envoyGateway.bundle" .) | quote }}
         path: {{ include "podplane.envoyGateway.bundle" . | quote }}
 {{- end }}
+{{- else if eq $provider "openbao" }}
+  provider: openbao
+  parameters:
+    baoAddress: {{ required "platform.envoyGateway.ingress.certificates.address is required for openbao" $certs.address | quote }}
+    baoAuthMountPath: {{ $certs.authMountPath | default "kubernetes" | quote }}
+{{- with $certs.caCertPath }}
+    baoCACertPath: {{ . | quote }}
+{{- end }}
+    roleName: platform-envoy-gateway-ingress-certificates
+    objects: |
+{{- range .Values.platform.envoyGateway.ingress.domains }}
+      - objectName: {{ include "podplane.envoyGateway.bundle" . | quote }}
+        secretPath: {{ printf "%s/data/%s/platform-cluster/ingress-certificates/%s" ($certs.mountPath | default "secret" | trimAll "/") (trimAll "/" $certs.keyPrefix) (include "podplane.envoyGateway.bundle" .) | quote }}
+        secretKey: value
+{{- end }}
 {{- else }}
-{{- fail "platform.envoyGateway.ingress.certificates.provider must be aws or gcp" }}
+{{- fail "platform.envoyGateway.ingress.certificates.provider must be aws, gcp, or openbao" }}
 {{- end }}
 {{- range .Values.platform.envoyGateway.ingress.domains }}
 ---
