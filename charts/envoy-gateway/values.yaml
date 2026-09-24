@@ -21,7 +21,7 @@ platform:
     sdsSidecar:
       image:
         repository: ghcr.io/podplane/operator
-        tag: "v0.7.0"
+        tag: "v0.7.2"
         pullPolicy: IfNotPresent
 
 gateway-helm:

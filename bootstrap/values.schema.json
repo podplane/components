@@ -14,6 +14,9 @@
         "clusterID": {
           "type": "string"
         },
+        "spiffeTrustDomain": {
+          "type": "string"
+        },
         "domain": {
           "type": "string"
         },
@@ -153,7 +156,7 @@
           "required": ["crds", "apps"]
         }
       },
-      "required": ["install", "clusterID", "domain", "registry", "oidc", "flux", "addons"]
+      "required": ["install", "clusterID", "spiffeTrustDomain", "domain", "registry", "oidc", "flux", "addons"]
     }
   },
   "required": ["bootstrap"],

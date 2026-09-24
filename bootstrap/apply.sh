@@ -54,6 +54,7 @@ RESOLVED_REGISTRY="${REGISTRY_HOSTNAME:+${REGISTRY_HOSTNAME}/mirror/}"
 bootstrap_args=(--namespace platform-components)
 set_bootstrap_args bootstrap.install "${PLATFORM_INSTALL:-}"
 set_bootstrap_args bootstrap.clusterID "${CLUSTER_ID:-}"
+set_bootstrap_args bootstrap.spiffeTrustDomain "${SPIFFE_TRUST_DOMAIN:-}"
 # DOMAIN wires platform-components values so Envoy Gateway ingress uses a real
 # cluster domain. This matches what `podplane hooks netsy-seed` derives from
 # cluster.domains. With PLATFORM_INSTALL=recommended or all, the operator makes

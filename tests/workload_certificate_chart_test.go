@@ -24,7 +24,7 @@ func TestWorkloadCertificateContract(t *testing.T) {
 		"resourceNames: [\"certificates.podplane.dev/workload\"]", "verbs: [\"sign\", \"attest\"]",
 		"resourceNames: [\"certificates.podplane.dev:workload:roots\"]", "resources: [\"pods\", \"services\"]",
 		"reserved-workload-ca-spc-vap",
-		"\"trust_domain\": \"cluster.example\"", "\"certificates\":", "\"ca_path\": \"/var/run/podplane/certificates/workload-ca-key.pem\"",
+		"\"trust_domain\": \"cluster.example\"", "\"certificates\":", "\"ca_path\": \"/var/run/podplane/certificates/workload-ca-key\"",
 	} {
 		if !strings.Contains(enabled, required) {
 			t.Errorf("enabled render is missing %q", required)
@@ -74,11 +74,44 @@ func TestOpenBaoWorkloadCertificateContract(t *testing.T) {
 		`baoAuthMountPath: "podplane"`,
 		`baoCACertPath: "/var/run/podplane/secrets-providers/local-fakevault/ca.crt"`,
 		`roleName: "podplane-operator"`,
+		"objectName: workload-ca-key",
 		`secretPath: "secret/data/local/workload-ca-key"`,
 		"secretKey: value",
 	} {
 		if !strings.Contains(rendered, required) {
 			t.Errorf("OpenBao workload certificate render is missing %q", required)
+		}
+	}
+}
+
+// TestLocalBootstrapSelectsOpenBaoDefaultProvider verifies the recommended
+// local bootstrap emits a complete operator secrets configuration.
+func TestLocalBootstrapSelectsOpenBaoDefaultProvider(t *testing.T) {
+	rendered := render(t, "../bootstrap",
+		"--namespace", "platform-components",
+		"--set", "bootstrap.install=recommended",
+		"--set", "bootstrap.domain=default.localhost",
+		"--set", "bootstrap.spiffeTrustDomain=default.k8s.localhost",
+		"--set-string", "bootstrap.secrets.localFakeVault.address=https://10.0.2.15:19443/vault/default",
+		"--set-string", "bootstrap.secrets.localFakeVault.caCert=bG9jYWwtY2E=",
+	)
+	for _, required := range []string{
+		"chart: ./charts/platform-components\n      reconcileStrategy: Revision",
+		"podplane-operator:\n            enabled: true",
+		"spiffe:\n                      trustDomain: \"default.k8s.localhost\"",
+		"secrets:\n                    defaultProvider: local-fakevault",
+		"local-fakevault:\n                        kind: openbao",
+		"name: podplane-secrets-provider-ca-local-fakevault",
+		"mountPath: /var/run/podplane/secrets-providers/local-fakevault",
+		"ingressCertificates:\n                    provider: local-fakevault",
+		"keyPrefix: \"default\"\n                    domains:\n                      \"default.localhost\": {}",
+		"envoy-gateway:\n            platform:\n              envoyGateway:\n                ingress:\n                  enabled: true",
+		"- apex: \"default.localhost\"",
+		"provider: openbao\n                    address: \"https://10.0.2.15:19443/vault/default\"",
+		"caCertPath: /var/run/podplane/secrets-providers/local-fakevault/ca.crt",
+	} {
+		if !strings.Contains(rendered, required) {
+			t.Errorf("recommended local bootstrap is missing %q", required)
 		}
 	}
 }
@@ -100,6 +133,7 @@ func TestVaultWorkloadCertificateContract(t *testing.T) {
 		`vaultAuthMountPath: "podplane"`,
 		`vaultCACertPath: "/var/run/podplane/secrets-providers/vault/ca.crt"`,
 		`roleName: "podplane-operator"`,
+		"objectName: workload-ca-key",
 		`secretPath: "platform/data/prod/workload-ca-key"`,
 		"secretKey: value",
 	} {

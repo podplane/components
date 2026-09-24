@@ -61,7 +61,7 @@ app.kubernetes.io/component: operator
 {{- $_ := required "podplane.operator.config.cluster.spiffe.trustDomain is required" $spiffeValues.trustDomain -}}
 {{- $_ := set (get $config "cluster") "spiffe" (dict "trust_domain" $spiffeValues.trustDomain) -}}
 {{- $_ := set $config "certificates" (dict
-  "ca_path" ($workloadValues.caPath | default "/var/run/podplane/certificates/workload-ca-key.pem")
+  "ca_path" ($workloadValues.caPath | default "/var/run/podplane/certificates/workload-ca-key")
 ) -}}
 {{- $oidc := get (get $config "cluster") "oidc" -}}
 {{- with $oidcValues.issuerURL }}{{- $_ := set $oidc "issuer_url" . -}}{{- end -}}

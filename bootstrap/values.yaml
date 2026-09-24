@@ -11,6 +11,7 @@ bootstrap:
   #   all         - every addon CRD/app listed below.
   install: minimal
   clusterID: default
+  spiffeTrustDomain: ""
   domain: ""
   registry:
     hostname: ""

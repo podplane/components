@@ -7,7 +7,7 @@ podplane:
     namePrefix: platform-podplane-operator
     image:
       repository: ghcr.io/podplane/operator
-      tag: "v0.7.0"
+      tag: "v0.7.2"
       pullPolicy: IfNotPresent
     serviceAccountName: platform-podplane-operator
     registry:
@@ -45,7 +45,7 @@ podplane:
         acme: null
         domains: {}
       workloadCertificates:
-        caPath: /var/run/podplane/certificates/workload-ca-key.pem
+        caPath: /var/run/podplane/certificates/workload-ca-key
     # Additional environment variables for the operator container. Useful for
     # cloud/provider SDK configuration sourced from Kubernetes Secrets,
     # but using volumes for mounting secrets instead is the recommended approach.

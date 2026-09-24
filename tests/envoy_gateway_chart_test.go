@@ -19,7 +19,7 @@ func TestEnvoyGatewaySDSContract(t *testing.T) {
 		"--set", "platform.envoyGateway.ingress.domains[0].apex=example.com")
 	for _, required := range []string{
 		"apiVersion: gateway.envoyproxy.io/v1alpha1", "kind: EnvoyProxy", "envoyDaemonSet:", "type: ClusterIP", "name: http-80", "containerPort: 10080", "hostPort: 80",
-		"name: https-443", "containerPort: 10443", "hostPort: 443", "name: podplane-sds", `image: "ghcr.io/podplane/operator:v0.7.0"`, "name: podplane-sds\n                      emptyDir:\n                        medium: Memory",
+		"name: https-443", "containerPort: 10443", "hostPort: 443", "name: podplane-sds", `image: "ghcr.io/podplane/operator:v0.7.2"`, "name: podplane-sds\n                      emptyDir:\n                        medium: Memory",
 		"kind: ServiceAccount", "name: platform-envoy-gateway-ingress-certificates", "serviceAccountName: platform-envoy-gateway-ingress-certificates",
 		"driver: secrets-store.csi.k8s.io", "--socket=/var/run/podplane-sds/sds.sock",
 		"--certificates-dir=/var/run/podplane/ingress-certificates", "--certificate=bundle-a379a6f6eeafb9a55e378c11=example.com",

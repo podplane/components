@@ -52,6 +52,8 @@ spec:
                 config:
                   cluster:
                     id: {{ .Values.bootstrap.clusterID | quote }}
+                    spiffe:
+                      trustDomain: {{ .Values.bootstrap.spiffeTrustDomain | quote }}
                     oidc:
                       issuerURL: {{ .Values.bootstrap.oidc.issuer | quote }}
                       clientID: {{ .Values.bootstrap.oidc.audience | default .Values.bootstrap.clusterID | quote }}
@@ -59,6 +61,7 @@ spec:
                       groupsClaim: {{ .Values.bootstrap.oidc.groupsClaim | quote }}
 {{- if .Values.bootstrap.secrets.localFakeVault.address }}
                   secrets:
+                    defaultProvider: local-fakevault
                     providers:
                       local-fakevault:
                         kind: openbao
@@ -67,6 +70,28 @@ spec:
 {{- if .Values.bootstrap.secrets.localFakeVault.caCert }}
                         caCert: {{ .Values.bootstrap.secrets.localFakeVault.caCert | b64dec | quote }}
 {{- end }}
+{{- if .Values.bootstrap.domain }}
+                  ingressCertificates:
+                    provider: local-fakevault
+                    keyPrefix: {{ .Values.bootstrap.clusterID | quote }}
+                    domains:
+                      {{ .Values.bootstrap.domain | quote }}: {}
+          envoy-gateway:
+            platform:
+              envoyGateway:
+                ingress:
+                  enabled: true
+                  domains:
+                    - apex: {{ .Values.bootstrap.domain | quote }}
+                  certificates:
+                    provider: openbao
+                    address: {{ .Values.bootstrap.secrets.localFakeVault.address | quote }}
+                    mountPath: secret
+                    keyPrefix: {{ .Values.bootstrap.clusterID | quote }}
+{{- if .Values.bootstrap.secrets.localFakeVault.caCert }}
+                    caCertPath: /var/run/podplane/secrets-providers/local-fakevault/ca.crt
+{{- end }}
+{{- end }}
           secrets-store-csi-provider-openbao:
             podplane:
               secrets:
@@ -74,6 +99,16 @@ spec:
                   local-fakevault:
 {{- if .Values.bootstrap.secrets.localFakeVault.caCert }}
                     caCert: {{ .Values.bootstrap.secrets.localFakeVault.caCert | b64dec | quote }}
+            openbao:
+              csi:
+                volumes:
+                  - name: provider-ca-local-fakevault
+                    configMap:
+                      name: podplane-secrets-provider-ca-local-fakevault
+                volumeMounts:
+                  - name: provider-ca-local-fakevault
+                    mountPath: /var/run/podplane/secrets-providers/local-fakevault
+                    readOnly: true
 {{- else }}
                     caCert: ""
 {{- end }}
