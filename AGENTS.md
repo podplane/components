@@ -82,7 +82,12 @@ or `make all` against a real cluster without explicit user approval.
 - **Naming**: kebab-case for chart names; `platform-` prefix for cluster
   components.
 - **Dependencies on upstream charts**: declared in each chart's
-  `Chart.yaml` `dependencies:` block, not vendored as subcharts.
+  `Chart.yaml` `dependencies:` block.
+- **Envoy Gateway chart source**: `charts/envoy-gateway/upstream/` is generated
+  from the published chart and the Podplane patch. Do not edit it directly;
+  update `charts/envoy-gateway/patches/gateway-helm.patch` and regenerate it
+  with `charts/envoy-gateway/scripts/update-upstream.sh`. See
+  `charts/envoy-gateway/UPSTREAM.md`.
 
 ## Scope
 

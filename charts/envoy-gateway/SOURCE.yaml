@@ -1,0 +1,4 @@
+repository: https://github.com/envoyproxy/gateway
+chart: charts/gateway-helm
+version: v1.9.0
+commit: 39763b1c07ec30a5526fe70434a2cfe4181de642

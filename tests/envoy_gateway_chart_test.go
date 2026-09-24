@@ -20,6 +20,7 @@ func TestEnvoyGatewaySDSContract(t *testing.T) {
 	for _, required := range []string{
 		"apiVersion: gateway.envoyproxy.io/v1alpha1", "kind: EnvoyProxy", "envoyDaemonSet:", "type: ClusterIP", "name: http-80", "containerPort: 10080", "hostPort: 80",
 		"name: https-443", "containerPort: 10443", "hostPort: 443", "name: podplane-sds", `image: "ghcr.io/podplane/operator:v0.7.2"`, "name: podplane-sds\n                      emptyDir:\n                        medium: Memory",
+		"name: certs\n                      configMap: null\n                      projected:", "name: certificates.podplane.dev:workload:roots", "path: ca.crt",
 		"kind: ServiceAccount", "name: platform-envoy-gateway-ingress-certificates", "serviceAccountName: platform-envoy-gateway-ingress-certificates",
 		"driver: secrets-store.csi.k8s.io", "--socket=/var/run/podplane-sds/sds.sock",
 		"--certificates-dir=/var/run/podplane/ingress-certificates", "--certificate=bundle-a379a6f6eeafb9a55e378c11=example.com",
@@ -120,6 +121,37 @@ func TestEnvoyGatewayHTTPRedirectCanBeDisabled(t *testing.T) {
 		"--set", "platform.envoyGateway.ingress.domains[0].apex=example.com")
 	if strings.Contains(rendered, "platform-http-to-https-redirect-httproute") {
 		t.Fatal("HTTP-to-HTTPS redirect route rendered while disabled")
+	}
+}
+
+// TestEnvoyGatewayControlPlaneCertificateProjection verifies private keys remain outside Kubernetes Secrets.
+func TestEnvoyGatewayControlPlaneCertificateProjection(t *testing.T) {
+	rendered := render(t, "../charts/envoy-gateway", "--namespace", "platform-envoy-gateway")
+	for _, required := range []string{
+		"podCertificate:",
+		"signerName: certificates.podplane.dev/workload",
+		"keyType: ECDSAP256",
+		"keyPath: tls.key",
+		"certificateChainPath: tls.crt",
+		"certificates.podplane.dev/mode: service",
+		"certificates.podplane.dev/service: envoy-gateway",
+		"clusterTrustBundle:",
+		"name: certificates.podplane.dev:workload:roots",
+		"path: ca.crt",
+		"kind: MutatingWebhookConfiguration",
+		"certificates.podplane.dev/inject-ca-from: workload",
+	} {
+		if !strings.Contains(rendered, required) {
+			t.Errorf("Envoy Gateway control-plane certificate render is missing %q", required)
+		}
+	}
+	for _, forbidden := range []string{
+		"secretName: envoy-gateway",
+		"envoy-gateway-certgen",
+	} {
+		if strings.Contains(rendered, forbidden) {
+			t.Errorf("Envoy Gateway control-plane certificate render unexpectedly contains %q", forbidden)
+		}
 	}
 }
 

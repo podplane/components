@@ -1,0 +1,6 @@
+# Maintenance-only files excluded from the installable chart package.
+upstream/
+patches/
+scripts/
+UPSTREAM.md
+SOURCE.yaml

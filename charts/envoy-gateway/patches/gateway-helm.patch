@@ -1,0 +1,102 @@
+diff --git original/gateway-helm/README.md patched/gateway-helm/README.md
+index 75c38df..896f127 100644
+--- original/gateway-helm/README.md
++++ patched/gateway-helm/README.md
+@@ -90,7 +90,6 @@ helm uninstall eg -n envoy-gateway-system
+ 
+ | Key | Type | Default | Description |
+ |-----|------|---------|-------------|
+-| certgen | object | `{"job":{"affinity":{},"annotations":{},"args":[],"nodeSelector":{},"pod":{"annotations":{},"labels":{},"securityContext":{"fsGroup":65532,"runAsGroup":65532,"runAsNonRoot":true,"runAsUser":65532,"seccompProfile":{"type":"RuntimeDefault"}}},"resources":{},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"privileged":false,"readOnlyRootFilesystem":true,"runAsGroup":65532,"runAsNonRoot":true,"runAsUser":65532,"seccompProfile":{"type":"RuntimeDefault"}},"tolerations":[],"ttlSecondsAfterFinished":30},"rbac":{"annotations":{},"labels":{}}}` | Certgen is used to generate the certificates required by EnvoyGateway. If you want to construct a custom certificate, you can generate a custom certificate through Cert-Manager before installing EnvoyGateway. Certgen will not overwrite the custom certificate. Please do not manually modify `values.yaml` to disable certgen, it may cause EnvoyGateway OIDC,OAuth2,etc. to not work as expected. |
+ | commonLabels | object | `{}` | Labels to apply to all resources |
+ | config.envoyGateway | object | `{"extensionApis":{},"gateway":{"controllerName":"gateway.envoyproxy.io/gatewayclass-controller"},"logging":{"level":{"default":"info"}},"provider":{"type":"Kubernetes"}}` | EnvoyGateway configuration. Visit https://gateway.envoyproxy.io/docs/api/extension_types/#envoygateway to view all options. |
+ | crds.enabled | bool | `true` | Install Envoy Gateway CRDs, Gateway API CRDs, and Gateway API safe upgrade policy resources. Set to false when these resources are managed separately. |
+@@ -182,4 +181,3 @@ helm uninstall eg -n envoy-gateway-system
+ | service.type | string | `"ClusterIP"` | Service type. Can be set to LoadBalancer with specific IP, e.g.: type: LoadBalancer loadBalancerIP: 10.236.90.20 |
+ | topologyInjector.annotations | object | `{}` |  |
+ | topologyInjector.enabled | bool | `true` |  |
+-
+diff --git original/gateway-helm/templates/envoy-gateway-deployment.yaml patched/gateway-helm/templates/envoy-gateway-deployment.yaml
+index d6218a0..1df4647 100644
+--- original/gateway-helm/templates/envoy-gateway-deployment.yaml
++++ patched/gateway-helm/templates/envoy-gateway-deployment.yaml
+@@ -117,8 +117,19 @@ spec:
+           name: envoy-gateway-config
+         name: envoy-gateway-config
+       - name: certs
+-        secret:
+-          secretName: envoy-gateway
++        projected:
++          sources:
++          - podCertificate:
++              signerName: certificates.podplane.dev/workload
++              keyType: ECDSAP256
++              keyPath: tls.key
++              certificateChainPath: tls.crt
++              userAnnotations:
++                certificates.podplane.dev/mode: service
++                certificates.podplane.dev/service: envoy-gateway
++          - clusterTrustBundle:
++              name: certificates.podplane.dev:workload:roots
++              path: ca.crt
+       # Writable cache for Wasm modules; required because the controller's
+       # root filesystem is read-only by default (readOnlyRootFilesystem).
+       - name: wasm-cache
+diff --git original/gateway-helm/templates/envoy-proxy-topology-injector-webhook.yaml patched/gateway-helm/templates/envoy-proxy-topology-injector-webhook.yaml
+index 0cb5a2c..c416744 100644
+--- original/gateway-helm/templates/envoy-proxy-topology-injector-webhook.yaml
++++ patched/gateway-helm/templates/envoy-proxy-topology-injector-webhook.yaml
+@@ -19,6 +19,7 @@ kind: MutatingWebhookConfiguration
+ metadata:
+   name: 'envoy-gateway-topology-injector.{{ include "eg.namespace" . }}'
+   annotations:
++    certificates.podplane.dev/inject-ca-from: workload
+     "helm.sh/hook": pre-install, pre-upgrade
+     "helm.sh/hook-weight": "-1"
+   {{- if .Values.topologyInjector.annotations }}
+diff --git original/gateway-helm/values.yaml patched/gateway-helm/values.yaml
+index a999508..8c4fa3f 100644
+--- original/gateway-helm/values.yaml
++++ patched/gateway-helm/values.yaml
+@@ -189,42 +189,6 @@ namespaceOverride: ""
+ 
+ kubernetesClusterDomain: cluster.local
+ 
+-# -- Certgen is used to generate the certificates required by EnvoyGateway. If you want to construct a custom certificate, you can generate a custom certificate through Cert-Manager before installing EnvoyGateway. Certgen will not overwrite the custom certificate. Please do not manually modify `values.yaml` to disable certgen, it may cause EnvoyGateway OIDC,OAuth2,etc. to not work as expected.
+-certgen:
+-  job:
+-    annotations: {}
+-    args: []
+-    pod:
+-      annotations: {}
+-      labels: {}
+-      securityContext:
+-        runAsNonRoot: true
+-        runAsGroup: 65532
+-        runAsUser: 65532
+-        fsGroup: 65532
+-        seccompProfile:
+-          type: RuntimeDefault
+-    resources: {}
+-    affinity: {}
+-    tolerations: []
+-    nodeSelector: {}
+-    ttlSecondsAfterFinished: 30
+-    securityContext:
+-      allowPrivilegeEscalation: false
+-      capabilities:
+-        drop:
+-        - ALL
+-      privileged: false
+-      readOnlyRootFilesystem: true
+-      runAsNonRoot: true
+-      runAsGroup: 65532
+-      runAsUser: 65532
+-      seccompProfile:
+-        type: RuntimeDefault
+-  rbac:
+-    annotations: {}
+-    labels: {}
+-
+ topologyInjector:
+   enabled: true
+   annotations: {}

@@ -80,6 +80,13 @@ spec:
                           mountPath: /var/run/podplane/ingress-certificates
                           readOnly: true
                   volumes:
+                    - name: certs
+                      configMap: null
+                      projected:
+                        sources:
+                          - clusterTrustBundle:
+                              name: certificates.podplane.dev:workload:roots
+                              path: ca.crt
                     - name: podplane-sds
                       emptyDir:
                         medium: Memory
