@@ -1,4 +1,4 @@
-# Based on kubernetes-sigs/agent-sandbox/helm at v0.5.0.
+# Based on kubernetes-sigs/agent-sandbox/helm at v1.0.4.
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -27,6 +27,10 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: agent-sandbox-controller
         image: {{ include "agent-sandbox.image" . }}
@@ -35,13 +39,10 @@ spec:
         {{- include "agent-sandbox.controllerArgs" . | nindent 8 }}
         ports:
         - name: metrics
-          containerPort: 8080
+          containerPort: 8080   # Change to 8443 when --metrics-secure-serving is enabled.
           protocol: TCP
         - name: healthz
           containerPort: 8081
-          protocol: TCP
-        - name: webhook
-          containerPort: 9443
           protocol: TCP
 
         livenessProbe:
@@ -85,4 +86,3 @@ spec:
         configMap:
           name: agent-sandbox-config
           optional: true
-

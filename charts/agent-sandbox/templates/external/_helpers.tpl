@@ -1,5 +1,5 @@
 {{/*
-Based on kubernetes-sigs/agent-sandbox/helm at v0.5.0.
+Based on kubernetes-sigs/agent-sandbox/helm at v1.0.4.
 */}}
 
 {{/*
@@ -14,6 +14,13 @@ The namespace to deploy into.
 */}}
 {{- define "agent-sandbox.namespace" -}}
 {{- default .Release.Namespace .Values.namespace.name }}
+{{- end }}
+
+{{/*
+The controller Service name.
+*/}}
+{{- define "agent-sandbox.serviceName" -}}
+{{- default "agent-sandbox-controller" .Values.service.name }}
 {{- end }}
 
 {{/*
