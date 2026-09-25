@@ -33,7 +33,6 @@ var (
 	outputPath  = flag.String("output", "manifests/components.json", "Path to write the component manifest JSON.")
 	version     = flag.String("version", "", "Component manifest version. Defaults to VERSION, or dev when VERSION is unset.")
 	extraImages = []extraImage{
-		{Repo: "docker.io/library/caddy", Tag: "2"},
 		{Repo: "docker.io/library/golang", Tag: "alpine"},
 		{Repo: "ghcr.io/podplane/hello", Tag: "latest"},
 		// Keep this version in sync with podplane/vmconfig scripts/manifests/sources.go.
