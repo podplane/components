@@ -7,3 +7,7 @@ secrets-store-csi-driver-provider-aws:
   nameOverride: platform-secrets-store-csi-provider-aws
   secrets-store-csi-driver:
     install: false
+  # Run wherever the node-local CSI driver runs, including while a node is
+  # still carrying its startup taints.
+  tolerations:
+    - operator: Exists

@@ -15,6 +15,11 @@ vault:
       pullPolicy: IfNotPresent
     daemonSet:
       providersDir: /var/run/secrets-store-csi-providers
+    pod:
+      # Run wherever the node-local CSI driver runs, including while a node is
+      # still carrying its startup taints.
+      tolerations:
+        - operator: Exists
     agent:
       enabled: true
 

@@ -23,7 +23,10 @@ gcp:
       memory: 100Mi
   nodeSelector:
     kubernetes.io/os: linux
-  tolerations: []
+  # Run wherever the node-local CSI driver runs, including while a node is
+  # still carrying its startup taints.
+  tolerations:
+    - operator: Exists
   affinity: {}
   priorityClassName: ""
   podAnnotations: {}
