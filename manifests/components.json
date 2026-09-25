@@ -32,6 +32,28 @@
         "components": [
           "envoy-gateway"
         ],
+        "image": "docker.io/envoyproxy/envoy:distroless-v1.39.0",
+        "digest": "sha256:9e24a3b459b463dd37e116a0f46d2abfcb6a1cb9897d87e85cf2ee25edbe373b",
+        "size": 43277886,
+        "platform": "linux/amd64",
+        "index": "sha256:7877ad87afd7459e1bd2a077ff601fec7c93aeecd62e71664560d96328c62cf4",
+        "addon": true
+      },
+      {
+        "components": [
+          "envoy-gateway"
+        ],
+        "image": "docker.io/envoyproxy/envoy:distroless-v1.39.0",
+        "digest": "sha256:8dbb967dba5d22a28f0e7974173aa6d4a5621ce48ac6d44142d9b4d9c960af14",
+        "size": 41967000,
+        "platform": "linux/arm64",
+        "index": "sha256:7877ad87afd7459e1bd2a077ff601fec7c93aeecd62e71664560d96328c62cf4",
+        "addon": true
+      },
+      {
+        "components": [
+          "envoy-gateway"
+        ],
         "image": "docker.io/envoyproxy/gateway:v1.9.0",
         "digest": "sha256:7709b70c6be63bba5b487f05239cb5c71c6065dac8bcd14bdea9273a589786a1",
         "size": 74718795,
@@ -124,17 +146,17 @@
       },
       {
         "image": "docker.io/library/golang:alpine",
-        "digest": "sha256:f86f1a6701e3dcc445fec097a42f78b758f15950ccf032c2d3e54e2754d32fdb",
-        "size": 75173617,
+        "digest": "sha256:cd9a32216aee5667f957a62d13a10032a63fd58e14b3f3d9cc8c2122f501e95e",
+        "size": 75179417,
         "platform": "linux/amd64",
-        "index": "sha256:cf6fca6641884b8433441b2b0652976f975e1d0fdd26d177eaaf8596087f3125"
+        "index": "sha256:8a5910f31396cd4d89662f56c68b3ae31d374308270a1c3bd96672ee5ed43414"
       },
       {
         "image": "docker.io/library/golang:alpine",
-        "digest": "sha256:df4c4a0eeb85873e0122c6e2eb1b436f3131576f572505c1ea61954b00fa6460",
-        "size": 72087700,
+        "digest": "sha256:092dd976c2202d32342b9517d6ff22c2dfd89f66c914aed205fed0643ee4a240",
+        "size": 72094611,
         "platform": "linux/arm64/v8",
-        "index": "sha256:cf6fca6641884b8433441b2b0652976f975e1d0fdd26d177eaaf8596087f3125"
+        "index": "sha256:8a5910f31396cd4d89662f56c68b3ae31d374308270a1c3bd96672ee5ed43414"
       },
       {
         "components": [

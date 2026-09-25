@@ -27,6 +27,13 @@ platform:
 gateway-helm:
   crds:
     enabled: false
+  global:
+    images:
+      envoyProxy:
+        # Follow the Envoy version selected by Envoy Gateway. Keep the web
+        # template sidecar aligned where possible to minimize cached images,
+        # but prefer this version for maximum Envoy Gateway interoperability.
+        image: docker.io/envoyproxy/envoy:distroless-v1.39.0
   config:
     envoyGateway:
       extensionApis:

@@ -4,6 +4,7 @@
 {{- if .Values.platform.envoyGateway.ingress.enabled }}
 {{- $ingress := .Values.platform.envoyGateway.ingress -}}
 {{- if not $ingress.domains }}{{ fail "platform.envoyGateway.ingress.domains must contain at least one domain when ingress is enabled" }}{{- end }}
+{{- $envoyProxyImage := required "gateway-helm.global.images.envoyProxy.image is required" (dig "global" "images" "envoyProxy" "image" "" (index .Values "gateway-helm")) -}}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -43,6 +44,7 @@ spec:
                       type: RuntimeDefault
                   containers:
                     - name: envoy
+                      image: {{ $envoyProxyImage | quote }}
                       ports:
                         - name: http-80
                           containerPort: 10080

@@ -34,6 +34,7 @@ var (
 	version     = flag.String("version", "", "Component manifest version. Defaults to VERSION, or dev when VERSION is unset.")
 	extraImages = []extraImage{
 		{Repo: "docker.io/library/golang", Tag: "alpine"},
+		{Repo: "docker.io/envoyproxy/envoy", Tag: "distroless-v1.39.0", Components: []string{"envoy-gateway"}},
 		{Repo: "ghcr.io/podplane/hello", Tag: "latest"},
 		// Keep this version in sync with podplane/vmconfig scripts/manifests/sources.go.
 		// https://github.com/podplane/vmconfig/blob/main/scripts/manifests/sources.go#L203
@@ -64,8 +65,9 @@ var (
 
 // extraImage identifies a static image that chart rendering cannot discover.
 type extraImage struct {
-	Repo string
-	Tag  string
+	Repo       string
+	Tag        string
+	Components []string
 }
 
 // metadata records component selection attributes for an image.
@@ -156,6 +158,9 @@ func run() error {
 			return err
 		}
 		componentsByImage[imageRef] = map[string]bool{}
+		for _, component := range extra.Components {
+			componentsByImage[imageRef][component] = true
+		}
 	}
 
 	fmt.Fprintf(os.Stderr, "scanning %d non-CRD charts\n", len(chartNames))
