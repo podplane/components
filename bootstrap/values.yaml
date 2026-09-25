@@ -40,7 +40,7 @@ bootstrap:
         branch: ""
         tag: ""
         commit: ""
-        semver: ">=1.0.0"
+        semver: "^2.0.0"
   addons:
     crds:
       - name: agent-sandbox-crds
