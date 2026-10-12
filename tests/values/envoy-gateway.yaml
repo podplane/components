@@ -1,0 +1,10 @@
+# Exercise ingress and its certificate resources during lint and validation.
+platform:
+  envoyGateway:
+    ingress:
+      enabled: true
+      domains:
+        - apex: example.com
+      certificates:
+        provider: aws
+        objectType: secretsmanager

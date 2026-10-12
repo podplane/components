@@ -3,6 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 {{- if .Values.deployment.enabled }}
+{{- if has .Values.registrationSecret.name (list .Values.managedSecretNames.privateKey .Values.managedSecretNames.clientCert (printf "%s--%s-kubeconfig" .Values.config.clusterID .Values.config.tenant)) }}
+{{- fail "registrationSecret.name must be a dedicated Secret, distinct from managed credentials" }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,14 +22,9 @@ spec:
     metadata:
       labels:
         {{- include "nstance-operator.selectorLabels" . | nindent 8 }}
-      {{- if or .Values.operatorConfigMap.enabled .Values.registrationSecret.enabled }}
+      {{- if .Values.operatorConfigMap.enabled }}
       annotations:
-        {{- if .Values.operatorConfigMap.enabled }}
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        {{- end }}
-        {{- if .Values.registrationSecret.enabled }}
-        checksum/registration-secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
-        {{- end }}
       {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
@@ -56,6 +54,10 @@ spec:
         env:
         - name: NSTANCE_NAMESPACE
           value: {{ .Release.Namespace }}
+        - name: NSTANCE_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
         - name: NSTANCE_CA_CONFIGMAP
           value: {{ .Values.clusterCA.name }}
         - name: NSTANCE_NONCE_SECRET

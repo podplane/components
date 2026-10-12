@@ -10,7 +10,7 @@ KUBE_VERSION := 1.37.0
 
 .DEFAULT_GOAL := help
 
-.PHONY: help fmt check deps lint render validate test check-crds update-crds update-manifests release-manifest precommit ci minimal recommended all _local-bootstrap git-sync git-watch clean
+.PHONY: help
 
 help: ## Show available targets
 	@echo "Podplane Kubernetes PaaS Components"
@@ -24,6 +24,8 @@ help: ## Show available targets
 	@echo "  make recommended"
 
 ##@ Checks
+
+.PHONY: fmt check deps lint render validate test precommit ci
 
 fmt: ## Format JSON files
 	@command -v jq >/dev/null 2>&1 || { echo "jq is required but not installed"; exit 1; }
@@ -50,10 +52,13 @@ check: ## Check JSON formatting
 
 deps: ## Fetch Helm chart dependencies for charts that declare them
 	@command -v helm >/dev/null 2>&1 || { echo "helm is required but not installed"; exit 1; }
-	@for chart in $(CHARTS); do \
+	@set -e; for chart in $(CHARTS); do \
 		grep -q '^dependencies:' $$chart/Chart.yaml || continue; \
+		test -f $$chart/Chart.lock || { echo "$$chart/Chart.lock is required"; exit 1; }; \
 		echo "==> $$chart"; \
-		helm dependency update $$chart >/dev/null || exit 1; \
+		helm dependency list $$chart | awk '$$3 ~ /^https?:/ {print $$1, $$3}' | \
+			while read -r name repo; do helm repo add "podplane-$$name" "$$repo" --force-update >/dev/null || exit 1; done; \
+		helm dependency build --skip-refresh $$chart >/dev/null; \
 	done
 
 lint: deps ## Run helm lint on every chart
@@ -74,10 +79,25 @@ render: deps ## Run helm template on every chart
 		helm template --kube-version $(KUBE_VERSION) $$chart $$extra_args >/dev/null || exit 1; \
 	done
 
-validate: render ## Alias for render
+validate: deps ## Validate rendered resources, excluding CRD definitions (no cluster)
+	@command -v kubeconform >/dev/null 2>&1 || { echo "kubeconform is required but not installed"; exit 1; }
+	@set -e; work="$$(mktemp -d)"; trap 'rm -rf "$$work"' EXIT; \
+		for chart in $(CHARTS) bootstrap; do \
+			name="$$(basename $$chart)"; \
+			extra_args=""; \
+			values_file="tests/values/$$name.yaml"; \
+			if [ -f "$$values_file" ]; then extra_args="-f $$values_file"; fi; \
+			helm template "platform-$$name" $$chart --namespace "platform-$$name" --kube-version $(KUBE_VERSION) $$extra_args || exit 1; \
+			printf '\n---\n'; \
+		done > "$$work/resources.yaml"; \
+		go run ./scripts/extract-crd-schemas --output "$$work/schemas" < "$$work/resources.yaml"; \
+		kubeconform -strict -summary -skip CustomResourceDefinition -kubernetes-version $(KUBE_VERSION) \
+			-schema-location default \
+			-schema-location "$$work/schemas/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" "$$work/resources.yaml"
 
 test: ## Run Go tests with the race detector
 	go test -race ./...
+	go -C tests test -race ./...
 
 precommit: check ## Fast local pre-commit check: JSON fmt + helm lint (no network)
 	@command -v helm >/dev/null 2>&1 || { echo "helm is required but not installed"; exit 1; }
@@ -88,11 +108,14 @@ precommit: check ## Fast local pre-commit check: JSON fmt + helm lint (no networ
 		helm lint --quiet --kube-version $(KUBE_VERSION) $$chart $$extra_args >/dev/null || { helm lint --kube-version $(KUBE_VERSION) $$chart $$extra_args; exit 1; }; \
 	done
 	@go vet ./...
+	@go -C tests vet ./...
 	@echo "precommit ok"
 
-ci: check lint render check-crds test ## Full CI suite (fetches deps, renders all charts, runs all tests)
+ci: check lint validate check-crds check-release-manifest test ## Full CI suite (no cluster writes)
 
 ##@ CRDs
+
+.PHONY: check-crds update-crds check-crd-freshness
 
 check-crds: ## Validate vendored CRDs with the compatibility checker
 	@for chart in charts/*-crds; do \
@@ -104,21 +127,39 @@ check-crds: ## Validate vendored CRDs with the compatibility checker
 update-crds: ## Update vendored CRDs with compatibility checks (CHART=<name> or all)
 	@go run ./scripts/crds --update $${CHART:-all}
 
+check-crd-freshness: ## Compare upstream CRDs without changes (CHART=<name>, default Nstance)
+	@go run ./scripts/crds --check $${CHART:-nstance-operator-crds}
+
 ##@ Manifests
+
+.PHONY: update-manifests check-release-manifest release-manifest release-assets
 
 update-manifests: ## Generate manifests/components.json from rendered non-CRD charts
 	@echo "Updating manifests/components.json from rendered non-CRD charts..."
 	@go run ./scripts/manifests --output manifests/components.json
 
-release-manifest: ## Write dist/release/components_$${VERSION}.json from manifests/components.json
-	@test -n "$${VERSION:-}" || { echo "VERSION is required"; exit 1; }
-	@command -v jq >/dev/null 2>&1 || { echo "jq is required but not installed"; exit 1; }
-	@mkdir -p dist/release
-	@jq --arg version "$$VERSION" '.components.version = $$version | .components.source = {"url":"https://github.com/podplane/components.git","ref":{"tag":("v" + $$version)}}' manifests/components.json > "dist/release/components_$${VERSION}.json"
-	@jq . "dist/release/components_$${VERSION}.json" >/dev/null
-	@echo "wrote dist/release/components_$${VERSION}.json"
+RELEASE_DIR ?= dist/release
+
+check-release-manifest: ## Check image inventory against renders and require both Linux architectures (offline)
+	@go run ./scripts/manifests --check
+
+release-manifest: check-release-manifest ## Write tag-pinned release manifest (VERSION=X.Y.Z, cached dependencies required)
+	@printf '%s\n' '$(VERSION)' | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$$' || { echo "VERSION must be X.Y.Z or X.Y.Z-prerelease, without a v prefix"; exit 1; }
+	@mkdir -p "$(RELEASE_DIR)"
+	@jq --arg version "$(VERSION)" '.components.version = $$version | .components.source = {"url":"https://github.com/podplane/components.git","ref":{"tag":("v" + $$version)}}' manifests/components.json > "$(RELEASE_DIR)/components_$(VERSION).json"
+
+release-assets: ## Package all charts + manifest + SHA512 checksums locally (VERSION=X.Y.Z, empty RELEASE_DIR)
+	@test ! -e "$(RELEASE_DIR)" || { test -d "$(RELEASE_DIR)" && test -z "$$(ls -A "$(RELEASE_DIR)")"; } || { echo "$(RELEASE_DIR) must be empty; refusing to overwrite assets"; exit 1; }
+	@$(MAKE) --no-print-directory deps
+	@$(MAKE) --no-print-directory release-manifest
+	@for chart in $(CHARTS); do \
+		helm package $$chart --version "$(VERSION)" --destination "$(RELEASE_DIR)" || exit 1; \
+	done
+	@cd "$(RELEASE_DIR)" && shasum -a 512 *.tgz components_$(VERSION).json > components_$(VERSION)_checksums.txt
 
 ##@ Local Development
+
+.PHONY: minimal recommended all _local-bootstrap git-sync git-watch clean
 
 minimal: ## Bootstrap minimal/core components using the local Podplane Git cache
 	@$(MAKE) --no-print-directory _local-bootstrap PLATFORM_INSTALL=minimal

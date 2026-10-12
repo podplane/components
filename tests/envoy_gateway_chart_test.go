@@ -9,6 +9,105 @@ import (
 	"testing"
 )
 
+// TestEnvoyGatewayFinalNodeScheduling checks the data-plane scheduling contract,
+// not merely the gateway controller Deployment's tolerations.
+func TestEnvoyGatewayFinalNodeScheduling(t *testing.T) {
+	docs := envoyIngressDocuments(t)
+	var proxy map[string]any
+	for _, doc := range docs {
+		if doc["kind"] == "EnvoyProxy" {
+			proxy = doc
+		}
+	}
+	if proxy == nil {
+		t.Fatal("ingress must render an EnvoyProxy")
+	}
+	kubernetes := chartMap(proxy, "spec", "provider", "kubernetes")
+	if kubernetes["envoyDeployment"] != nil {
+		t.Error("data plane must use a DaemonSet, not a Deployment")
+	}
+	ds := chartMap(kubernetes, "envoyDaemonSet")
+	if ds == nil {
+		t.Fatal("missing envoyDaemonSet")
+	}
+	patch := chartMap(ds, "patch", "value", "spec", "template", "spec")
+	pod := chartMap(ds, "pod")
+	for _, key := range []string{"node-role.kubernetes.io/control-plane", "node-role.kubernetes.io/master"} {
+		t.Run(key, func(t *testing.T) {
+			// Tolerations can be supplied through Envoy's Pod API or the DS patch.
+			tolerated := false
+			for _, spec := range []map[string]any{pod, patch} {
+				entries, _ := spec["tolerations"].([]any)
+				for _, entry := range entries {
+					tol, _ := entry.(map[string]any)
+					if (tol["effect"] == nil || tol["effect"] == "" || tol["effect"] == "NoSchedule") &&
+						tol["operator"] == "Exists" && (tol["key"] == key || tol["key"] == nil || tol["key"] == "") &&
+						tol["tolerationSeconds"] == nil {
+						tolerated = true
+					}
+				}
+			}
+			if !tolerated {
+				t.Errorf("Envoy DaemonSet lacks an indefinite Exists toleration for %s:NoSchedule; final tainted control-plane node is not covered", key)
+			}
+		})
+	}
+	// Keep the default topology unconstrained: no worker selector, required
+	// anti-affinity, or minimum-domain spread that needs another node.
+	for _, spec := range []map[string]any{pod, patch} {
+		for _, field := range []string{"nodeSelector", "affinity", "topologySpreadConstraints", "nodeName"} {
+			if value := spec[field]; value != nil {
+				t.Errorf("default Envoy DaemonSet must remain one-node compatible: unexpected %s=%v", field, value)
+			}
+		}
+	}
+}
+
+func TestEnvoyGatewayDoesNotRouteKubeAPIServer(t *testing.T) {
+	for _, doc := range envoyIngressDocuments(t) {
+		// Inspect all rendered resources, including Gateway listeners, route
+		// backends, Service ports, and the EnvoyProxy's patched container ports.
+		var check func(any)
+		check = func(value any) {
+			switch value := value.(type) {
+			case map[string]any:
+				for key, child := range value {
+					if key == "port" || key == "hostPort" || key == "containerPort" || key == "targetPort" {
+						if child == 6443 || child == "6443" {
+							t.Errorf("%s contains kube-apiserver port in %s", doc["kind"], key)
+						}
+					}
+					if key == "backendRefs" {
+						refs, _ := child.([]any)
+						for _, ref := range refs {
+							backend, _ := ref.(map[string]any)
+							if backend["name"] == "kubernetes" || backend["name"] == "kube-apiserver" {
+								t.Errorf("%s routes to the Kubernetes API service", doc["kind"])
+							}
+						}
+					}
+					check(child)
+				}
+			case []any:
+				for _, child := range value {
+					check(child)
+				}
+			}
+		}
+		check(doc)
+	}
+}
+
+func envoyIngressDocuments(t *testing.T) []map[string]any {
+	t.Helper()
+	rendered := render(t, "../charts/envoy-gateway", "--namespace", "platform-envoy-gateway",
+		"--set", "platform.envoyGateway.ingress.enabled=true",
+		"--set", "platform.envoyGateway.ingress.certificates.provider=aws",
+		"--set", "platform.envoyGateway.ingress.certificates.objectType=secretsmanager",
+		"--set", "platform.envoyGateway.ingress.domains[0].apex=example.com")
+	return chartDocuments(t, rendered)
+}
+
 // TestEnvoyGatewaySDSContract verifies external certificate pointers and data-plane wiring.
 func TestEnvoyGatewaySDSContract(t *testing.T) {
 	rendered := render(t, "../charts/envoy-gateway", "--namespace", "platform-envoy-gateway",

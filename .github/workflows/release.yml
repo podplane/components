@@ -2,15 +2,16 @@
 # Copyright The Podplane Authors
 # SPDX-License-Identifier: Apache-2.0
 #
-# Release workflow: attaches a signed components manifest to the GitHub Release.
+# Release workflow: attaches Helm packages and a signed manifest to a new release.
 #
 # For tag vX.Y.Z (or vX.Y.Z-rcN for pre-releases), this:
-#   1. Reads manifests/components.json as the checked-in development manifest.
+#   1. Validates manifests/components.json against renders and both architectures.
 #   2. Renders components_X.Y.Z.json with components.version set to X.Y.Z
-#      and components.source.ref.tag set to vX.Y.Z.
+#      and components.source.ref.tag set to vX.Y.Z; packages all charts at X.Y.Z.
 #   3. Writes components_X.Y.Z_checksums.txt (sha512) covering release assets
 #      and signs it keyless with cosign, producing a self-contained bundle.
-#   4. Creates a GitHub Release and uploads the manifest, checksums, and bundle.
+#   4. Creates a new GitHub Release with charts, manifest, checksums, and bundle.
+#      Existing releases are never updated or their assets overwritten.
 
 name: release
 
@@ -23,6 +24,10 @@ permissions:
   contents: write
   id-token: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -30,6 +35,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
 
       - name: Derive VERSION and pre-release flag
         id: meta
@@ -45,18 +58,10 @@ jobs:
       - name: Install cosign
         uses: sigstore/cosign-installer@v3
 
-      - name: Render release manifest
+      - name: Validate manifest and prepare chart packages and checksums
         env:
           VERSION: ${{ steps.meta.outputs.version }}
-        run: make release-manifest
-
-      - name: Generate checksums file
-        working-directory: dist/release
-        env:
-          VERSION: ${{ steps.meta.outputs.version }}
-        run: |
-          sha512sum "components_${VERSION}.json" | sort -k2 > "components_${VERSION}_checksums.txt"
-          cat "components_${VERSION}_checksums.txt"
+        run: make release-assets
 
       - name: Sign checksums file with cosign
         working-directory: dist/release
@@ -69,15 +74,14 @@ jobs:
             "components_${VERSION}_checksums.txt"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/release/components_*.json
-            dist/release/components_*_checksums.txt
-            dist/release/components_*_checksums.txt.bundle
-          generate_release_notes: true
-          prerelease: ${{ steps.meta.outputs.prerelease }}
-          fail_on_unmatched_files: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRERELEASE: ${{ steps.meta.outputs.prerelease }}
+        run: |
+          args=(--verify-tag --generate-notes --title "$GITHUB_REF_NAME")
+          if [[ "$PRERELEASE" == true ]]; then args+=(--prerelease); fi
+          # gh release create fails if the release exists, unlike an update action.
+          gh release create "$GITHUB_REF_NAME" dist/release/* "${args[@]}"
 
       - name: Create deps app token
         id: deps-app

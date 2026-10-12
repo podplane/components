@@ -24,9 +24,10 @@ import (
 )
 
 var (
-	oldDir      = flag.String("old", "", "Directory containing previous CRD YAML files.")
-	newDir      = flag.String("new", "", "Directory containing updated CRD YAML files.")
-	updateChart = flag.String("update", "", "CRD chart to update, or 'all'.")
+	oldDir        = flag.String("old", "", "Directory containing previous CRD YAML files.")
+	newDir        = flag.String("new", "", "Directory containing updated CRD YAML files.")
+	updateChart   = flag.String("update", "", "CRD chart to update, or 'all'.")
+	checkUpstream = flag.String("check", "", "Compare vendored CRDs with upstream without changing files (chart name or 'all').")
 )
 
 // crdChart describes a managed CRD chart and its update operation.
@@ -68,7 +69,7 @@ var charts = []crdChart{
 		Name: "nstance-operator-crds",
 		Env:  "NSTANCE_OPERATOR_VERSION",
 		Update: func(ctx updateContext) error {
-			version := firstNonEmpty(ctx.Version, "909bd8cc69d5e1e272af4fa7ee1bd6fe874f0fbc")
+			version := firstNonEmpty(ctx.Version, "v2.0.0")
 			files := []string{
 				"nstanceclusters.infrastructure.cluster.x-k8s.io.yaml",
 				"nstancemachinepools.infrastructure.cluster.x-k8s.io.yaml",
@@ -232,17 +233,23 @@ func main() {
 
 // run dispatches the requested CRD update or compatibility check.
 func run() error {
+	if *checkUpstream != "" {
+		if *updateChart != "" {
+			return fmt.Errorf("--check and --update are mutually exclusive")
+		}
+		return updateCRDs(*checkUpstream, true)
+	}
 	if *updateChart != "" {
-		return updateCRDs(*updateChart)
+		return updateCRDs(*updateChart, false)
 	}
 	if *oldDir == "" || *newDir == "" {
-		return fmt.Errorf("usage: go run ./scripts/crds --old <previous-crds-dir> --new <updated-crds-dir> OR go run ./scripts/crds --update <chart|all>")
+		return fmt.Errorf("usage: go run ./scripts/crds --old <previous-crds-dir> --new <updated-crds-dir> OR go run ./scripts/crds --update <chart|all> OR go run ./scripts/crds --check <chart|all>")
 	}
 	return checkCompatibility(*oldDir, *newDir)
 }
 
 // updateCRDs updates the named CRD chart or all managed charts.
-func updateCRDs(name string) error {
+func updateCRDs(name string, checkOnly bool) error {
 	repoRoot, err := os.Getwd()
 	if err != nil {
 		return err
@@ -263,8 +270,8 @@ func updateCRDs(name string) error {
 	}
 
 	for _, chart := range selected {
-		fmt.Printf("==> Updating %s\n", chart.Name)
-		if err := updateOne(repoRoot, chart); err != nil {
+		fmt.Printf("==> %s\n", chart.Name)
+		if err := updateOne(repoRoot, chart, checkOnly); err != nil {
 			return err
 		}
 	}
@@ -272,7 +279,7 @@ func updateCRDs(name string) error {
 }
 
 // updateOne regenerates and validates one CRD chart.
-func updateOne(repoRoot string, chart crdChart) error {
+func updateOne(repoRoot string, chart crdChart, checkOnly bool) error {
 	targetDir := filepath.Join(repoRoot, "charts", chart.Name, "templates", "external")
 	appTargetDir := ""
 	if chart.Name == "cluster-api-crds" {
@@ -311,6 +318,19 @@ func updateOne(repoRoot string, chart crdChart) error {
 	}
 	if err := checkCompatibility(oldDir, newDir); err != nil {
 		return err
+	}
+	if checkOnly {
+		for target, source := range map[string]string{targetDir: newDir, appTargetDir: newAppDir} {
+			if target == "" {
+				continue
+			}
+			cmd := exec.Command("diff", "-r", target, source)
+			if differences, err := cmd.CombinedOutput(); err != nil {
+				return fmt.Errorf("compare %s: %w; run make update-crds CHART=%s\n%s", target, err, chart.Name, differences)
+			}
+		}
+		fmt.Printf("%s matches upstream\n", chart.Name)
+		return nil
 	}
 	if err := os.RemoveAll(targetDir); err != nil {
 		return err

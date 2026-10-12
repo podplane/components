@@ -169,6 +169,28 @@ stops serving a previously served version.
 Use `make update-crds` to update every Podplane-managed CRD chart, or
 `make update-crds CHART=<name>` for one chart.
 
+Use `make check-crd-freshness CHART=nstance-operator-crds` to compare vendored
+CRDs with upstream without changing the checkout.
+
+## Validation and Releases
+
+Run `make ci` for chart linting, schema validation, CRD compatibility, image
+inventory checks, and Go tests. Requires `helm`, `jq`, Go, and `kubeconform`;
+these checks do not install anything into a cluster.
+Schema validation skips CRD definitions, but validates custom resources against
+the schemas shipped in those CRDs.
+
+After changing image versions, run `make update-manifests`. Prepare chart
+packages, the release manifest, and SHA512 checksums locally with:
+
+```sh
+VERSION=X.Y.Z make release-assets
+```
+
+The output directory (`dist/release` by default) must be empty. On a `v*` tag,
+CI signs the checksums and publishes a new GitHub Release without overwriting
+an existing release.
+
 ## Cluster Design Assumptions
 
 The platform defaults assume Podplane's standard dual-stack network design:

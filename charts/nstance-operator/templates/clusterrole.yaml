@@ -86,6 +86,13 @@ rules:
   - cluster.x-k8s.io
   resources:
   - clusters
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cluster.x-k8s.io
+  resources:
   - machinepools
   - machines
   verbs:
@@ -162,28 +169,19 @@ rules:
   - ""
   resources:
   - secrets
+  # controller-runtime's unscoped cache requires cluster-wide list/watch.
+  # All credential mutations are in the namespaced Role below.
   verbs:
   - get
   - list
   - watch
-  - create
-  - update
-  - patch
 - apiGroups:
-  - ""
+  - batch
   resources:
-  - serviceaccounts/token
-  verbs:
-  - create
-- apiGroups:
-  - coordination.k8s.io
-  resources:
-  - leases
+  - jobs
+  - cronjobs
   verbs:
   - get
   - list
   - watch
-  - create
-  - update
-  - patch
 {{- end }}

@@ -1,0 +1,58 @@
+# Non-secret representative AWS recommended provider overlay.
+# Generic recommended/minimal/none seeds do not contain these overrides.
+platform:
+  components:
+    imageMirror:
+      enabled: true
+      hostname: registry.example
+    crds:
+      secrets-store-csi-driver-crds:
+        enabled: true
+      podplane-operator-crds:
+        enabled: true
+      cluster-api-crds:
+        enabled: true
+      nstance-operator-crds:
+        enabled: true
+    apps:
+      secrets-store-csi-driver:
+        enabled: true
+      secrets-store-csi-provider-aws:
+        enabled: true
+      podplane-operator:
+        enabled: true
+      cluster-api:
+        enabled: true
+      nstance-operator:
+        enabled: true
+    values:
+      podplane-operator:
+        podplane:
+          operator:
+            config:
+              cluster:
+                id: test-cluster
+                spiffe:
+                  trustDomain: test-cluster.example
+              secrets:
+                defaultProvider: aws
+                providers:
+                  aws:
+                    kind: aws
+                    objectType: secretsmanager
+      nstance-operator:
+        clusterCA:
+          name: seeded-nstance-ca
+        registrationSecret:
+          name: seeded-operator-nonce
+          key: nonce.jwt
+        config:
+          clusterID: test-cluster
+          tenant: test-tenant
+          shards:
+            zone-a:
+              registration_addr: "10.1.0.10:8992"
+              operator_addr: "10.1.0.10:8993"
+            zone-b:
+              registration_addr: "10.2.0.10:8992"
+              operator_addr: "10.2.0.10:8993"

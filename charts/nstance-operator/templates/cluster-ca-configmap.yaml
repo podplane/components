@@ -12,5 +12,5 @@ metadata:
     {{- include "nstance-operator.labels" . | nindent 4 }}
 data:
   ca.crt: |
-    {{- required "clusterCA.certificate is required when clusterCA.enabled=true" .Values.clusterCA.certificate | nindent 4 }}
+    {{- .Values.clusterCA.certificate | nindent 4 }}
 {{- end }}

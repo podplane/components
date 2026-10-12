@@ -22,12 +22,13 @@ clusterCA:
   name: nstance-cluster-ca
   certificate: ""
 
-# Registration nonce used only for the operator's initial registration. When
-# enabled is false, an existing Secret with a nonce.jwt key must be supplied.
+# Registration nonce used only for the operator's initial registration.
+# References an existing dedicated Secret, not nonce bytes in Helm values.
+# The operator deletes it after durable registration.
 registrationSecret:
-  enabled: false
   name: nstance-operator-nonce
-  nonceJWT: ""
+  # Upstream currently supports only this key; other keys fail rendering.
+  key: nonce.jwt
 
 # Names for secrets that will be auto-created by the operator
 managedSecretNames:
@@ -53,6 +54,15 @@ config:
   #   us-east-1b:
   #     registration_addr: "172.16.1.100:8992"
   #     operator_addr: "172.16.1.100:8993"
+  # Automatic cluster sleep settings.
+  sleep:
+    enabled: true
+    remainingNodes: 1
+    inactivity: 30m
+    activityWindows: {}
+    cronLookAhead: 10m
+    wakeLead: 2m
+    reconcilePeriod: 1m
 
 # Deployment configuration
 deployment:
@@ -79,7 +89,12 @@ webhooks:
   enabled: true
   failurePolicy: Fail
 
-# Log level (debug, info, warn, error)
+# Validate sleep requests and protect operator-owned progress on this cluster.
+# Permission to request sleep is determined by ordinary CAPI Cluster RBAC.
+sleepAdmissionPolicy:
+  enabled: true
+
+# Log level (debug, info, error, panic, or a positive verbosity integer string)
 logLevel: info
 
 # Service account configuration
@@ -113,14 +128,30 @@ resources:
     cpu: 100m
     memory: 128Mi
 
-# Node selector
-nodeSelector: {}
+# The final node must host the operator and API datastore. Two replicas retain
+# normal availability; preferred (not required) spreading allows one node.
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
 
 # Tolerations
-tolerations: []
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+  - key: node-role.kubernetes.io/master
+    operator: Exists
+    effect: NoSchedule
 
 # Affinity rules
-affinity: {}
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: nstance-operator
 
 # Pod security context
 securityContext:

@@ -1,0 +1,56 @@
+# Nstance <https://nstance.dev>
+# Copyright The Nstance Authors
+# SPDX-License-Identifier: Apache-2.0
+
+{{- if .Values.rbac.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "nstance-operator.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nstance-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["create"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames:
+    - {{ .Values.managedSecretNames.privateKey | quote }}
+    - {{ .Values.managedSecretNames.clientCert | quote }}
+    - {{ printf "%s--%s-kubeconfig" .Values.config.clusterID .Values.config.tenant | quote }}
+  verbs: ["update", "patch"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: [{{ .Values.registrationSecret.name | quote }}]
+  verbs: ["delete"]
+- apiGroups: [""]
+  resources: ["serviceaccounts/token"]
+  resourceNames: [{{ include "nstance-operator.capiServiceAccountName" . | quote }}]
+  verbs: ["create"]
+- apiGroups: ["cluster.x-k8s.io"]
+  resources: ["clusters"]
+  verbs: ["create"]
+- apiGroups: ["cluster.x-k8s.io"]
+  resources: ["clusters"]
+  resourceNames: [{{ printf "%s--%s" .Values.config.clusterID .Values.config.tenant | quote }}]
+  verbs: ["update", "patch"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "nstance-operator.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "nstance-operator.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "nstance-operator.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

@@ -1,0 +1,780 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "nameOverride": {
+      "type": "string"
+    },
+    "fullnameOverride": {
+      "type": "string"
+    },
+    "global": {
+      "type": "object"
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "pullPolicy": {
+          "enum": [
+            "Always",
+            "IfNotPresent",
+            "Never"
+          ]
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "repository",
+        "pullPolicy",
+        "tag"
+      ]
+    },
+    "imagePullSecrets": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/nonEmptyString"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "clusterCA": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "name": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "certificate": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "enabled",
+        "name",
+        "certificate"
+      ],
+      "if": {
+        "properties": {
+          "enabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "certificate": {
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "registrationSecret": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "key": {
+          "type": "string",
+          "const": "nonce.jwt",
+          "description": "The Nstance operator's fixed registration nonce key."
+        }
+      },
+      "required": [
+        "name",
+        "key"
+      ]
+    },
+    "managedSecretNames": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "privateKey": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "clientCert": {
+          "$ref": "#/definitions/nonEmptyString"
+        }
+      },
+      "required": [
+        "privateKey",
+        "clientCert"
+      ]
+    },
+    "operatorConfigMap": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "enabled",
+        "name"
+      ]
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clusterID": {
+          "type": "string"
+        },
+        "tenant": {
+          "type": "string"
+        },
+        "shards": {
+          "type": "object",
+          "propertyNames": {
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "registration_addr": {
+                "$ref": "#/definitions/nonEmptyString"
+              },
+              "operator_addr": {
+                "$ref": "#/definitions/nonEmptyString"
+              }
+            },
+            "required": [
+              "registration_addr",
+              "operator_addr"
+            ]
+          }
+        },
+        "sleep": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "remainingNodes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "inactivity": {
+              "$ref": "#/definitions/duration"
+            },
+            "activityWindows": {
+              "type": "object",
+              "propertyNames": {
+                "minLength": 1
+              },
+              "additionalProperties": {
+                "$ref": "#/definitions/duration"
+              }
+            },
+            "cronLookAhead": {
+              "$ref": "#/definitions/duration"
+            },
+            "wakeLead": {
+              "$ref": "#/definitions/duration"
+            },
+            "reconcilePeriod": {
+              "$ref": "#/definitions/duration"
+            }
+          },
+          "required": [
+            "enabled",
+            "remainingNodes",
+            "inactivity",
+            "cronLookAhead",
+            "wakeLead",
+            "reconcilePeriod"
+          ]
+        }
+      },
+      "required": [
+        "clusterID",
+        "tenant",
+        "sleep"
+      ]
+    },
+    "deployment": {
+      "$ref": "#/definitions/enabled"
+    },
+    "leaderElection": {
+      "$ref": "#/definitions/enabled"
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "port": {
+          "$ref": "#/definitions/port"
+        },
+        "service": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "annotations": {
+              "$ref": "#/definitions/stringMap"
+            }
+          },
+          "required": [
+            "enabled"
+          ]
+        }
+      },
+      "required": [
+        "enabled",
+        "port",
+        "service"
+      ]
+    },
+    "healthProbe": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "port": {
+          "$ref": "#/definitions/port"
+        }
+      },
+      "required": [
+        "port"
+      ]
+    },
+    "webhooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "failurePolicy": {
+          "enum": [
+            "Fail",
+            "Ignore"
+          ]
+        }
+      },
+      "required": [
+        "enabled",
+        "failurePolicy"
+      ]
+    },
+    "sleepAdmissionPolicy": {
+      "$ref": "#/definitions/enabled"
+    },
+    "logLevel": {
+      "type": "string",
+      "pattern": "^([dD][eE][bB][uU][gG]|[iI][nN][fF][oO]|[eE][rR][rR][oO][rR]|[pP][aA][nN][iI][cC]|\\+?0*[1-9][0-9]*)$",
+      "description": "Zap level: debug, info, error, panic, or a positive verbosity integer string."
+    },
+    "serviceAccount": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "annotations": {
+          "$ref": "#/definitions/stringMap"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "enabled",
+        "name"
+      ]
+    },
+    "rbac": {
+      "$ref": "#/definitions/enabled"
+    },
+    "capi": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "endpoint": {
+          "type": "string"
+        },
+        "serviceAccount": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "enabled",
+            "name"
+          ]
+        }
+      },
+      "required": [
+        "endpoint",
+        "serviceAccount"
+      ]
+    },
+    "kubernetesJSON": {
+      "type": "boolean"
+    },
+    "resources": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "limits": {
+          "$ref": "#/definitions/resourceList"
+        },
+        "requests": {
+          "$ref": "#/definitions/resourceList"
+        },
+        "claims": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "nodeSelector": {
+      "$ref": "#/definitions/stringMap"
+    },
+    "tolerations": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "operator": {
+            "enum": [
+              "Exists",
+              "Equal"
+            ]
+          },
+          "value": {
+            "type": "string"
+          },
+          "effect": {
+            "enum": [
+              "",
+              "NoSchedule",
+              "PreferNoSchedule",
+              "NoExecute"
+            ]
+          },
+          "tolerationSeconds": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "affinity": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "nodeAffinity": {
+          "type": "object"
+        },
+        "podAffinity": {
+          "$ref": "#/definitions/podAffinity"
+        },
+        "podAntiAffinity": {
+          "$ref": "#/definitions/podAffinity"
+        }
+      }
+    },
+    "securityContext": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "runAsNonRoot": {
+          "type": "boolean"
+        },
+        "runAsUser": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runAsGroup": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fsGroup": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "seccompProfile": {
+          "$ref": "#/definitions/seccompProfile"
+        }
+      }
+    },
+    "containerSecurityContext": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "allowPrivilegeEscalation": {
+          "type": "boolean"
+        },
+        "privileged": {
+          "type": "boolean"
+        },
+        "runAsNonRoot": {
+          "type": "boolean"
+        },
+        "runAsUser": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runAsGroup": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "readOnlyRootFilesystem": {
+          "type": "boolean"
+        },
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "add": {
+              "$ref": "#/definitions/stringArray"
+            },
+            "drop": {
+              "$ref": "#/definitions/stringArray"
+            }
+          }
+        },
+        "seccompProfile": {
+          "$ref": "#/definitions/seccompProfile"
+        }
+      }
+    }
+  },
+  "required": [
+    "image",
+    "replicaCount",
+    "clusterCA",
+    "registrationSecret",
+    "managedSecretNames",
+    "operatorConfigMap",
+    "config",
+    "deployment",
+    "leaderElection",
+    "metrics",
+    "healthProbe",
+    "webhooks",
+    "sleepAdmissionPolicy",
+    "logLevel",
+    "serviceAccount",
+    "rbac",
+    "capi",
+    "kubernetesJSON"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "anyOf": [
+          {
+            "properties": {
+              "operatorConfigMap": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "sleepAdmissionPolicy": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "config": {
+            "properties": {
+              "clusterID": {
+                "minLength": 1
+              },
+              "tenant": {
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operatorConfigMap": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "config": {
+            "properties": {
+              "shards": {
+                "minProperties": 1
+              }
+            },
+            "required": [
+              "shards"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stringMap": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "enabled": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "enabled"
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535
+    },
+    "duration": {
+      "type": "string",
+      "pattern": "^[+-]?(0|(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(ns|us|µs|μs|ms|s|m|h))+)$",
+      "description": "Go duration syntax, such as 30m, 1h30m, or 0. Nstance validates duration bounds."
+    },
+    "resourceList": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number"
+        ],
+        "minLength": 1,
+        "minimum": 0
+      }
+    },
+    "seccompProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "RuntimeDefault",
+            "Localhost",
+            "Unconfined"
+          ]
+        },
+        "localhostProfile": {
+          "$ref": "#/definitions/nonEmptyString"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "if": {
+        "properties": {
+          "type": {
+            "const": "Localhost"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "localhostProfile"
+        ]
+      }
+    },
+    "podAffinity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requiredDuringSchedulingIgnoredDuringExecution": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/podAffinityTerm"
+          }
+        },
+        "preferredDuringSchedulingIgnoredDuringExecution": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "weight": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "podAffinityTerm": {
+                "$ref": "#/definitions/podAffinityTerm"
+              }
+            },
+            "required": [
+              "weight",
+              "podAffinityTerm"
+            ]
+          }
+        }
+      }
+    },
+    "podAffinityTerm": {
+      "type": "object",
+      "properties": {
+        "topologyKey": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "labelSelector": {
+          "$ref": "#/definitions/labelSelector"
+        },
+        "namespaceSelector": {
+          "$ref": "#/definitions/labelSelector"
+        },
+        "namespaces": {
+          "$ref": "#/definitions/stringArray"
+        },
+        "matchLabelKeys": {
+          "$ref": "#/definitions/stringArray"
+        },
+        "mismatchLabelKeys": {
+          "$ref": "#/definitions/stringArray"
+        }
+      },
+      "required": [
+        "topologyKey"
+      ]
+    },
+    "labelSelector": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "matchLabels": {
+          "$ref": "#/definitions/stringMap"
+        },
+        "matchExpressions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "$ref": "#/definitions/nonEmptyString"
+              },
+              "operator": {
+                "enum": [
+                  "In",
+                  "NotIn",
+                  "Exists",
+                  "DoesNotExist"
+                ]
+              },
+              "values": {
+                "$ref": "#/definitions/stringArray"
+              }
+            },
+            "required": [
+              "key",
+              "operator"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,75 @@
+# Nstance <https://nstance.dev>
+# Copyright The Nstance Authors
+# SPDX-License-Identifier: Apache-2.0
+
+{{- if .Values.sleepAdmissionPolicy.enabled }}
+{{- $clusterID := .Values.config.clusterID }}
+{{- $tenant := .Values.config.tenant }}
+{{- $name := printf "%s-sleep" (include "nstance-operator.fullname" .) }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "nstance-operator.labels" . | nindent 4 }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["cluster.x-k8s.io"]
+        apiVersions: ["*"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["clusters"]
+        scope: Namespaced
+  matchConditions:
+    - name: managed-cluster
+      expression: >-
+        object.metadata.namespace == {{ .Release.Namespace | quote }} &&
+        object.metadata.name == {{ printf "%s--%s" $clusterID $tenant | quote }}
+  variables:
+    - name: isOperator
+      expression: >-
+        request.userInfo.username == {{ printf "system:serviceaccount:%s:%s" .Release.Namespace (include "nstance-operator.serviceAccountName" .) | quote }}
+    - name: newAnnotations
+      expression: "has(object.metadata.annotations) ? object.metadata.annotations : {}"
+    - name: oldAnnotations
+      expression: "oldObject != null && has(oldObject.metadata.annotations) ? oldObject.metadata.annotations : {}"
+    - name: newRequest
+      expression: >-
+        'nstance.dev/sleep-request' in variables.newAnnotations
+        ? variables.newAnnotations['nstance.dev/sleep-request'] : ''
+    - name: oldRequest
+      expression: >-
+        'nstance.dev/sleep-request' in variables.oldAnnotations
+        ? variables.oldAnnotations['nstance.dev/sleep-request'] : ''
+  validations:
+    # Parse only new/changed requests so existing malformed state can be cleaned
+    # up by the operator without blocking unrelated Cluster updates.
+    - expression: >-
+        !('nstance.dev/sleep-request' in variables.newAnnotations) ||
+        ('nstance.dev/sleep-request' in variables.oldAnnotations && variables.newRequest == variables.oldRequest) ||
+        timestamp(variables.newRequest.startsWith('force:') ? variables.newRequest.substring(6) : variables.newRequest).getSeconds() >= 0
+      message: Sleep requests must be RFC3339 timestamps, optionally prefixed with force:.
+    - expression: >-
+        (variables.newRequest == variables.oldRequest &&
+          ('nstance.dev/sleep-request' in variables.newAnnotations) == ('nstance.dev/sleep-request' in variables.oldAnnotations)) ||
+        (!('nstance.dev/sleep-request' in variables.oldAnnotations) && !('nstance.dev/sleep-progress' in variables.oldAnnotations)) ||
+        (variables.isOperator && !('nstance.dev/sleep-request' in variables.newAnnotations) && !('nstance.dev/sleep-progress' in variables.newAnnotations))
+      message: An outstanding sleep request cannot be replaced or removed; the operator must finish recovery and clear its state.
+    - expression: >-
+        variables.isOperator ||
+        (('nstance.dev/sleep-progress' in variables.newAnnotations) == ('nstance.dev/sleep-progress' in variables.oldAnnotations) &&
+          (!('nstance.dev/sleep-progress' in variables.newAnnotations) ||
+            variables.newAnnotations['nstance.dev/sleep-progress'] == variables.oldAnnotations['nstance.dev/sleep-progress']))
+      message: Only the Nstance operator may change sleep progress.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "nstance-operator.labels" . | nindent 4 }}
+spec:
+  policyName: {{ $name }}
+  validationActions: ["Deny", "Audit"]
+{{- end }}

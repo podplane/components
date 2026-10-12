@@ -222,11 +222,11 @@
         "components": [
           "nstance-operator"
         ],
-        "image": "ghcr.io/nstance-dev/nstance-operator:1.0.0",
-        "digest": "sha256:aaa5c0f45505d258ffe28ed9aa5677b4d96752ee2eaa503a1c3e92b2947ed95c",
-        "size": 16849471,
+        "image": "ghcr.io/nstance-dev/nstance-operator:2.0.0",
+        "digest": "sha256:297a32307cb05a881a59db591b72ce08eb2bfce6c4225e8749e25ce816c845e9",
+        "size": 17225229,
         "platform": "linux/amd64",
-        "index": "sha256:f9038539fe78ff6fd6a1335e5f2c4bd3392101dc3ae9f8e2b946513cc320c711",
+        "index": "sha256:13b3513e4c55f115722a8bf92d3fbde144444286481fd6afe6937ca9ddddebe8",
         "providers": [
           "aws",
           "google"
@@ -236,11 +236,11 @@
         "components": [
           "nstance-operator"
         ],
-        "image": "ghcr.io/nstance-dev/nstance-operator:1.0.0",
-        "digest": "sha256:4b983545205eb442e8b85f50abdd1d696cc5be6bfa3057c300008758f456f940",
-        "size": 15102833,
+        "image": "ghcr.io/nstance-dev/nstance-operator:2.0.0",
+        "digest": "sha256:a9458331677584df6d3c07d242e50f2eac20f37d5b3f1cd0040dfd3a35f512be",
+        "size": 15439621,
         "platform": "linux/arm64",
-        "index": "sha256:f9038539fe78ff6fd6a1335e5f2c4bd3392101dc3ae9f8e2b946513cc320c711",
+        "index": "sha256:13b3513e4c55f115722a8bf92d3fbde144444286481fd6afe6937ca9ddddebe8",
         "providers": [
           "aws",
           "google"
@@ -262,6 +262,7 @@
       },
       {
         "components": [
+          "envoy-gateway",
           "podplane-operator"
         ],
         "image": "ghcr.io/podplane/operator:v0.7.2",
@@ -273,6 +274,7 @@
       },
       {
         "components": [
+          "envoy-gateway",
           "podplane-operator"
         ],
         "image": "ghcr.io/podplane/operator:v0.7.2",

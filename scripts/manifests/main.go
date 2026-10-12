@@ -22,6 +22,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"sort"
 	"strings"
@@ -32,6 +33,7 @@ import (
 var (
 	outputPath  = flag.String("output", "manifests/components.json", "Path to write the component manifest JSON.")
 	version     = flag.String("version", "", "Component manifest version. Defaults to VERSION, or dev when VERSION is unset.")
+	checkOnly   = flag.Bool("check", false, "Check the manifest against chart renders without resolving images or writing files.")
 	extraImages = []extraImage{
 		{Repo: "docker.io/library/golang", Tag: "alpine"},
 		{Repo: "docker.io/envoyproxy/envoy", Tag: "distroless-v1.39.0", Components: []string{"envoy-gateway"}},
@@ -184,6 +186,10 @@ func run() error {
 		}
 	}
 
+	if *checkOnly {
+		return checkManifest(componentsByImage)
+	}
+
 	sources := make([]string, 0, len(componentsByImage))
 	for source := range componentsByImage {
 		sources = append(sources, source)
@@ -229,6 +235,58 @@ func run() error {
 		return err
 	}
 	fmt.Printf("wrote %s (%d images)\n", *outputPath, len(images))
+	return nil
+}
+
+// checkManifest validates the checked-in inventory using the generator's sources
+// and selection metadata, without contacting image registries.
+func checkManifest(expected map[string]map[string]bool) error {
+	body, err := os.ReadFile(*outputPath)
+	if err != nil {
+		return err
+	}
+	var doc manifest
+	if err := json.Unmarshal(body, &doc); err != nil {
+		return err
+	}
+	digestPattern := regexp.MustCompile(`^sha256:[0-9a-f]{64}$`)
+	platforms := map[string]map[string]bool{}
+	first := map[string]image{}
+	for _, row := range doc.Components.Images {
+		memberships, exists := expected[row.Image]
+		if !exists || row.Image != normalizeImage(row.Image) || !digestPattern.MatchString(row.Digest) || !digestPattern.MatchString(row.Index) || row.Size <= 0 {
+			return fmt.Errorf("invalid source, digest, or size for %q; run make update-manifests", row.Image)
+		}
+		components := slices.Sorted(maps.Keys(memberships))
+		meta, err := sharedMetadata(components)
+		if err != nil {
+			return err
+		}
+		if !slices.Equal(row.Components, components) || !slices.Equal(row.Providers, meta.Providers) || row.Addon != meta.Addon {
+			return fmt.Errorf("stale component membership or provider/addon metadata for %s; run make update-manifests", row.Image)
+		}
+		arch := row.Platform
+		if strings.HasPrefix(arch, "linux/arm64/") {
+			arch = "linux/arm64"
+		}
+		if platforms[row.Image] == nil {
+			platforms[row.Image] = map[string]bool{}
+			first[row.Image] = row
+		}
+		if !supportedPlatforms[arch] || platforms[row.Image][arch] {
+			return fmt.Errorf("unsupported or duplicate architecture %q for %s", row.Platform, row.Image)
+		}
+		if row.Index != first[row.Image].Index || row.Cached != first[row.Image].Cached {
+			return fmt.Errorf("inconsistent index or cache metadata for %s", row.Image)
+		}
+		platforms[row.Image][arch] = true
+	}
+	for ref := range expected {
+		if !platforms[ref]["linux/amd64"] || !platforms[ref]["linux/arm64"] {
+			return fmt.Errorf("%s requires both linux/amd64 and linux/arm64; run make update-manifests", ref)
+		}
+	}
+	fmt.Println("manifest matches chart renders and includes linux/amd64 + linux/arm64")
 	return nil
 }
 
