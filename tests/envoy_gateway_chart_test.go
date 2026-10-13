@@ -5,6 +5,7 @@
 package tests
 
 import (
+	"os/exec"
 	"strings"
 	"testing"
 )
@@ -118,11 +119,11 @@ func TestEnvoyGatewaySDSContract(t *testing.T) {
 		"--set", "platform.envoyGateway.ingress.domains[0].apex=example.com")
 	for _, required := range []string{
 		"apiVersion: gateway.envoyproxy.io/v1alpha1", "kind: EnvoyProxy", "envoyDaemonSet:", "type: ClusterIP", "name: http-80", "containerPort: 10080", "hostPort: 80",
-		"name: https-443", "containerPort: 10443", "hostPort: 443", "name: podplane-sds", `image: "docker.io/envoyproxy/envoy:distroless-v1.39.0"`, `image: "ghcr.io/podplane/operator:v0.7.2"`, "name: podplane-sds\n                      emptyDir:\n                        medium: Memory",
+		"name: https-443", "containerPort: 10443", "hostPort: 443", "name: podplane-sds", `image: "docker.io/envoyproxy/envoy:distroless-v1.39.0"`, `image: "ghcr.io/podplane/operator:v0.8.0"`, "name: podplane-sds\n                      emptyDir:\n                        medium: Memory",
 		"name: certs\n                      configMap: null\n                      projected:", "name: certificates.podplane.dev:workload:roots", "path: ca.crt",
 		"kind: ServiceAccount", "name: platform-envoy-gateway-ingress-certificates", "serviceAccountName: platform-envoy-gateway-ingress-certificates",
 		"driver: secrets-store.csi.k8s.io", "--socket=/var/run/podplane-sds/sds.sock",
-		"--certificates-dir=/var/run/podplane/ingress-certificates", "--certificate=bundle-a379a6f6eeafb9a55e378c11=example.com",
+		"mountPath: /var/run/podplane/ingress-certificates", "--domain-certificate=bundle-a379a6f6eeafb9a55e378c11=example.com",
 		"type: gateway.envoyproxy.io/sds", "url: unix:///var/run/podplane-sds/sds.sock",
 		"gatewayClassName: platform-envoy-gateway", `hostname: "example.com"`, `hostname: "*.example.com"`, "mode: Terminate",
 		"name: platform-http-to-https-redirect-httproute", "type: RequestRedirect", "scheme: https",
@@ -132,9 +133,122 @@ func TestEnvoyGatewaySDSContract(t *testing.T) {
 			t.Errorf("Envoy Gateway render is missing %q", required)
 		}
 	}
-	for _, forbidden := range []string{"tls.crt:", "tls.key:", "kubernetes.io/tls", "cert-manager.io/", "traefik.io/", "platform-acme"} {
+	for _, forbidden := range []string{"--certificates-dir", "tls.crt:", "tls.key:", "kubernetes.io/tls", "cert-manager.io/", "traefik.io/", "platform-acme"} {
 		if strings.Contains(rendered, forbidden) {
 			t.Errorf("Envoy Gateway render unexpectedly contains %q", forbidden)
+		}
+	}
+}
+
+// TestEnvoyGatewayNodeCertificateDelivery verifies shared pointers and SDS-only host mounts.
+func TestEnvoyGatewayNodeCertificateDelivery(t *testing.T) {
+	rendered := render(t, "../charts/envoy-gateway",
+		"--set", "platform.envoyGateway.ingress.enabled=true",
+		"--set", "platform.envoyGateway.ingress.certificates.provider=node",
+		"--set", "platform.envoyGateway.ingress.domains[0].apex=example.com",
+		"--set", "platform.envoyGateway.ingress.domains[1].apex=example.org")
+	for _, forbidden := range []string{"--certificates-dir", "SecretProviderClass", "secrets-store.csi", "--certificate=", "--domain-certificate=", "bundle-", "DirectoryOrCreate"} {
+		if strings.Contains(rendered, forbidden) {
+			t.Errorf("node provider unexpectedly contains %q", forbidden)
+		}
+	}
+	if strings.Count(rendered, "--node-certificate=") != 1 || !strings.Contains(rendered, "--node-certificate=example.com,example.org") {
+		t.Error("expected one node certificate argument containing both domains")
+	}
+	secrets, listeners, mounts := 0, 0, 0
+	for _, doc := range chartDocuments(t, rendered) {
+		switch doc["kind"] {
+		case "Secret":
+			secrets++
+			data := chartMap(doc, "stringData")
+			if chartMap(doc, "metadata")["name"] != "node" || doc["type"] != "gateway.envoyproxy.io/sds" ||
+				len(data) != 2 || data["secretName"] != "node" || data["url"] != "unix:///var/run/podplane-sds/sds.sock" || doc["data"] != nil {
+				t.Errorf("unexpected SDS pointer: %v", doc)
+			}
+		case "Gateway":
+			for _, entry := range chartMap(doc, "spec")["listeners"].([]any) {
+				listener := entry.(map[string]any)
+				if listener["protocol"] != "HTTPS" {
+					continue
+				}
+				listeners++
+				refs := chartMap(listener, "tls")["certificateRefs"].([]any)
+				if len(refs) != 1 || refs[0].(map[string]any)["name"] != "node" {
+					t.Errorf("listener must reference shared node pointer: %v", listener)
+				}
+			}
+		case "EnvoyProxy":
+			pod := chartMap(doc, "spec", "provider", "kubernetes", "envoyDaemonSet", "patch", "value", "spec", "template", "spec")
+			found := false
+			for _, entry := range pod["volumes"].([]any) {
+				volume := entry.(map[string]any)
+				if volume["name"] == "ingress-certificates" {
+					found = true
+					host := chartMap(volume, "hostPath")
+					if host["path"] != "/opt/podplane/secrets/ingress" || host["type"] != "Directory" || volume["csi"] != nil {
+						t.Errorf("unexpected ingress volume: %v", volume)
+					}
+				}
+			}
+			if !found {
+				t.Error("missing node ingress volume")
+			}
+			for _, entry := range pod["containers"].([]any) {
+				container := entry.(map[string]any)
+				for _, entry := range container["volumeMounts"].([]any) {
+					mount := entry.(map[string]any)
+					if mount["name"] == "ingress-certificates" {
+						mounts++
+						if container["name"] != "podplane-sds" || mount["readOnly"] != true || mount["mountPath"] != "/var/run/podplane/ingress-certificates" {
+							t.Errorf("ingress mount must be read-only and SDS-only: %v", container)
+						}
+					}
+				}
+			}
+		}
+	}
+	if secrets != 1 || listeners != 4 || mounts != 1 {
+		t.Errorf("expected one pointer, four HTTPS listeners, one SDS mount; got %d, %d, %d", secrets, listeners, mounts)
+	}
+}
+
+// TestEnvoyGatewayNodeComponentOrdering checks node delivery needs no ingress CSI dependency.
+func TestEnvoyGatewayNodeComponentOrdering(t *testing.T) {
+	rendered := render(t, "../charts/platform-components",
+		"--set", "platform.components.apps.envoy-gateway.enabled=true",
+		"--set", "platform.components.values.envoy-gateway.platform.envoyGateway.ingress.enabled=true",
+		"--set", "platform.components.values.envoy-gateway.platform.envoyGateway.ingress.certificates.provider=node")
+	for _, doc := range chartDocuments(t, rendered) {
+		if doc["kind"] != "HelmRelease" || chartMap(doc, "metadata")["name"] != "envoy-gateway" {
+			continue
+		}
+		deps := chartMap(doc, "spec")["dependsOn"].([]any)
+		if len(deps) != 3 {
+			t.Fatalf("node Envoy should depend only on operator and Gateway CRDs: %v", deps)
+		}
+		for _, entry := range deps {
+			if strings.HasPrefix(entry.(map[string]any)["name"].(string), "secrets-store-csi") {
+				t.Errorf("node Envoy must not depend on CSI: %v", entry)
+			}
+		}
+		return
+	}
+	t.Fatal("missing Envoy HelmRelease")
+}
+
+// TestEnvoyGatewayInvalidCertificateProvider checks both charts reject unsupported providers.
+func TestEnvoyGatewayInvalidCertificateProvider(t *testing.T) {
+	for _, chart := range []string{"envoy-gateway", "platform-components"} {
+		prefix := "platform.envoyGateway.ingress."
+		args := []string{"template", "test", "../charts/" + chart, "--kube-version", "1.37.0"}
+		if chart == "platform-components" {
+			prefix = "platform.components.values.envoy-gateway." + prefix
+			args = append(args, "--set", "platform.components.apps.envoy-gateway.enabled=true")
+		}
+		args = append(args, "--set", prefix+"enabled=true", "--set", prefix+"domains[0].apex=example.com", "--set", prefix+"certificates.provider=invalid")
+		out, err := exec.Command("helm", args...).CombinedOutput()
+		if err == nil || !strings.Contains(string(out), "node, aws, gcp, vault, or openbao") {
+			t.Errorf("%s should reject invalid provider: %v\n%s", chart, err, out)
 		}
 	}
 }

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 {{- if .Values.platform.envoyGateway.ingress.enabled }}
 {{- $ingress := .Values.platform.envoyGateway.ingress -}}
+{{- $provider := $ingress.certificates.provider -}}
 {{- if not $ingress.domains }}{{ fail "platform.envoyGateway.ingress.domains must contain at least one domain when ingress is enabled" }}{{- end }}
 {{- $envoyProxyImage := required "gateway-helm.global.images.envoyProxy.image is required" (dig "global" "images" "envoyProxy" "image" "" (index .Values "gateway-helm")) -}}
 ---
@@ -68,9 +69,16 @@ spec:
                       args:
                         - sds
                         - --socket=/var/run/podplane-sds/sds.sock
-                        - --certificates-dir=/var/run/podplane/ingress-certificates
+{{- if eq $provider "node" }}
+{{- $domains := list }}
 {{- range $ingress.domains }}
-                        - {{ printf "--certificate=%s=%s" (include "podplane.envoyGateway.bundle" .) (include "podplane.envoyGateway.apex" .) | quote }}
+{{- $domains = append $domains (include "podplane.envoyGateway.apex" .) }}
+{{- end }}
+                        - {{ printf "--node-certificate=%s" (join "," $domains) | quote }}
+{{- else }}
+{{- range $ingress.domains }}
+                        - {{ printf "--domain-certificate=%s=%s" (include "podplane.envoyGateway.bundle" .) (include "podplane.envoyGateway.apex" .) | quote }}
+{{- end }}
 {{- end }}
                       securityContext:
                         allowPrivilegeEscalation: false
@@ -100,11 +108,17 @@ spec:
                       emptyDir:
                         medium: Memory
                     - name: ingress-certificates
+{{- if eq $provider "node" }}
+                      hostPath:
+                        path: /opt/podplane/secrets/ingress
+                        type: Directory
+{{- else }}
                       csi:
                         driver: secrets-store.csi.k8s.io
                         readOnly: true
                         volumeAttributes:
                           secretProviderClass: platform-envoy-gateway-ingress-certificates
+{{- end }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -135,7 +149,7 @@ spec:
         mode: Terminate
         certificateRefs:
           - kind: Secret
-            name: {{ include "podplane.envoyGateway.bundle" . }}
+            name: {{ if eq $provider "node" }}node{{ else }}{{ include "podplane.envoyGateway.bundle" . }}{{ end }}
       allowedRoutes:
         namespaces:
           from: All
@@ -147,7 +161,7 @@ spec:
         mode: Terminate
         certificateRefs:
           - kind: Secret
-            name: {{ include "podplane.envoyGateway.bundle" . }}
+            name: {{ if eq $provider "node" }}node{{ else }}{{ include "podplane.envoyGateway.bundle" . }}{{ end }}
       allowedRoutes:
         namespaces:
           from: All

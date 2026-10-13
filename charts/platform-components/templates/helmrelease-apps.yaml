@@ -19,6 +19,10 @@ Each HelmRelease pulls its chart from the podplane-components GitRepository.
 
 {{ range $name, $entry := $components.apps }}
 {{- if $entry.enabled }}
+{{- $ingressProvider := "" -}}
+{{- if eq $name "envoy-gateway" -}}
+{{- $ingressProvider = dig "platform" "envoyGateway" "ingress" "certificates" "provider" "" (index $values $name | default dict) -}}
+{{- end }}
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -48,6 +52,7 @@ spec:
 {{- with $entry.dependsOn }}
   dependsOn:
 {{- range . }}
+{{- if not (and (eq $name "envoy-gateway") (eq $ingressProvider "node") (eq . "secrets-store-csi-driver")) }}
     - name: {{ . }}
 {{- /* CRDs live in platform-cluster; apps live in their own namespace; default to source namespace if unknown */ -}}
 {{- $depCrd := index $components.crds . }}
@@ -56,6 +61,7 @@ spec:
       namespace: platform-cluster
 {{- else if $depApp }}
       namespace: {{ $depApp.namespace }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -73,11 +79,10 @@ spec:
     - name: {{ $providerComponent }}
       namespace: {{ (index $components.apps $providerComponent).namespace }}
 {{- end }}
-{{ if and (eq $name "envoy-gateway") (dig "platform" "envoyGateway" "ingress" "enabled" false (index $values $name | default dict)) }}
-{{- $envoyValues := index $values $name }}
-{{- $providerKind := required "platform.components.values.envoy-gateway.platform.envoyGateway.ingress.certificates.provider is required" (dig "platform" "envoyGateway" "ingress" "certificates" "provider" "" $envoyValues) }}
+{{ if and (eq $name "envoy-gateway") (ne $ingressProvider "node") (dig "platform" "envoyGateway" "ingress" "enabled" false (index $values $name | default dict)) }}
+{{- $providerKind := required "platform.components.values.envoy-gateway.platform.envoyGateway.ingress.certificates.provider is required" $ingressProvider }}
 {{- if not (has $providerKind (list "aws" "gcp" "vault" "openbao")) -}}
-{{- fail (printf "envoy-gateway ingress certificates require an aws, gcp, vault, or openbao provider, got %q" $providerKind) -}}
+{{- fail (printf "envoy-gateway ingress certificates require a node, aws, gcp, vault, or openbao provider, got %q" $providerKind) -}}
 {{- end }}
 {{- $providerComponent := printf "secrets-store-csi-provider-%s" $providerKind }}
     - name: {{ $providerComponent }}

@@ -10,6 +10,7 @@ platform:
         enabled: true
       domains: []
       certificates:
+        # node uses /opt/podplane/secrets/ingress/node.pem; other providers use CSI bundles.
         provider: ""
         objectType: ""
         projectID: ""
@@ -21,7 +22,7 @@ platform:
     sdsSidecar:
       image:
         repository: ghcr.io/podplane/operator
-        tag: "v0.7.2"
+        tag: "v0.8.0"
         pullPolicy: IfNotPresent
 
 gateway-helm:

@@ -4,6 +4,26 @@
 {{- if .Values.platform.envoyGateway.ingress.enabled }}
 {{- $certs := .Values.platform.envoyGateway.ingress.certificates -}}
 {{- $provider := required "platform.envoyGateway.ingress.certificates.provider is required" $certs.provider -}}
+{{- $names := list "node" -}}
+{{- if ne $provider "node" -}}
+{{- $names = list -}}
+{{- range .Values.platform.envoyGateway.ingress.domains -}}
+{{- $names = append $names (include "podplane.envoyGateway.bundle" .) -}}
+{{- end -}}
+{{- end -}}
+{{- range $names }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ . }}
+type: gateway.envoyproxy.io/sds
+stringData:
+  url: unix:///var/run/podplane-sds/sds.sock
+  secretName: {{ . }}
+{{- end }}
+
+{{- if ne $provider "node" }}
 ---
 apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass
@@ -62,17 +82,7 @@ spec:
         secretKey: value
 {{- end }}
 {{- else }}
-{{- fail "platform.envoyGateway.ingress.certificates.provider must be aws, gcp, vault, or openbao" }}
+{{- fail "platform.envoyGateway.ingress.certificates.provider must be node, aws, gcp, vault, or openbao" }}
 {{- end }}
-{{- range .Values.platform.envoyGateway.ingress.domains }}
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ include "podplane.envoyGateway.bundle" . }}
-type: gateway.envoyproxy.io/sds
-stringData:
-  url: unix:///var/run/podplane-sds/sds.sock
-  secretName: {{ include "podplane.envoyGateway.bundle" . }}
 {{- end }}
 {{- end }}

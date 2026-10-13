@@ -101,6 +101,9 @@ Common environment variables to configure bootstrap:
 - `DOMAIN=<zone>` — supplies the cluster domain to bootstrap consumers. Local bootstrap enables Envoy ingress and uses the operator to publish a self-signed fallback certificate through fakevault; production ingress certificates use the configured external secrets provider.
 - `REGISTRY_HOSTNAME=<host>` — pull component images via the given registry mirror.
 
+Envoy ingress supports secrets-backed certificates (default) and node-local
+certificates for tunnel deployments.
+
 ## Local Testing
 
 Use the Podplane CLI local VM workflow to test components locally. Start a bare
