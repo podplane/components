@@ -1,0 +1,35 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+{{- if ne false (((((.Values.platform).rbac).admissionPolicies).reserveNamespacePrefixes).enabled) }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: platform-reserve-namespace-prefixes-vap
+spec:
+  # kube-* and platform-* namespaces are platform namespaces, which tenant groups
+  # cannot access. Only admins and Flux, which installs platform components, may
+  # create them.
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - operations: ["CREATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["namespaces"]
+  validations:
+    - expression: >
+        !(object.metadata.name.startsWith('kube-') || object.metadata.name.startsWith('platform-')) ||
+        request.userInfo.username == 'system:serviceaccount:platform-fluxcd:helm-controller' ||
+        request.userInfo.groups.exists(group, group == 'podplane:admins' || group == 'system:masters')
+      message: "Namespaces prefixed kube- or platform- are reserved for the platform."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: platform-reserve-namespace-prefixes-vapb
+spec:
+  policyName: platform-reserve-namespace-prefixes-vap
+  validationActions: ["Deny", "Audit"]
+{{- end }}

@@ -21,3 +21,8 @@ flux2:
 
   policies:
     create: false
+
+  rbac:
+    # helm-controller applies HelmReleases as cluster-admin, so tenant users
+    # must not get Flux access through the built-in edit/admin/view roles.
+    createAggregation: false

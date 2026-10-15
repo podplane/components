@@ -96,6 +96,7 @@ app.kubernetes.io/component: operator
 {{- end -}}
 {{- $_ := set $config "ingress_certificates" $ingress -}}
 {{- end -}}
+{{- $_ := set $config "rbac" (dict "namespace_group_bindings" (dig "rbac" "namespaceGroupBindings" false $valuesConfig)) -}}
 {{- toPrettyJson $config -}}
 {{- end -}}
 

@@ -9,3 +9,5 @@ platform:
         enabled: true
       denyCiliumExec:
         enabled: true
+      reserveNamespacePrefixes:
+        enabled: true

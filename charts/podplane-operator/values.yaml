@@ -46,6 +46,8 @@ podplane:
         domains: {}
       workloadCertificates:
         caPath: /var/run/podplane/certificates/workload-ca-key
+      rbac:
+        namespaceGroupBindings: true
     # Additional environment variables for the operator container. Useful for
     # cloud/provider SDK configuration sourced from Kubernetes Secrets,
     # but using volumes for mounting secrets instead is the recommended approach.
