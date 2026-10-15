@@ -92,6 +92,19 @@ zot:
   serviceHeadless:
     enabled: false # default
   mountConfig: false # default
+  # The zot image defaults to root; run it as a fixed non-root UID instead. Its
+  # only local write is cache.db in the chart's /var/lib/registry emptyDir.
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: ["ALL"]
   extraVolumes:
     - name: podplane-zot-config
       configMap:

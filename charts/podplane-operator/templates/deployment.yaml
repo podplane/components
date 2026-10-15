@@ -24,10 +24,20 @@ spec:
         kubectl.kubernetes.io/default-container: operator
     spec:
       serviceAccountName: {{ include "podplane-operator.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: operator
           image: {{ printf "%s:%s" .Values.podplane.operator.image.repository .Values.podplane.operator.image.tag | quote }}
           imagePullPolicy: {{ .Values.podplane.operator.image.pullPolicy }}
+          # The operator only writes serving certificates to its emptyDir volumes.
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
           args:
             - --config=/config/config.json
             - --serving-namespace={{ .Release.Namespace }}

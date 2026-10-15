@@ -1,0 +1,107 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+{{- if ne false (((((.Values.platform).rbac).admissionPolicies).podSecurityDefaults).enabled) }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: platform-pod-security-defaults-map
+spec:
+  # Fills omitted securityContext fields with the restricted Pod Security values.
+  # Fields a Pod sets explicitly are never changed, so workloads can opt out per
+  # field (e.g. runAsNonRoot: false, or capabilities: {} to keep runtime defaults).
+  failurePolicy: Fail
+  reinvocationPolicy: IfNeeded
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+  variables:
+    - name: podRunAsNonRoot
+      expression: object.spec.?securityContext.?runAsNonRoot.hasValue()
+    - name: podRunAsUser
+      expression: object.spec.?securityContext.?runAsUser.orValue(-1)
+  mutations:
+    # capabilities.drop is an atomic list, which ApplyConfiguration cannot set.
+    # This runs first so the merge below cannot replace a securityContext it adds.
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >
+          object.spec.containers.transformList(i, c,
+            !c.?securityContext.?capabilities.hasValue() && !c.?securityContext.?privileged.orValue(false),
+            has(c.securityContext)
+              ? JSONPatch{op: "add", path: "/spec/containers/" + string(i) + "/securityContext/capabilities",
+                  value: Object.spec.containers.securityContext.capabilities{drop: ["ALL"]}}
+              : JSONPatch{op: "add", path: "/spec/containers/" + string(i) + "/securityContext",
+                  value: Object.spec.containers.securityContext{
+                    capabilities: Object.spec.containers.securityContext.capabilities{drop: ["ALL"]}}}) +
+          (!has(object.spec.initContainers) ? [] : object.spec.initContainers.transformList(i, c,
+            !c.?securityContext.?capabilities.hasValue() && !c.?securityContext.?privileged.orValue(false),
+            has(c.securityContext)
+              ? JSONPatch{op: "add", path: "/spec/initContainers/" + string(i) + "/securityContext/capabilities",
+                  value: Object.spec.initContainers.securityContext.capabilities{drop: ["ALL"]}}
+              : JSONPatch{op: "add", path: "/spec/initContainers/" + string(i) + "/securityContext",
+                  value: Object.spec.initContainers.securityContext{
+                    capabilities: Object.spec.initContainers.securityContext.capabilities{drop: ["ALL"]}}}))
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        # allowPrivilegeEscalation=false is invalid alongside privileged or
+        # CAP_SYS_ADMIN, and runAsNonRoot=true contradicts an explicit UID 0.
+        expression: >
+          Object{
+            spec: Object.spec{
+              ?securityContext: object.spec.?securityContext.?seccompProfile.hasValue() ||
+                  (object.spec.containers + object.spec.?initContainers.orValue([])).all(c, c.?securityContext.?seccompProfile.hasValue())
+                ? optional.none()
+                : optional.of(Object.spec.securityContext{
+                    seccompProfile: Object.spec.securityContext.seccompProfile{type: "RuntimeDefault"}
+                  }),
+              containers: object.spec.containers.map(c, Object.spec.containers{
+                name: c.name,
+                securityContext: Object.spec.containers.securityContext{
+                  ?allowPrivilegeEscalation: c.?securityContext.?allowPrivilegeEscalation.hasValue() ||
+                      c.?securityContext.?privileged.orValue(false) ||
+                      c.?securityContext.?capabilities.?add.orValue([]).exists(a, a == "SYS_ADMIN" || a == "CAP_SYS_ADMIN")
+                    ? optional.none() : optional.of(false),
+                  ?runAsNonRoot: variables.podRunAsNonRoot || c.?securityContext.?runAsNonRoot.hasValue() ||
+                      c.?securityContext.?runAsUser.orValue(variables.podRunAsUser) == 0
+                    ? optional.none() : optional.of(true)
+                }
+              }),
+              ?initContainers: !has(object.spec.initContainers) ? optional.none() : optional.of(
+                object.spec.initContainers.map(c, Object.spec.initContainers{
+                  name: c.name,
+                  securityContext: Object.spec.initContainers.securityContext{
+                    ?allowPrivilegeEscalation: c.?securityContext.?allowPrivilegeEscalation.hasValue() ||
+                        c.?securityContext.?privileged.orValue(false) ||
+                        c.?securityContext.?capabilities.?add.orValue([]).exists(a, a == "SYS_ADMIN" || a == "CAP_SYS_ADMIN")
+                      ? optional.none() : optional.of(false),
+                    ?runAsNonRoot: variables.podRunAsNonRoot || c.?securityContext.?runAsNonRoot.hasValue() ||
+                        c.?securityContext.?runAsUser.orValue(variables.podRunAsUser) == 0
+                      ? optional.none() : optional.of(true)
+                  }
+                }))
+            }
+          }
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: platform-pod-security-defaults-mapb
+spec:
+  policyName: platform-pod-security-defaults-map
+  matchResources:
+    # Privileged namespaces keep Kubernetes defaults; kube-system mirrors its Pod
+    # Security exemption.
+    namespaceSelector:
+      matchExpressions:
+        - key: pod-security.kubernetes.io/enforce
+          operator: NotIn
+          values: ["privileged"]
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: ["kube-system"]
+{{- end }}

@@ -109,7 +109,7 @@ platform:
       podplane-operator:
         enabled: false
         namespace: platform-podplane-operator
-        podSecurity: baseline
+        podSecurity: restricted
         dependsOn:
           - podplane-operator-crds
           - secrets-store-csi-driver
@@ -192,7 +192,7 @@ platform:
       zot-registry:
         enabled: false
         namespace: platform-zot-registry
-        podSecurity: baseline
+        podSecurity: restricted
 
     # Per-component values merged into each HelmRelease's `values:`.
     # Keys must match entries in `platform.components.{apps,crds}`. Component

@@ -11,3 +11,5 @@ platform:
         enabled: true
       reserveNamespacePrefixes:
         enabled: true
+      podSecurityDefaults:
+        enabled: true

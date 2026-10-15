@@ -13,6 +13,8 @@ import (
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common/types"
 	"github.com/google/cel-go/ext"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 // TestReserveNamespacePrefixesPolicy evaluates who may create kube-* and platform-* namespaces.
@@ -153,6 +155,46 @@ func TestFluxDoesNotAggregateIntoTenantRoles(t *testing.T) {
 			if strings.HasPrefix(label, "rbac.authorization.k8s.io/aggregate-to-") {
 				t.Fatalf("ClusterRole %v aggregates into %s", chartMap(doc, "metadata")["name"], label)
 			}
+		}
+	}
+}
+
+// TestPodSecurityDefaultsNamespaces checks which namespaces receive secure Pod
+// defaults; privileged components would break if their namespaces were mutated.
+func TestPodSecurityDefaultsNamespaces(t *testing.T) {
+	var selector *metav1.LabelSelector
+	for _, doc := range chartDocuments(t, render(t, "../charts/platform-rbac")) {
+		if doc["kind"] == "MutatingAdmissionPolicyBinding" && chartMap(doc, "spec")["policyName"] == "platform-pod-security-defaults-map" {
+			raw, _ := json.Marshal(chartMap(doc, "spec", "matchResources", "namespaceSelector"))
+			if err := json.Unmarshal(raw, &selector); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	if selector == nil {
+		t.Fatal("pod security defaults policy must be bound with a namespace selector")
+	}
+	matcher, err := metav1.LabelSelectorAsSelector(selector)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		namespace, enforce string
+		want               bool
+	}{
+		{"team-a", "", true},
+		{"team-a", "restricted", true},
+		{"platform-fluxcd", "restricted", true},
+		{"team-a", "baseline", true},
+		{"platform-cilium", "privileged", false},
+		{"kube-system", "", false},
+	} {
+		set := labels.Set{"kubernetes.io/metadata.name": test.namespace}
+		if test.enforce != "" {
+			set["pod-security.kubernetes.io/enforce"] = test.enforce
+		}
+		if got := matcher.Matches(set); got != test.want {
+			t.Errorf("%s (enforce=%q): mutated=%v, want %v", test.namespace, test.enforce, got, test.want)
 		}
 	}
 }
