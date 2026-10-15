@@ -69,6 +69,12 @@ set_bootstrap_args bootstrap.flux.git.ref.tag "${PLATFORM_GIT_REPOSITORY_TAG:-}"
 set_bootstrap_args bootstrap.flux.git.ref.commit "${PLATFORM_GIT_REPOSITORY_COMMIT:-}"
 set_bootstrap_args bootstrap.flux.git.ref.semver "${PLATFORM_GIT_REPOSITORY_SEMVER:-}"
 set_bootstrap_args bootstrap.registry.hostname "${REGISTRY_HOSTNAME:-}"
+# Google VMs store registry images in GCS, matching the node-local registry.
+REGISTRY_DRIVER="${REGISTRY_DRIVER:-}"
+if [[ -z "${REGISTRY_DRIVER}" && "${PROVIDER_KIND:-}" == google ]]; then
+    REGISTRY_DRIVER=gcs
+fi
+set_bootstrap_args bootstrap.registry.driver "${REGISTRY_DRIVER}"
 set_bootstrap_args bootstrap.registry.bucket "${REGISTRY_BUCKET:-}"
 set_bootstrap_args bootstrap.registry.region "${REGISTRY_REGION:-}"
 set_bootstrap_args bootstrap.registry.endpoint "${REGISTRY_ENDPOINT:-}"

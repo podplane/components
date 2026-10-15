@@ -27,6 +27,10 @@
             "hostname": {
               "type": "string"
             },
+            "driver": {
+              "type": "string",
+              "enum": ["s3", "gcs"]
+            },
             "bucket": {
               "type": "string"
             },

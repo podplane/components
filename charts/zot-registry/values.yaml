@@ -7,10 +7,21 @@ platform:
     registryHostname: ""
     logLevel: info
     storage:
+      # Object storage driver: s3 (AWS S3 or S3-compatible) or gcs (Google
+      # Cloud Storage). Other settings below apply to both drivers unless
+      # marked otherwise.
+      driver: s3
       bucket: registry
+      # Bucket key prefix. Empty stores repositories at the bucket root, where
+      # the node-local Podplane registry reads them.
+      rootDirectory: ""
+      # GCS only: path to a service account key file mounted into the pod.
+      # Leave empty to use Application Default Credentials (e.g. the VM's
+      # service account via the metadata server).
+      keyfile: ""
+      # S3 only settings follow.
       region: local
       endpoint: ""
-      rootDirectory: ""
       forcePathStyle: false
       secure: true
       skipVerify: false

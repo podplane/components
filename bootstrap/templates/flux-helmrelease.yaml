@@ -118,6 +118,7 @@ spec:
               zotRegistry:
                 registryHostname: {{ .Values.bootstrap.registry.hostname | quote }}
                 storage:
+                  driver: {{ .Values.bootstrap.registry.driver | quote }}
                   bucket: {{ .Values.bootstrap.registry.bucket | quote }}
                   region: {{ .Values.bootstrap.registry.region | quote }}
                   endpoint: {{ .Values.bootstrap.registry.endpoint | quote }}
