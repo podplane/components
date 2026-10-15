@@ -40,8 +40,7 @@ or `make all` against a real cluster without explicit user approval.
   component. The chart renders:
     - One Flux `HelmRelease` per enabled CRD chart and per enabled app chart.
     - Cluster-scoped namespaces (`platform-cluster`, plus a `platform-<name>`
-      namespace per enabled app where
-      `manageNamespace` is not `false`).
+      namespace per enabled app).
 - **Platform policy charts**: `charts/platform-rbac` contains Podplane RBAC and
   admission policy resources.
 - **Flux CD** ([`charts/fluxcd`](./charts/fluxcd) + [`charts/fluxcd-crds`](./charts/fluxcd-crds)):

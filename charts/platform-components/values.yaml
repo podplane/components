@@ -60,8 +60,6 @@ platform:
         enabled: true
         core: true
         namespace: platform-cilium
-        # Namespace pre-created by bootstrap.sh (helm install --create-namespace).
-        manageNamespace: false
         dependsOn:
           - cilium-crds
       coredns:
@@ -74,8 +72,6 @@ platform:
         enabled: true
         core: true
         namespace: platform-fluxcd
-        # Namespace pre-created by bootstrap.sh (helm install --create-namespace).
-        manageNamespace: false
         dependsOn:
           - fluxcd-crds
       # Provider-specific core components (default disabled unless selected by cluster configuration)

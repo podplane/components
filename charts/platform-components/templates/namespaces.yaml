@@ -15,9 +15,7 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: Helm
 {{ range $name, $app := $apps }}
-{{- $manage := true -}}
-{{- if hasKey $app "manageNamespace" -}}{{- $manage = $app.manageNamespace -}}{{- end -}}
-{{- if and $app.enabled $manage $app.namespace (ne $app.namespace "platform-cluster") }}
+{{- if and $app.enabled $app.namespace (ne $app.namespace "platform-cluster") }}
 ---
 apiVersion: v1
 kind: Namespace

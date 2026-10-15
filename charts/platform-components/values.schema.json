@@ -74,9 +74,6 @@
           "type": "string",
           "minLength": 1
         },
-        "manageNamespace": {
-          "type": "boolean"
-        },
         "namespaceAnnotations": {
           "type": "object",
           "additionalProperties": {
