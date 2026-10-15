@@ -14,6 +14,8 @@ metadata:
     helm.sh/resource-policy: keep
   labels:
     app.kubernetes.io/managed-by: Helm
+    # Hosts cluster-scoped releases only; no Pods run here.
+{{- include "podplane.platform.podSecurityLabels" "restricted" }}
 {{ range $name, $app := $apps }}
 {{- if and $app.enabled $app.namespace (ne $app.namespace "platform-cluster") }}
 ---
@@ -28,5 +30,8 @@ metadata:
 {{- end }}
   labels:
     app.kubernetes.io/managed-by: Helm
+{{- with $app.podSecurity }}
+{{- include "podplane.platform.podSecurityLabels" . }}
+{{- end }}
 {{- end }}
 {{- end }}

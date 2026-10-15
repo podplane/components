@@ -9,5 +9,3 @@ platform:
         enabled: true
       denyCiliumExec:
         enabled: true
-      denyPrivileged:
-        enabled: true

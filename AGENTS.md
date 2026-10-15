@@ -27,8 +27,9 @@ or `make all` against a real cluster without explicit user approval.
 
 ## Architecture
 
-- **Bootstrap**: [`bootstrap/apply.sh`](./bootstrap/apply.sh) installs five
-  Helm releases in order with `helm upgrade --install --create-namespace
+- **Bootstrap**: [`bootstrap/apply.sh`](./bootstrap/apply.sh) applies the core
+  namespaces rendered by the platform-components chart (with their Pod Security
+  labels), then installs five Helm releases in order with `helm upgrade --install
   --wait` — `platform-cilium-crds`, `platform-cilium`, `platform-coredns`,
   `platform-fluxcd-crds`, `platform-fluxcd` — then renders the bootstrap chart
   with `helm template` and `kubectl apply`s a `platform-components` `Namespace`,

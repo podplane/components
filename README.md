@@ -74,7 +74,8 @@ against the current `kubectl` context:
 ./bootstrap/apply.sh
 ```
 
-This bootstraps six component layers in dependency order:
+This creates the core platform namespaces with their Pod Security labels, then
+bootstraps six component layers in dependency order:
 
 1. `platform-cilium-crds` (in `platform-cluster`)
 2. `platform-cilium` (in `platform-cilium`) — nodes go `Ready` after this

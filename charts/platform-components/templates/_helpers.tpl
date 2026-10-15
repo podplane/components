@@ -9,6 +9,12 @@ SPDX-License-Identifier: Apache-2.0
 {{- if hasPrefix "platform-" $name -}}{{ $name }}{{- else -}}platform-{{ $name }}{{- end -}}
 {{- end -}}
 
+{{- define "podplane.platform.podSecurityLabels" -}}
+{{- range list "enforce" "audit" "warn" }}
+    pod-security.kubernetes.io/{{ . }}: {{ $ }}
+{{- end }}
+{{- end -}}
+
 {{- define "podplane.platform.values" -}}
 {{- $name := .name -}}
 {{- $values := .values -}}

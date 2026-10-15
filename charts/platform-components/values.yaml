@@ -50,6 +50,8 @@ platform:
 
     # Apps
     # `core: true` marks entries so that the Podplane CLI will refuse to uninstall them.
+    # `podSecurity` sets the Pod Security Admission level enforced in the app's
+    # namespace: privileged, baseline, or restricted.
     apps:
       # Core
       platform-rbac:
@@ -60,18 +62,24 @@ platform:
         enabled: true
         core: true
         namespace: platform-cilium
+        # Cilium manages node networking: privileged containers, hostNetwork,
+        # hostPath mounts, and added capabilities.
+        podSecurity: privileged
         dependsOn:
           - cilium-crds
       coredns:
         enabled: true
         core: true
         namespace: platform-coredns
+        # hostPath mount of the node's systemd-resolved resolv.conf for upstream DNS.
+        podSecurity: privileged
         dependsOn:
           - cilium
       fluxcd:
         enabled: true
         core: true
         namespace: platform-fluxcd
+        podSecurity: restricted
         dependsOn:
           - fluxcd-crds
       # Provider-specific core components (default disabled unless selected by cluster configuration)
@@ -79,6 +87,7 @@ platform:
         enabled: false
         core: true
         namespace: platform-cluster-api
+        podSecurity: restricted
         dependsOn:
           - cluster-api-crds
           - podplane-operator
@@ -86,6 +95,7 @@ platform:
         enabled: false
         core: true
         namespace: platform-nstance-operator
+        podSecurity: restricted
         dependsOn:
           - nstance-operator-crds
           - cluster-api
@@ -93,46 +103,65 @@ platform:
         enabled: false
         core: true
         namespace: platform-csi-aws-ebs
+        # The node plugin attaches and mounts volumes: a privileged container and
+        # hostPath mounts of kubelet and device directories.
+        podSecurity: privileged
       podplane-operator:
         enabled: false
         namespace: platform-podplane-operator
+        podSecurity: baseline
         dependsOn:
           - podplane-operator-crds
           - secrets-store-csi-driver
       secrets-store-csi-driver:
         enabled: false
         namespace: platform-secrets-store-csi-driver
+        # The node plugin mounts secrets into Pods: a privileged container and
+        # hostPath mounts of kubelet and provider socket directories.
+        podSecurity: privileged
         dependsOn:
           - secrets-store-csi-driver-crds
       secrets-store-csi-provider-aws:
         enabled: false
         namespace: platform-secrets-store-csi-provider-aws
+        # hostPath mount of the CSI driver's provider socket directory.
+        podSecurity: privileged
         dependsOn:
           - secrets-store-csi-driver
       secrets-store-csi-provider-gcp:
         enabled: false
         namespace: platform-secrets-store-csi-provider-gcp
+        # hostPath mount of the CSI driver's provider socket directory.
+        podSecurity: privileged
         dependsOn:
           - secrets-store-csi-driver
       secrets-store-csi-provider-vault:
         enabled: false
         namespace: platform-secrets-store-csi-provider-vault
+        # hostPath mount of the CSI driver's provider socket directory.
+        podSecurity: privileged
         dependsOn:
           - secrets-store-csi-driver
       secrets-store-csi-provider-openbao:
         enabled: false
         namespace: platform-secrets-store-csi-provider-openbao
+        # hostPath mount of the CSI driver's provider socket directory.
+        podSecurity: privileged
         dependsOn:
           - secrets-store-csi-driver
       # Addons (default disabled)
       agent-sandbox:
         enabled: false
         namespace: platform-agent-sandbox
+        podSecurity: baseline
         dependsOn:
           - agent-sandbox-crds
       envoy-gateway:
         enabled: false
         namespace: platform-envoy-gateway
+        # The platform Gateway's Envoy Pods bind hostPort 443 and, with node
+        # certificates, mount /opt/podplane/secrets/ingress via hostPath.
+        podSecurity: privileged
         dependsOn:
           - envoy-gateway-crds
           - gateway-api-crds
@@ -141,22 +170,29 @@ platform:
       cluster-autoscaler:
         enabled: false
         namespace: platform-cluster-autoscaler
+        podSecurity: restricted
         dependsOn:
           - nstance-operator
       snapshot:
         enabled: false
         namespace: platform-snapshot
+        podSecurity: baseline
         dependsOn:
           - snapshot-crds
       metrics-server:
         enabled: false
         namespace: platform-metrics-server
+        podSecurity: restricted
       node-problem-detector:
         enabled: false
         namespace: platform-node-problem-detector
+        # A privileged container and hostPath mounts of node logs, the journal,
+        # and the containerd socket to detect node problems.
+        podSecurity: privileged
       zot-registry:
         enabled: false
         namespace: platform-zot-registry
+        podSecurity: baseline
 
     # Per-component values merged into each HelmRelease's `values:`.
     # Keys must match entries in `platform.components.{apps,crds}`. Component

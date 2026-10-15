@@ -8,6 +8,8 @@
 # Installs the minimum set of charts needed to take a bare cluster from
 # `Nodes NotReady` to a Flux CD-managed Podplane components environment:
 #
+#   0. namespaces       - core platform namespaces with their Pod Security
+#                         labels, rendered from the platform-components chart
 #   1. cilium-crds      - so cilium can install its CRs
 #   2. cilium           - CNI; nodes go Ready after this
 #   3. coredns          - cluster DNS at the well-known ClusterIP so Flux
@@ -34,7 +36,7 @@ done
 
 step() {
     echo
-    echo "==> [$1/9] $2"
+    echo "==> [$1/10] $2"
 }
 
 set_bootstrap_args() {
@@ -113,39 +115,45 @@ helm dependency update "${REPO_DIR}/charts/cilium" >/dev/null
 helm dependency update "${REPO_DIR}/charts/coredns" >/dev/null
 helm dependency update "${REPO_DIR}/charts/fluxcd" >/dev/null
 
-step 2 "Installing cilium CRDs (platform-cluster) ..."
-helm upgrade --install platform-cilium-crds "${REPO_DIR}/charts/cilium-crds" \
-    --namespace platform-cluster --create-namespace --wait
+# Cilium needs its privileged namespace label before its Pods are created; Flux
+# adopts these namespaces once the platform-components release is installed.
+step 2 "Creating core platform namespaces ..."
+helm template platform-components "${REPO_DIR}/charts/platform-components" \
+    --namespace platform-components --show-only templates/namespaces.yaml | kubectl apply -f -
 
-step 3 "Installing cilium (platform-cilium) -- waiting for Nodes to go Ready ..."
+step 3 "Installing cilium CRDs (platform-cluster) ..."
+helm upgrade --install platform-cilium-crds "${REPO_DIR}/charts/cilium-crds" \
+    --namespace platform-cluster --wait
+
+step 4 "Installing cilium (platform-cilium) -- waiting for Nodes to go Ready ..."
 helm upgrade --install platform-cilium "${REPO_DIR}/charts/cilium" \
-    --namespace platform-cilium --create-namespace --wait --skip-crds \
+    --namespace platform-cilium --wait --skip-crds \
     --set-string "cilium.image.repository=${RESOLVED_REGISTRY}quay.io/cilium/cilium" \
     --set-string "cilium.operator.image.repository=${RESOLVED_REGISTRY}quay.io/cilium/operator"
 
-step 4 "Installing CoreDNS (platform-coredns) -- waiting for cluster DNS to be Ready ..."
+step 5 "Installing CoreDNS (platform-coredns) -- waiting for cluster DNS to be Ready ..."
 helm upgrade --install platform-coredns "${REPO_DIR}/charts/coredns" \
-    --namespace platform-coredns --create-namespace --wait --skip-crds \
+    --namespace platform-coredns --wait --skip-crds \
     --set-string "coredns.image.repository=${RESOLVED_REGISTRY}docker.io/coredns/coredns"
 
-step 5 "Installing Flux CRDs (platform-cluster) ..."
+step 6 "Installing Flux CRDs (platform-cluster) ..."
 helm upgrade --install platform-fluxcd-crds "${REPO_DIR}/charts/fluxcd-crds" \
-    --namespace platform-cluster --create-namespace --wait
+    --namespace platform-cluster --wait
 
-step 6 "Installing Flux source-controller + helm-controller (platform-fluxcd) -- waiting for controllers to be Ready ..."
+step 7 "Installing Flux source-controller + helm-controller (platform-fluxcd) -- waiting for controllers to be Ready ..."
 helm upgrade --install platform-fluxcd "${REPO_DIR}/charts/fluxcd" \
-    --namespace platform-fluxcd --create-namespace --wait --skip-crds \
+    --namespace platform-fluxcd --wait --skip-crds \
     --set-string "flux2.sourceController.image=${RESOLVED_REGISTRY}ghcr.io/fluxcd/source-controller" \
     --set-string "flux2.helmController.image=${RESOLVED_REGISTRY}ghcr.io/fluxcd/helm-controller" \
     --set-string "flux2.cli.image=${RESOLVED_REGISTRY}ghcr.io/fluxcd/flux-cli"
 
-step 7 "Installing platform components (platform-components) via Flux CD..."
+step 8 "Installing platform components (platform-components) via Flux CD..."
 kubectl apply -f "${platform_manifest}"
 
-step 8 "Waiting for podplane-components GitRepository to become Ready..."
+step 9 "Waiting for podplane-components GitRepository to become Ready..."
 kubectl wait --for=condition=Ready gitrepository/podplane-components --namespace platform-components --timeout=120s
 
-step 9 "Waiting for platform-components HelmRelease to become Ready..."
+step 10 "Waiting for platform-components HelmRelease to become Ready..."
 if ! kubectl wait --for=condition=Ready helmrelease/platform-components --namespace platform-components --timeout=300s; then
     echo "Error: platform-components HelmRelease did not become Ready." >&2
     echo >&2

@@ -74,6 +74,11 @@
           "type": "string",
           "minLength": 1
         },
+        "podSecurity": {
+          "type": "string",
+          "enum": ["privileged", "baseline", "restricted"],
+          "description": "Pod Security Admission level enforced in the app namespace."
+        },
         "namespaceAnnotations": {
           "type": "object",
           "additionalProperties": {
