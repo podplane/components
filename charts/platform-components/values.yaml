@@ -153,7 +153,7 @@ platform:
       agent-sandbox:
         enabled: false
         namespace: platform-agent-sandbox
-        podSecurity: baseline
+        podSecurity: restricted
         dependsOn:
           - agent-sandbox-crds
       envoy-gateway:
@@ -176,7 +176,7 @@ platform:
       snapshot:
         enabled: false
         namespace: platform-snapshot
-        podSecurity: baseline
+        podSecurity: restricted
         dependsOn:
           - snapshot-crds
       metrics-server:

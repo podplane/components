@@ -32,9 +32,17 @@ tolerations: []
 
 affinity: {}
 
-podSecurityContext: null
+# The controller image runs as UID 65532 and only writes to the API server.
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
 
-containerSecurityContext: null
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
 
 service:
   name: agent-sandbox-controller

@@ -6,6 +6,16 @@
 snapshot-controller:
   controller:
     fullnameOverride: platform-snapshot-controller
+    podSecurityContext:
+      seccompProfile:
+        type: RuntimeDefault
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop: ["ALL"]
     args:
       leaderElection: true
       leaderElectionNamespace: "$(NAMESPACE)"
