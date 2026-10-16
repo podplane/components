@@ -1,0 +1,48 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: platform-runtime-class-vap
+spec:
+  # Checks each new Pod's final runtime, whoever submits it: gvisor, or runc in
+  # a namespace an administrator labelled runtime.podplane.dev/runc=allowed.
+  # A missing runtime means defaulting failed, so it is rejected rather than
+  # left to containerd's runc default. Pod runtimes are immutable, so existing
+  # Pods are never blocked by a later revocation.
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+  matchConditions:
+    - name: not-static-pod-mirror
+      expression: >
+        {{- include "platform.runtime.notStaticPodMirror" . | nindent 8 }}
+  validations:
+    - expression: object.spec.?runtimeClassName.orValue("") in ["gvisor", "runc"]
+      messageExpression: >
+        (has(object.spec.runtimeClassName)
+          ? 'RuntimeClass "' + object.spec.runtimeClassName + '" is not supported'
+          : 'Pod has no RuntimeClass after defaulting') +
+        '; supported RuntimeClasses are "gvisor" (the default when omitted) and "runc".'
+    - expression: >
+        object.spec.?runtimeClassName.orValue("") != "runc" ||
+        namespaceObject.metadata.?labels[?"runtime.podplane.dev/runc"].orValue("") == "allowed"
+      messageExpression: >
+        'RuntimeClass "runc" requires namespace "' + request.namespace + '" to have the label ' +
+        'runtime.podplane.dev/runc=allowed, which only a cluster administrator can grant. ' +
+        'Otherwise set runtimeClassName to "gvisor", which is also the default outside platform runc namespaces.'
+      reason: Forbidden
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: platform-runtime-class-vapb
+spec:
+  policyName: platform-runtime-class-vap
+  validationActions: ["Deny", "Audit"]

@@ -79,6 +79,10 @@
           "enum": ["privileged", "baseline", "restricted"],
           "description": "Pod Security Admission level enforced in the app namespace."
         },
+        "runcAllowed": {
+          "type": "boolean",
+          "description": "Grant the app namespace runc permission (runtime.podplane.dev/runc=allowed)."
+        },
         "namespaceAnnotations": {
           "type": "object",
           "additionalProperties": {

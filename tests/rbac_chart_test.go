@@ -10,44 +10,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/cel-go/cel"
-	"github.com/google/cel-go/common/types"
-	"github.com/google/cel-go/ext"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )
 
 // TestReserveNamespacePrefixesPolicy evaluates who may create kube-* and platform-* namespaces.
 func TestReserveNamespacePrefixesPolicy(t *testing.T) {
-	var policy map[string]any
-	bound := false
-	for _, doc := range chartDocuments(t, render(t, "../charts/platform-rbac")) {
-		switch {
-		case doc["kind"] == "ValidatingAdmissionPolicy" && chartMap(doc, "metadata")["name"] == "platform-reserve-namespace-prefixes-vap":
-			policy = chartMap(doc, "spec")
-		case doc["kind"] == "ValidatingAdmissionPolicyBinding" && chartMap(doc, "spec")["policyName"] == "platform-reserve-namespace-prefixes-vap":
-			bound = slices.Contains(chartMap(doc, "spec")["validationActions"].([]any), any("Deny"))
-		}
-	}
-	if policy == nil || !bound || policy["failurePolicy"] != "Fail" {
-		t.Fatal("namespace prefix policy must exist, fail closed, and be bound with Deny")
-	}
-	env, err := cel.NewEnv(ext.Strings(ext.StringsVersion(2)), cel.Variable("object", cel.DynType), cel.Variable("request", cel.DynType))
-	if err != nil {
-		t.Fatal(err)
-	}
-	var programs []cel.Program
-	for _, raw := range policy["validations"].([]any) {
-		ast, issues := env.Compile(raw.(map[string]any)["expression"].(string))
-		if issues.Err() != nil {
-			t.Fatal(issues.Err())
-		}
-		program, err := env.Program(ast)
-		if err != nil {
-			t.Fatal(err)
-		}
-		programs = append(programs, program)
-	}
+	policy := renderValidatingPolicy(t, "../charts/platform-rbac", "platform-reserve-namespace-prefixes-vap")
 	for _, test := range []struct {
 		name, namespace, username, group string
 		want                             bool
@@ -63,18 +32,10 @@ func TestReserveNamespacePrefixesPolicy(t *testing.T) {
 		{"tenant namespace allowed", "team-a", "bob", "podplane:managers", true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			input := map[string]any{
+			allowed := policy.admits(t, map[string]any{
 				"object":  map[string]any{"metadata": map[string]any{"name": test.namespace}},
 				"request": map[string]any{"userInfo": map[string]any{"username": test.username, "groups": []string{test.group}}},
-			}
-			allowed := true
-			for _, program := range programs {
-				out, _, err := program.Eval(input)
-				if err != nil {
-					t.Fatal(err)
-				}
-				allowed = allowed && out == types.True
-			}
+			})
 			if allowed != test.want {
 				t.Fatalf("allowed = %v, want %v", allowed, test.want)
 			}

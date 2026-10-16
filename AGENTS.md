@@ -29,9 +29,10 @@ or `make all` against a real cluster without explicit user approval.
 
 - **Bootstrap**: [`bootstrap/apply.sh`](./bootstrap/apply.sh) applies the core
   namespaces rendered by the platform-components chart (with their Pod Security
-  labels), then installs five Helm releases in order with `helm upgrade --install
-  --wait` — `platform-cilium-crds`, `platform-cilium`, `platform-coredns`,
-  `platform-fluxcd-crds`, `platform-fluxcd` — then renders the bootstrap chart
+  and runtime permission labels), then installs six Helm releases in order with
+  `helm upgrade --install --wait` — `platform-runtime`, `platform-cilium-crds`,
+  `platform-cilium`, `platform-coredns`, `platform-fluxcd-crds`,
+  `platform-fluxcd` — then renders the bootstrap chart
   with `helm template` and `kubectl apply`s a `platform-components` `Namespace`,
   a `GitRepository` pointing at this repo, and a Flux `HelmRelease` that
   installs the `platform-components` chart. From there Flux reconciles
@@ -43,7 +44,10 @@ or `make all` against a real cluster without explicit user approval.
     - Cluster-scoped namespaces (`platform-cluster`, plus a `platform-<name>`
       namespace per enabled app).
 - **Platform policy charts**: `charts/platform-rbac` contains Podplane RBAC and
-  admission policy resources.
+  admission policy resources. `charts/platform-runtime` contains the `gvisor`
+  and `runc` RuntimeClasses and runtime admission policies; bootstrap installs
+  it before Cilium so every platform Pod is admitted under them (see the
+  README's Container Runtimes section).
 - **Flux CD** ([`charts/fluxcd`](./charts/fluxcd) + [`charts/fluxcd-crds`](./charts/fluxcd-crds)):
   Helm-only. Only `source-controller` and `helm-controller` are deployed;
   `kustomize-controller`, `notification-controller`,
@@ -63,7 +67,7 @@ or `make all` against a real cluster without explicit user approval.
 ## Conventions
 
 - **Namespaces**: every component lives in `platform-<name>`. Cluster-scoped
-  releases (CRD charts, `platform-rbac`) use the shared `platform-cluster` namespace.
+  releases (CRD charts, `platform-rbac`, `platform-runtime`) use the shared `platform-cluster` namespace.
   Flux runs in `platform-fluxcd` (not the upstream `flux-system` default) so
   users may run their own Flux installation in `flux-system` alongside ours
   if they choose.

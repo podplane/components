@@ -1,0 +1,19 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Tenant-facing runtimes. The names are stable even though gVisor's containerd
+# handler is runsc. Admission (runtime-class-*.yaml) defaults Pods to gvisor and
+# rejects every other RuntimeClass, so defining another class does not make it
+# usable.
+{{- range $name, $handler := dict "gvisor" "runsc" "runc" "runc" }}
+---
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: {{ $name }}
+handler: {{ $handler }}
+{{- with pick (index $.Values.platform.runtime.runtimeClasses $name | default dict) "overhead" "scheduling" }}
+{{ toYaml . }}
+{{- end }}
+{{- end }}

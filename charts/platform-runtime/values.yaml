@@ -1,0 +1,35 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+platform:
+  runtime:
+    # Optional overhead and scheduling for each tenant RuntimeClass. Admission
+    # adds them to every Pod using the class, including defaulted gvisor Pods.
+    # See https://kubernetes.io/docs/concepts/containers/runtime-class/
+    runtimeClasses:
+      gvisor: {}
+      runc: {}
+    # Platform namespaces whose Pods default to runc instead of gvisor. List only
+    # components that need host integration gVisor cannot provide: host
+    # networking, host Unix sockets, mount propagation, or host devices. Their
+    # namespaces still need runtime.podplane.dev/runc=allowed, set by
+    # platform-components. Only platform-* namespaces are accepted.
+    runcDefaultNamespaces:
+      # Agent and operator: host networking, BPF, and mount propagation.
+      - platform-cilium
+      # The node plugin needs mount propagation, kubelet plugin sockets, and
+      # devices. The controller only calls AWS APIs, but its containers share a
+      # socket at a path with a trailing slash, which gVisor's shared mounts
+      # cannot create, so it stays in runc until that is fixed.
+      - platform-csi-aws-ebs
+      # Mount propagation, and kubelet plugin and provider sockets.
+      - platform-secrets-store-csi-driver
+      # Providers serve a Unix socket to the CSI driver from a host directory.
+      - platform-secrets-store-csi-provider-aws
+      - platform-secrets-store-csi-provider-gcp
+      - platform-secrets-store-csi-provider-openbao
+      - platform-secrets-store-csi-provider-vault
+      # /dev/kmsg and the containerd socket.
+      - platform-node-problem-detector
+    

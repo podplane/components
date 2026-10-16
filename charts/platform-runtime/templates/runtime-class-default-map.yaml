@@ -1,0 +1,45 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Runtime policies are not optional: they are the managed platform's tenant
+# sandbox guarantee, so they have no enabled toggle.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: platform-runtime-class-default-map
+spec:
+  # Sets an omitted runtimeClassName so every admitted Pod names its runtime:
+  # runc in the platform namespaces listed in runcDefaultNamespaces, whose
+  # upstream charts cannot select a RuntimeClass, and gvisor everywhere else.
+  # Setting the field makes the API server reinvoke the RuntimeClass admission
+  # plugin, which applies the class's scheduling and overhead. An explicit
+  # empty string is rejected by that plugin before this runs.
+  failurePolicy: Fail
+  reinvocationPolicy: Never
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+  matchConditions:
+    - name: not-static-pod-mirror
+      expression: >
+        {{- include "platform.runtime.notStaticPodMirror" . | nindent 8 }}
+    - name: runtime-class-omitted
+      expression: "!has(object.spec.runtimeClassName)"
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >
+          Object{spec: Object.spec{runtimeClassName:
+            request.namespace in {{ include "platform.runtime.runcDefaultNamespaces" . }} ? "runc" : "gvisor"}}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: platform-runtime-class-default-mapb
+spec:
+  policyName: platform-runtime-class-default-map

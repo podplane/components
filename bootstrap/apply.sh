@@ -9,15 +9,19 @@
 # `Nodes NotReady` to a Flux CD-managed Podplane components environment:
 #
 #   0. namespaces       - core platform namespaces with their Pod Security
-#                         labels, rendered from the platform-components chart
-#   1. cilium-crds      - so cilium can install its CRs
-#   2. cilium           - CNI; nodes go Ready after this
-#   3. coredns          - cluster DNS at the well-known ClusterIP so Flux
+#                         and runtime permission labels, rendered from the
+#                         platform-components chart
+#   1. platform-runtime - RuntimeClasses and runtime admission policies, so
+#                         every platform Pod below is admitted under the
+#                         managed runtime contract; verified before continuing
+#   2. cilium-crds      - so cilium can install its CRs
+#   3. cilium           - CNI under runc; nodes go Ready after this
+#   4. coredns          - cluster DNS at the well-known ClusterIP so Flux
 #                         source-controller can resolve external Git hosts
 #                         before it has cloned the components repo
-#   4. fluxcd-crds      - so Flux can install GitRepository / HelmRelease CRs
-#   5. fluxcd           - source-controller + helm-controller
-#   6. platform-components - Flux-managed chart that reconciles all HelmReleases
+#   5. fluxcd-crds      - so Flux can install GitRepository / HelmRelease CRs
+#   6. fluxcd           - source-controller + helm-controller
+#   7. platform-components - Flux-managed chart that reconciles all HelmReleases
 #
 # After this script, all further component installs / upgrades are reconciled
 # by Flux from the `charts/platform-components` chart's values.
@@ -36,7 +40,7 @@ done
 
 step() {
     echo
-    echo "==> [$1/10] $2"
+    echo "==> [$1/12] $2"
 }
 
 set_bootstrap_args() {
@@ -121,45 +125,89 @@ helm dependency update "${REPO_DIR}/charts/cilium" >/dev/null
 helm dependency update "${REPO_DIR}/charts/coredns" >/dev/null
 helm dependency update "${REPO_DIR}/charts/fluxcd" >/dev/null
 
-# Cilium needs its privileged namespace label before its Pods are created; Flux
-# adopts these namespaces once the platform-components release is installed.
+# Cilium needs its privileged and runc permission labels before its Pods are
+# created; Flux adopts these namespaces once the platform-components release is
+# installed.
 step 2 "Creating core platform namespaces ..."
 helm template platform-components "${REPO_DIR}/charts/platform-components" \
     --namespace platform-components --show-only templates/namespaces.yaml | kubectl apply -f -
 
-step 3 "Installing cilium CRDs (platform-cluster) ..."
+# Runtime policies precede every API-managed platform Pod, so none can start
+# under containerd's runc default. Flux adopts this release.
+step 3 "Installing RuntimeClasses and runtime admission policies (platform-cluster) ..."
+helm upgrade --install platform-runtime "${REPO_DIR}/charts/platform-runtime" \
+    --namespace platform-cluster --wait
+
+# Server-side dry runs pass through admission without creating Pods. The check
+# Pod meets platform-cluster's restricted Pod Security level on its own, because
+# platform-rbac's security-context defaults are not installed yet.
+step 4 "Verifying runtime defaulting and enforcement ..."
+restricted_pod='"securityContext":{"runAsNonRoot":true,"runAsUser":65532,"seccompProfile":{"type":"RuntimeDefault"}},
+    "containers":[{"name":"podplane-runtime-check","image":"registry.k8s.io/pause",
+    "securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}}}]'
+runtime_check=(kubectl run podplane-runtime-check --image registry.k8s.io/pause --restart Never --dry-run=server)
+
+# runtime_enforced reports whether tenant Pods default to gvisor, runc is denied
+# without permission, and Cilium's namespace defaults to runc.
+runtime_enforced() {
+    local runtime
+    runtime=$("${runtime_check[@]}" --namespace platform-cluster --overrides "{\"spec\":{${restricted_pod}}}" \
+        -o 'jsonpath={.spec.runtimeClassName}' 2>&1) && [[ "${runtime}" == gvisor ]] ||
+        { runtime_error="Pods default to RuntimeClass '${runtime}', want gvisor"; return 1; }
+    if runtime=$("${runtime_check[@]}" --namespace platform-cluster \
+        --overrides "{\"spec\":{\"runtimeClassName\":\"runc\",${restricted_pod}}}" 2>&1) ||
+        [[ "${runtime}" != *runtime.podplane.dev/runc=allowed* ]]; then
+        runtime_error="runc was not denied by the runtime permission policy: ${runtime}"
+        return 1
+    fi
+    runtime=$("${runtime_check[@]}" --namespace platform-cilium -o 'jsonpath={.spec.runtimeClassName}' 2>&1) &&
+        [[ "${runtime}" == runc ]] ||
+        { runtime_error="platform-cilium Pods default to RuntimeClass '${runtime}', want runc"; return 1; }
+}
+
+# Admission policies take a few seconds to become active after installation.
+for attempt in $(seq 30); do
+    runtime_enforced && break
+    if [[ "${attempt}" == 30 ]]; then
+        echo "Error: ${runtime_error}." >&2
+        exit 1
+    fi
+    sleep 2
+done
+
+step 5 "Installing cilium CRDs (platform-cluster) ..."
 helm upgrade --install platform-cilium-crds "${REPO_DIR}/charts/cilium-crds" \
     --namespace platform-cluster --wait
 
-step 4 "Installing cilium (platform-cilium) -- waiting for Nodes to go Ready ..."
+step 6 "Installing cilium (platform-cilium) -- waiting for Nodes to go Ready ..."
 helm upgrade --install platform-cilium "${REPO_DIR}/charts/cilium" \
     --namespace platform-cilium --wait --skip-crds \
     --set-string "cilium.image.repository=${RESOLVED_REGISTRY}quay.io/cilium/cilium" \
     --set-string "cilium.operator.image.repository=${RESOLVED_REGISTRY}quay.io/cilium/operator"
 
-step 5 "Installing CoreDNS (platform-coredns) -- waiting for cluster DNS to be Ready ..."
+step 7 "Installing CoreDNS (platform-coredns) -- waiting for cluster DNS to be Ready ..."
 helm upgrade --install platform-coredns "${REPO_DIR}/charts/coredns" \
     --namespace platform-coredns --wait --skip-crds \
     --set-string "coredns.image.repository=${RESOLVED_REGISTRY}docker.io/coredns/coredns"
 
-step 6 "Installing Flux CRDs (platform-cluster) ..."
+step 8 "Installing Flux CRDs (platform-cluster) ..."
 helm upgrade --install platform-fluxcd-crds "${REPO_DIR}/charts/fluxcd-crds" \
     --namespace platform-cluster --wait
 
-step 7 "Installing Flux source-controller + helm-controller (platform-fluxcd) -- waiting for controllers to be Ready ..."
+step 9 "Installing Flux source-controller + helm-controller (platform-fluxcd) -- waiting for controllers to be Ready ..."
 helm upgrade --install platform-fluxcd "${REPO_DIR}/charts/fluxcd" \
     --namespace platform-fluxcd --wait --skip-crds \
     --set-string "flux2.sourceController.image=${RESOLVED_REGISTRY}ghcr.io/fluxcd/source-controller" \
     --set-string "flux2.helmController.image=${RESOLVED_REGISTRY}ghcr.io/fluxcd/helm-controller" \
     --set-string "flux2.cli.image=${RESOLVED_REGISTRY}ghcr.io/fluxcd/flux-cli"
 
-step 8 "Installing platform components (platform-components) via Flux CD..."
+step 10 "Installing platform components (platform-components) via Flux CD..."
 kubectl apply -f "${platform_manifest}"
 
-step 9 "Waiting for podplane-components GitRepository to become Ready..."
+step 11 "Waiting for podplane-components GitRepository to become Ready..."
 kubectl wait --for=condition=Ready gitrepository/podplane-components --namespace platform-components --timeout=120s
 
-step 10 "Waiting for platform-components HelmRelease to become Ready..."
+step 12 "Waiting for platform-components HelmRelease to become Ready..."
 if ! kubectl wait --for=condition=Ready helmrelease/platform-components --namespace platform-components --timeout=300s; then
     echo "Error: platform-components HelmRelease did not become Ready." >&2
     echo >&2

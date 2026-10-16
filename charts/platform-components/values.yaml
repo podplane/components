@@ -52,9 +52,17 @@ platform:
     # `core: true` marks entries so that the Podplane CLI will refuse to uninstall them.
     # `podSecurity` sets the Pod Security Admission level enforced in the app's
     # namespace: privileged, baseline, or restricted.
+    # `runcAllowed: true` labels the app namespace runtime.podplane.dev/runc=allowed.
+    # Pods default to gVisor; components that need host integration gVisor
+    # cannot provide also have their namespace in platform-runtime's
+    # runcDefaultNamespaces, which defaults their Pods to runc.
     apps:
       # Core
       platform-rbac:
+        enabled: true
+        core: true
+        namespace: platform-cluster
+      platform-runtime:
         enabled: true
         core: true
         namespace: platform-cluster
@@ -65,6 +73,7 @@ platform:
         # Cilium manages node networking: privileged containers, hostNetwork,
         # hostPath mounts, and added capabilities.
         podSecurity: privileged
+        runcAllowed: true
         dependsOn:
           - cilium-crds
       coredns:
@@ -72,6 +81,7 @@ platform:
         core: true
         namespace: platform-coredns
         # hostPath mount of the node's systemd-resolved resolv.conf for upstream DNS.
+        # A read-only host file works under gVisor, so CoreDNS keeps the default.
         podSecurity: privileged
         dependsOn:
           - cilium
@@ -106,6 +116,7 @@ platform:
         # The node plugin attaches and mounts volumes: a privileged container and
         # hostPath mounts of kubelet and device directories.
         podSecurity: privileged
+        runcAllowed: true
       podplane-operator:
         enabled: false
         namespace: platform-podplane-operator
@@ -119,6 +130,7 @@ platform:
         # The node plugin mounts secrets into Pods: a privileged container and
         # hostPath mounts of kubelet and provider socket directories.
         podSecurity: privileged
+        runcAllowed: true
         dependsOn:
           - secrets-store-csi-driver-crds
       secrets-store-csi-provider-aws:
@@ -126,6 +138,7 @@ platform:
         namespace: platform-secrets-store-csi-provider-aws
         # hostPath mount of the CSI driver's provider socket directory.
         podSecurity: privileged
+        runcAllowed: true
         dependsOn:
           - secrets-store-csi-driver
       secrets-store-csi-provider-gcp:
@@ -133,6 +146,7 @@ platform:
         namespace: platform-secrets-store-csi-provider-gcp
         # hostPath mount of the CSI driver's provider socket directory.
         podSecurity: privileged
+        runcAllowed: true
         dependsOn:
           - secrets-store-csi-driver
       secrets-store-csi-provider-vault:
@@ -140,6 +154,7 @@ platform:
         namespace: platform-secrets-store-csi-provider-vault
         # hostPath mount of the CSI driver's provider socket directory.
         podSecurity: privileged
+        runcAllowed: true
         dependsOn:
           - secrets-store-csi-driver
       secrets-store-csi-provider-openbao:
@@ -147,6 +162,7 @@ platform:
         namespace: platform-secrets-store-csi-provider-openbao
         # hostPath mount of the CSI driver's provider socket directory.
         podSecurity: privileged
+        runcAllowed: true
         dependsOn:
           - secrets-store-csi-driver
       # Addons (default disabled)
@@ -160,7 +176,9 @@ platform:
         enabled: false
         namespace: platform-envoy-gateway
         # The platform Gateway's Envoy Pods bind hostPort 443 and, with node
-        # certificates, mount /opt/podplane/secrets/ingress via hostPath.
+        # certificates, mount /opt/podplane/secrets/ingress via hostPath. Host
+        # ports and polled read-only host files work under gVisor, so the
+        # proxies and controller keep the default.
         podSecurity: privileged
         dependsOn:
           - envoy-gateway-crds
@@ -189,6 +207,7 @@ platform:
         # A privileged container and hostPath mounts of node logs, the journal,
         # and the containerd socket to detect node problems.
         podSecurity: privileged
+        runcAllowed: true
       zot-registry:
         enabled: false
         namespace: platform-zot-registry

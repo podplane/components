@@ -7,9 +7,13 @@ package tests
 import (
 	"io"
 	"os/exec"
+	"slices"
 	"strings"
 	"testing"
 
+	"github.com/google/cel-go/cel"
+	"github.com/google/cel-go/common/types"
+	"github.com/google/cel-go/ext"
 	"gopkg.in/yaml.v3"
 )
 
@@ -49,4 +53,78 @@ func chartMap(value map[string]any, path ...string) map[string]any {
 		value, _ = value[key].(map[string]any)
 	}
 	return value
+}
+
+// validatingPolicy is a rendered ValidatingAdmissionPolicy compiled for evaluation.
+type validatingPolicy struct {
+	matchConditions, validations []cel.Program
+}
+
+// renderValidatingPolicy renders chart and compiles the named policy, failing
+// the calling test unless the policy fails closed and is bound with Deny.
+func renderValidatingPolicy(t *testing.T, chart, name string) validatingPolicy {
+	t.Helper()
+	var spec map[string]any
+	bound := false
+	for _, doc := range chartDocuments(t, render(t, chart)) {
+		switch {
+		case doc["kind"] == "ValidatingAdmissionPolicy" && chartMap(doc, "metadata")["name"] == name:
+			spec = chartMap(doc, "spec")
+		case doc["kind"] == "ValidatingAdmissionPolicyBinding" && chartMap(doc, "spec")["policyName"] == name:
+			bound = slices.Contains(chartMap(doc, "spec")["validationActions"].([]any), any("Deny"))
+		}
+	}
+	if spec == nil || !bound || spec["failurePolicy"] != "Fail" {
+		t.Fatalf("%s must exist, fail closed, and be bound with Deny", name)
+	}
+	env, err := cel.NewEnv(
+		cel.OptionalTypes(),
+		ext.Strings(ext.StringsVersion(2)),
+		cel.Variable("object", cel.DynType),
+		cel.Variable("oldObject", cel.DynType),
+		cel.Variable("namespaceObject", cel.DynType),
+		cel.Variable("request", cel.DynType),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	compile := func(field string) []cel.Program {
+		var programs []cel.Program
+		for _, raw := range spec[field].([]any) {
+			ast, issues := env.Compile(raw.(map[string]any)["expression"].(string))
+			if issues.Err() != nil {
+				t.Fatal(issues.Err())
+			}
+			program, err := env.Program(ast)
+			if err != nil {
+				t.Fatal(err)
+			}
+			programs = append(programs, program)
+		}
+		return programs
+	}
+	policy := validatingPolicy{validations: compile("validations")}
+	if spec["matchConditions"] != nil {
+		policy.matchConditions = compile("matchConditions")
+	}
+	return policy
+}
+
+// admits reports whether the policy admits a request with the given CEL
+// variables. Requests that do not meet every match condition are admitted.
+func (p validatingPolicy) admits(t *testing.T, vars map[string]any) bool {
+	t.Helper()
+	eval := func(programs []cel.Program) bool {
+		for _, program := range programs {
+			out, _, err := program.Eval(vars)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if out != types.True {
+				return false
+			}
+		}
+		return true
+	}
+	return !eval(p.matchConditions) || eval(p.validations)
 }

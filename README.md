@@ -41,6 +41,8 @@ __Core (always installed):__
 - `platform-components`: the Podplane platform chart that manages reserved
   namespaces and the Flux `HelmRelease` resources for every other component.
 - `platform-rbac`: default RBAC and admission policy configuration.
+- `platform-runtime`: the `gvisor` and `runc` RuntimeClasses and the policies
+  that decide which one each Pod uses.
 
 __Addons (optional, installable via `podplane install <name>`):__
 
@@ -74,15 +76,17 @@ against the current `kubectl` context:
 ./bootstrap/apply.sh
 ```
 
-This creates the core platform namespaces with their Pod Security labels, then
-bootstraps six component layers in dependency order:
+This creates the core platform namespaces with their Pod Security and runtime
+labels, then bootstraps seven component layers in dependency order:
 
-1. `platform-cilium-crds` (in `platform-cluster`)
-2. `platform-cilium` (in `platform-cilium`) — nodes go `Ready` after this
-3. `platform-coredns` (in `platform-coredns`)
-4. `platform-fluxcd-crds` (in `platform-cluster`)
-5. `platform-fluxcd` (in `platform-fluxcd`)
-6. `platform-components` (as a Flux `HelmRelease` in `platform-components`)
+1. `platform-runtime` (in `platform-cluster`) — RuntimeClasses and runtime
+   policies, checked before any platform Pod starts
+2. `platform-cilium-crds` (in `platform-cluster`)
+3. `platform-cilium` (in `platform-cilium`) — runs under runc; nodes go `Ready` after this
+4. `platform-coredns` (in `platform-coredns`)
+5. `platform-fluxcd-crds` (in `platform-cluster`)
+6. `platform-fluxcd` (in `platform-fluxcd`)
+7. `platform-components` (as a Flux `HelmRelease` in `platform-components`)
 
 From this point on, Flux reconciles `platform-components` and every other component
 from the `charts/platform-components` chart's values, fetched from this repo via a
@@ -232,6 +236,32 @@ The platform defaults assume Podplane's standard dual-stack network design:
   * It uses the last service IPv6, `fdc6::ffff`
 
   * The kubelet is configured to use the above two addresses as clusterDNS.
+
+## Container Runtimes
+
+Pods run in [gVisor](https://gvisor.dev/) by default. `platform-runtime` enforces
+this for every new Pod:
+
+- Pods that don't set `runtimeClassName` get `gvisor`.
+- `runc` is allowed only in namespaces labelled
+  `runtime.podplane.dev/runc: allowed`, which only cluster admins can set.
+- Any other RuntimeClass, including `""`, is rejected.
+
+Platform components that need host access gVisor can't provide (host networking,
+host sockets, mount propagation, or devices) run under runc: Cilium, the CSI
+drivers and Secrets Store providers, and Node Problem Detector. Their namespaces
+are listed in `runcDefaultNamespaces` in `charts/platform-runtime/values.yaml`, so
+their Pods default to runc, and set `runcAllowed: true` in
+`charts/platform-components/values.yaml`. A test keeps both lists in sync.
+Everything else, including CoreDNS and Envoy Gateway, runs in gVisor. Static Pod
+mirrors in `kube-system` are exempt, as kubelet runs static Pods with runc.
+
+To see which namespaces allow runc and which runtime each Pod uses:
+
+```sh
+kubectl get namespaces -l runtime.podplane.dev/runc=allowed
+kubectl get pods -A -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,RUNTIME:.spec.runtimeClassName
+```
 
 ## Learn More
 

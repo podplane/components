@@ -36,6 +36,14 @@ spec:
           value:
             spec:
               template:
+                metadata:
+                  annotations:
+                    # Under gVisor each container gets its own view of an
+                    # emptyDir, so a socket bound by one is invisible to the
+                    # other. Share the SDS socket volume across the Pod.
+                    dev.gvisor.spec.mount.podplane-sds.share: pod
+                    dev.gvisor.spec.mount.podplane-sds.type: tmpfs
+                    dev.gvisor.spec.mount.podplane-sds.options: rw,rprivate
                 spec:
                   serviceAccountName: platform-envoy-gateway-ingress-certificates
                   tolerations:

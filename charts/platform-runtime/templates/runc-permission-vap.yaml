@@ -1,0 +1,40 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: platform-runc-permission-vap
+spec:
+  # Only administrators grant or revoke runc permission, so namespace write
+  # access granted for other reasons cannot approve a runtime exception. Flux's
+  # helm-controller manages the permission of the platform namespaces it
+  # installs. Patches and server-side apply arrive as UPDATE requests.
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["namespaces", "namespaces/status", "namespaces/finalize"]
+  matchConditions:
+    - name: runc-permission-changed
+      expression: >
+        object.metadata.?labels[?"runtime.podplane.dev/runc"] !=
+        (request.operation == "CREATE" ? optional.none() : oldObject.metadata.?labels[?"runtime.podplane.dev/runc"])
+  validations:
+    - expression: >
+        request.userInfo.groups.exists(g, g == "podplane:admins" || g == "system:masters") ||
+        (request.userInfo.username == "system:serviceaccount:platform-fluxcd:helm-controller" &&
+          (object.metadata.name.startsWith("kube-") || object.metadata.name.startsWith("platform-")))
+      message: "Only cluster administrators may change the runtime.podplane.dev/runc namespace label."
+      reason: Forbidden
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: platform-runc-permission-vapb
+spec:
+  policyName: platform-runc-permission-vap
+  validationActions: ["Deny", "Audit"]
