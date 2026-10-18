@@ -1,0 +1,56 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+{{- $m := .Values.podplane.operator.metrics }}
+{{- if $m.enabled }}
+{{- if or (eq (int $m.port) (int .Values.podplane.operator.aggregatedApiService.securePort)) (eq (int $m.port) (int .Values.podplane.operator.registry.auth.securePort)) (lt (int $m.port) 1024) (gt (int $m.port) 65535) }}
+{{- fail "metrics.port must be an unprivileged port distinct from operator HTTPS ports" }}
+{{- end }}
+{{- if $m.service.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "podplane-operator.namePrefix" . }}-metrics
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "podplane-operator.labels" . | indent 4 }}
+spec:
+  type: ClusterIP
+  # Observe signer failures even when workload readiness removes API endpoints.
+  publishNotReadyAddresses: true
+  selector:
+{{ include "podplane-operator.selectorLabels" . | indent 4 }}
+  ports:
+    - name: metrics
+      port: {{ $m.port }}
+      targetPort: metrics
+{{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "podplane-operator.namePrefix" . }}-metrics
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+{{ include "podplane-operator.selectorLabels" . | indent 6 }}
+  policyTypes: [Ingress]
+  ingress:
+    # Preserve existing authenticated HTTPS endpoints, not metrics.
+    - ports:
+        - port: {{ .Values.podplane.operator.aggregatedApiService.securePort }}
+          protocol: TCP
+{{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}
+        - port: {{ .Values.podplane.operator.registry.auth.securePort }}
+          protocol: TCP
+{{- end }}
+{{- with $m.allowedPeers }}
+    - from:
+{{ toYaml . | indent 8 }}
+      ports:
+        - port: {{ $m.port }}
+          protocol: TCP
+{{- end }}
+{{- end }}

@@ -16,9 +16,15 @@ platform:
       # the node-local Podplane registry reads them.
       rootDirectory: ""
       # GCS only: path to a service account key file mounted into the pod.
-      # Leave empty to use Application Default Credentials (e.g. the VM's
-      # service account via the metadata server).
+      # Leave empty for Application Default Credentials. External-account
+      # federation must use GOOGLE_APPLICATION_CREDENTIALS, not this keyfile.
       keyfile: ""
+      # GCS only: full projects/.../locations/global/workloadIdentityPools/.../
+      # providers/... name. Generates public ADC configuration in the ConfigMap.
+      # OpenTofu/Terraform seed values also supply Zot's service account, env
+      # and projected token/config volume. The VM identity remains a read-only
+      # registry reader.
+      workloadIdentityProvider: ""
       # S3 only settings follow.
       region: local
       endpoint: ""
@@ -26,7 +32,7 @@ platform:
       secure: true
       skipVerify: false
       # Static credentials are only for local fake-S3 development. Production
-      # clusters should use workload identity via zot.serviceAccount.annotations.
+      # clusters use AWS pod role annotations or GCP projected-token federation.
       accessKeyID: ""
       secretAccessKey: ""
     oidc:

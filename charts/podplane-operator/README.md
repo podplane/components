@@ -153,6 +153,23 @@ Service with its own workload-CA-signed service-DNS certificate. A Gateway
 `BackendTLSPolicy` validates that identity against the workload
 `ClusterTrustBundle`.
 
+## Metrics
+
+The operator exposes certificate expiry, signer health, and pending certificate
+requests for your monitoring system to collect. Set
+`podplane.operator.metrics.enabled: true` to serve `/metrics` inside the cluster
+on port 8080. Metrics are disabled by default; the chart does not install a
+collector or alert rules.
+
+To scrape pods directly instead of through the metrics Service, set
+`podplane.operator.metrics.service.enabled: false`. The listener and
+NetworkPolicy remain enabled.
+
+Set `podplane.operator.metrics.allowedPeers` to allow your collector through the
+NetworkPolicy; the default empty list blocks access. Each peer should select both
+the collector's namespace and pods using labels controlled by cluster admins.
+The endpoint has no authentication, so keep it private to trusted collectors.
+
 ## Mounting provider credentials
 
 The operator reads Vault/OpenBao tokens from:

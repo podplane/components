@@ -5,9 +5,71 @@
 package tests
 
 import (
+	"os/exec"
+	"reflect"
 	"strings"
 	"testing"
 )
+
+// TestOperatorCertificateMetrics verifies optional metrics exposure and collector access restrictions.
+func TestOperatorCertificateMetrics(t *testing.T) {
+	base := []string{"--namespace", "platform-podplane-operator", "-f", "values/podplane-operator.yaml"}
+	disabled := render(t, "../charts/podplane-operator", base...)
+	for _, forbidden := range []string{"--metrics-bind-address", "kind: ServiceMonitor", "kind: PrometheusRule", "kind: NetworkPolicy", "targetPort: metrics"} {
+		if strings.Contains(disabled, forbidden) {
+			t.Errorf("disabled metrics contains %q", forbidden)
+		}
+	}
+	args := append(append([]string{}, base...), "--set", "podplane.operator.metrics.enabled=true", "--set", "podplane.operator.metrics.port=9095")
+	args = append(args, "--set", "podplane.operator.metrics.allowedPeers[0].namespaceSelector.matchLabels.monitoring=trusted",
+		"--set", "podplane.operator.metrics.allowedPeers[0].podSelector.matchLabels.app=prometheus")
+	enabled := render(t, "../charts/podplane-operator", args...)
+	if strings.Contains(enabled, "kind: ServiceMonitor") || strings.Contains(enabled, "kind: PrometheusRule") {
+		t.Fatal("metrics must not install collection or alerting resources")
+	}
+	for _, required := range []string{"--metrics-bind-address=:9095", "containerPort: 9095", "port: 9095", "targetPort: metrics", "publishNotReadyAddresses: true", "kind: NetworkPolicy", "namespaceSelector:", "podSelector:"} {
+		if !strings.Contains(enabled, required) {
+			t.Errorf("metrics render missing %q", required)
+		}
+	}
+	var service, deployment map[string]any
+	for _, doc := range chartDocuments(t, enabled) {
+		switch doc["kind"] {
+		case "Service":
+			if chartMap(doc, "metadata")["name"] == "platform-podplane-operator-metrics" {
+				service = doc
+			}
+		case "Deployment":
+			deployment = doc
+		}
+	}
+	if service == nil || deployment == nil {
+		t.Fatal("missing metrics Service or Deployment")
+	}
+	if !reflect.DeepEqual(chartMap(service, "spec", "selector"), chartMap(deployment, "spec", "template", "metadata", "labels")) {
+		t.Fatal("metrics Service does not select operator pods")
+	}
+	t.Run("direct pod scraping", func(t *testing.T) {
+		direct := render(t, "../charts/podplane-operator", append(args, "--set", "podplane.operator.metrics.service.enabled=false")...)
+		for _, doc := range chartDocuments(t, direct) {
+			if doc["kind"] == "Service" && chartMap(doc, "metadata")["name"] == "platform-podplane-operator-metrics" {
+				t.Fatal("metrics Service rendered when disabled")
+			}
+		}
+		for _, required := range []string{"--metrics-bind-address=:9095", "containerPort: 9095", "kind: NetworkPolicy", "port: 9095", "monitoring: trusted", "app: prometheus"} {
+			if !strings.Contains(direct, required) {
+				t.Errorf("direct pod scraping render missing %q", required)
+			}
+		}
+	})
+	for _, invalid := range []string{"podplane.operator.metrics.enabled=true,podplane.operator.metrics.port=8443", "podplane.operator.metrics.enabled=true,podplane.operator.metrics.port=80"} {
+		command := append([]string{"template", "test", "../charts/podplane-operator", "--kube-version", "1.37.0"}, base...)
+		command = append(command, "--set", invalid)
+		if out, err := exec.Command("helm", command...).CombinedOutput(); err == nil {
+			t.Fatalf("invalid metrics configuration accepted: %s\n%s", invalid, out)
+		}
+	}
+}
 
 // TestWorkloadCertificateContract verifies workload CA mounting and signer configuration.
 func TestWorkloadCertificateContract(t *testing.T) {

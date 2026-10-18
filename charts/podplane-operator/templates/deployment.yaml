@@ -44,6 +44,9 @@ spec:
               drop: ["ALL"]
           args:
             - --config=/config/config.json
+{{- if .Values.podplane.operator.metrics.enabled }}
+            - --metrics-bind-address=:{{ .Values.podplane.operator.metrics.port }}
+{{- end }}
             - --serving-namespace={{ .Release.Namespace }}
             - --aggregated-api-bind-address=:{{ .Values.podplane.operator.aggregatedApiService.securePort }}
             - --aggregated-api-tls-cert-file=/var/run/podplane/serving/aggregated-api/tls.crt
@@ -56,6 +59,10 @@ spec:
             - --registry-auth-service-name={{ include "podplane-operator.namePrefix" . }}-registry-auth
 {{- end }}
           ports:
+{{- if .Values.podplane.operator.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.podplane.operator.metrics.port }}
+{{- end }}
             - name: aggregated-api
               containerPort: {{ .Values.podplane.operator.aggregatedApiService.securePort }}
 {{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}

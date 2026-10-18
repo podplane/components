@@ -10,6 +10,14 @@ podplane:
       tag: "v0.9.0"
       pullPolicy: IfNotPresent
     serviceAccountName: platform-podplane-operator
+    metrics:
+      enabled: false
+      port: 8080
+      service:
+        enabled: true
+      # NetworkPolicy peers for trusted collectors. Empty denies all metrics
+      # ingress. Use BOTH namespaceSelector and podSelector in each peer.
+      allowedPeers: []
     registry:
       auth:
         securePort: 9443

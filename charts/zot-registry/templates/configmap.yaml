@@ -14,3 +14,13 @@ metadata:
 data:
   config.json: |-
 {{ include "podplane.zotRegistry.config" . | indent 4 }}
+{{- with .Values.platform.zotRegistry.storage.workloadIdentityProvider }}
+  credentials.json: |-
+{{ dict
+    "type" "external_account"
+    "audience" (printf "//iam.googleapis.com/%s" .)
+    "subject_token_type" "urn:ietf:params:oauth:token-type:jwt"
+    "token_url" "https://sts.googleapis.com/v1/token"
+    "credential_source" (dict "file" "/var/run/google/identity/token")
+    | toPrettyJson | indent 4 }}
+{{- end }}
