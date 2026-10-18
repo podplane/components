@@ -71,11 +71,6 @@ spec:
                         caCert: {{ .Values.bootstrap.secrets.localFakeVault.caCert | b64dec | quote }}
 {{- end }}
 {{- if .Values.bootstrap.domain }}
-                  ingressCertificates:
-                    provider: local-fakevault
-                    keyPrefix: {{ .Values.bootstrap.clusterID | quote }}
-                    domains:
-                      {{ .Values.bootstrap.domain | quote }}: {}
           envoy-gateway:
             platform:
               envoyGateway:
@@ -84,13 +79,7 @@ spec:
                   domains:
                     - apex: {{ .Values.bootstrap.domain | quote }}
                   certificates:
-                    provider: openbao
-                    address: {{ .Values.bootstrap.secrets.localFakeVault.address | quote }}
-                    mountPath: secret
-                    keyPrefix: {{ .Values.bootstrap.clusterID | quote }}
-{{- if .Values.bootstrap.secrets.localFakeVault.caCert }}
-                    caCertPath: /var/run/podplane/secrets-providers/local-fakevault/ca.crt
-{{- end }}
+                    provider: node
 {{- end }}
           secrets-store-csi-provider-openbao:
             podplane:

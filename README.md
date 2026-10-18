@@ -103,7 +103,7 @@ Common environment variables to configure bootstrap:
 - `PLATFORM_INSTALL=minimal|recommended|all` — which platform-components install set to enable (default `minimal`). `recommended` adds Agent Sandbox, Envoy Gateway, Podplane operator, Secrets Store CSI Driver, and the OpenBao Secrets Store CSI provider atop minimal.
 - `CLUSTER_ID=<id>` — cluster ID to set on the Podplane operator when using `PLATFORM_INSTALL=recommended` or `all` (default `default`).
 - `SPIFFE_TRUST_DOMAIN=<domain>` — immutable SPIFFE trust domain for workload identities. Local bootstrap targets default this to `<cluster-id>.k8s.localhost`.
-- `DOMAIN=<zone>` — supplies the cluster domain to bootstrap consumers. Local bootstrap enables Envoy ingress and uses the operator to publish a self-signed fallback certificate through fakevault; production ingress certificates use the configured external secrets provider.
+- `DOMAIN=<zone>` — supplies the cluster domain to bootstrap consumers. Local bootstrap enables Envoy ingress using the Nstance node ingress certificate; secrets-backed production ingress uses the configured external secrets provider.
 - `REGISTRY_HOSTNAME=<host>` — pull component images via the given registry mirror.
 
 Envoy ingress supports secrets-backed certificates (default) and node-local

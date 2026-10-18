@@ -84,9 +84,9 @@ func TestOpenBaoWorkloadCertificateContract(t *testing.T) {
 	}
 }
 
-// TestLocalBootstrapSelectsOpenBaoDefaultProvider verifies the recommended
-// local bootstrap emits a complete operator secrets configuration.
-func TestLocalBootstrapSelectsOpenBaoDefaultProvider(t *testing.T) {
+// TestLocalBootstrapCertificates verifies local ingress uses node certificates
+// while retaining OpenBao for secrets and the workload CA.
+func TestLocalBootstrapCertificates(t *testing.T) {
 	rendered := render(t, "../bootstrap",
 		"--namespace", "platform-components",
 		"--set", "bootstrap.install=recommended",
@@ -103,16 +103,16 @@ func TestLocalBootstrapSelectsOpenBaoDefaultProvider(t *testing.T) {
 		"local-fakevault:\n                        kind: openbao",
 		"name: podplane-secrets-provider-ca-local-fakevault",
 		"mountPath: /var/run/podplane/secrets-providers/local-fakevault",
-		"ingressCertificates:\n                    provider: local-fakevault",
-		"keyPrefix: \"default\"\n                    domains:\n                      \"default.localhost\": {}",
 		"envoy-gateway:\n            platform:\n              envoyGateway:\n                ingress:\n                  enabled: true",
 		"- apex: \"default.localhost\"",
-		"provider: openbao\n                    address: \"https://10.0.2.15:19443/vault/default\"",
-		"caCertPath: /var/run/podplane/secrets-providers/local-fakevault/ca.crt",
+		"certificates:\n                    provider: node",
 	} {
 		if !strings.Contains(rendered, required) {
 			t.Errorf("recommended local bootstrap is missing %q", required)
 		}
+	}
+	if strings.Contains(rendered, "ingressCertificates:") {
+		t.Error("local bootstrap must not enable operator ingress certificate issuance")
 	}
 }
 
