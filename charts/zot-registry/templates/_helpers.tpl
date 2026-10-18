@@ -10,8 +10,8 @@ SPDX-License-Identifier: Apache-2.0
 {{- $oidc := $registry.oidc | default dict -}}
 
 {{- $driver := $storage.driver | default "s3" -}}
-{{- if and $storage.workloadIdentityProvider (or (ne $driver "gcs") $storage.keyfile) -}}
-{{- fail "workloadIdentityProvider requires GCS with keyfile unset; use GOOGLE_APPLICATION_CREDENTIALS for federation" -}}
+{{- if and $storage.googleSecretVersion (or (ne $driver "gcs") (not $storage.keyfile)) -}}
+{{- fail "platform.zotRegistry.storage.googleSecretVersion requires gcs storage and a configured keyfile" -}}
 {{- end -}}
 {{- $storageDriver := dict "name" $driver "bucket" ($storage.bucket | default "registry") -}}
 {{- if eq $driver "s3" -}}
