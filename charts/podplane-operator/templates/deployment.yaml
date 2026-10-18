@@ -26,6 +26,10 @@ spec:
       serviceAccountName: {{ include "podplane-operator.serviceAccountName" . }}
       securityContext:
         runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        # Allow the non-root operator to write serving certificates to emptyDir.
+        fsGroup: 65532
         seccompProfile:
           type: RuntimeDefault
       containers:

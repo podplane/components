@@ -19,6 +19,20 @@ func TestOperatorServingCertificateContract(t *testing.T) {
 		"--set", "podplane.operator.config.cluster.oidc.issuerURL=https://issuer.example",
 		"--set", "podplane.operator.config.cluster.oidc.clientID=registry",
 	)
+	for _, doc := range chartDocuments(t, rendered) {
+		if doc["kind"] != "Deployment" {
+			continue
+		}
+		security := chartMap(doc, "spec", "template", "spec", "securityContext")
+		for _, field := range []string{"runAsUser", "runAsGroup", "fsGroup"} {
+			if got := security[field]; got != 65532 {
+				t.Errorf("operator %s = %v, want 65532 for non-root execution and writable certificate volumes", field, got)
+			}
+		}
+		if security["runAsNonRoot"] != true {
+			t.Error("operator must require non-root execution")
+		}
+	}
 	for _, required := range []string{
 		workloadInjectionAnnotation,
 		"--serving-namespace=platform-podplane-operator",

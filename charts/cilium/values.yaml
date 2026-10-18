@@ -16,6 +16,8 @@ cilium:
   readinessProbe:
     periodSeconds: 5
   kubeProxyReplacement: true
+  socketLB:
+    hostNamespaceOnly: true # required for gVisor
   k8sServiceHost: kube-apiserver.podplane.internal
   k8sServicePort: 6443
   ipv4:
