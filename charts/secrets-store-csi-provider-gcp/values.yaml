@@ -11,7 +11,7 @@ gcp:
     pullPolicy: IfNotPresent
   initImage:
     repository: docker.io/library/busybox
-    tag: "1.36"
+    tag: "1.37-glibc"
     pullPolicy: IfNotPresent
   socketDir: /etc/kubernetes/secrets-store-csi-providers
   resources:

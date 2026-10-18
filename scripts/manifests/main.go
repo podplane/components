@@ -35,7 +35,8 @@ var (
 	version     = flag.String("version", "", "Component manifest version. Defaults to VERSION, or dev when VERSION is unset.")
 	checkOnly   = flag.Bool("check", false, "Check the manifest against chart renders without resolving images or writing files.")
 	extraImages = []extraImage{
-		{Repo: "docker.io/library/golang", Tag: "alpine"},
+		// Keep a full glibc-based Go toolchain available for air-gapped Jobs.
+		{Repo: "docker.io/library/golang", Tag: "1.26.2-trixie"},
 		{Repo: "docker.io/envoyproxy/envoy", Tag: "distroless-v1.39.0", Components: []string{"envoy-gateway"}},
 		{Repo: "ghcr.io/podplane/hello", Tag: "latest"},
 		// Keep this version in sync with podplane/vmconfig scripts/manifests/sources.go.

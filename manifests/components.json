@@ -120,11 +120,11 @@
         "components": [
           "secrets-store-csi-provider-gcp"
         ],
-        "image": "docker.io/library/busybox:1.36",
-        "digest": "sha256:b7f3d86d6e84fc17718c48bcde1450807faa2d56704205c697b4bd5df7b9e29f",
-        "size": 2207471,
+        "image": "docker.io/library/busybox:1.37-glibc",
+        "digest": "sha256:66a6306db78bf2dbf3487f293aa8d6990d8e506fdffab9cc43fe422becf886e4",
+        "size": 2212583,
         "platform": "linux/amd64",
-        "index": "sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662",
+        "index": "sha256:42a9ff19af33811ee466b24c66384461d37c32dcc28d1d27d49b8aca816bd5ee",
         "providers": [
           "gcp"
         ],
@@ -134,29 +134,29 @@
         "components": [
           "secrets-store-csi-provider-gcp"
         ],
-        "image": "docker.io/library/busybox:1.36",
-        "digest": "sha256:bd44eb136a95dcc8dc58995e43abc40a413f2e8e3d4a2aae6bccbe94686acb05",
-        "size": 1897352,
+        "image": "docker.io/library/busybox:1.37-glibc",
+        "digest": "sha256:d82c2ab94640ded77cf76514ce6a84870761105058a4a9e51b05a8a79be97a6c",
+        "size": 1901860,
         "platform": "linux/arm64/v8",
-        "index": "sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662",
+        "index": "sha256:42a9ff19af33811ee466b24c66384461d37c32dcc28d1d27d49b8aca816bd5ee",
         "providers": [
           "gcp"
         ],
         "addon": true
       },
       {
-        "image": "docker.io/library/golang:alpine",
-        "digest": "sha256:3b15ba438c60ab8fabe5fee3b11025c0049e358b31feff384648f11fc8e335f8",
-        "size": 75247011,
+        "image": "docker.io/library/golang:1.26.2-trixie",
+        "digest": "sha256:7095ad02810845fa35d1fb090b8e57dd20dce4ca36b29b42951802350d2ec90e",
+        "size": 312110797,
         "platform": "linux/amd64",
-        "index": "sha256:f92b6ef800e499660581efdabdf25d9d817a9d124eaf900924f0504e7e27e12d"
+        "index": "sha256:4a7137ea573f79c86ae451ff05817ed762ef5597fcf732259e97abeb3108d873"
       },
       {
-        "image": "docker.io/library/golang:alpine",
-        "digest": "sha256:c2b8d9b05d9386fe1b01bab829eda3a05edb526c220e638d3c7a73671a290672",
-        "size": 72158422,
+        "image": "docker.io/library/golang:1.26.2-trixie",
+        "digest": "sha256:9cad238cf0e07195a64c4e7c26f0fe9ac82db343a5d15441fe01538fdf432210",
+        "size": 304701574,
         "platform": "linux/arm64/v8",
-        "index": "sha256:f92b6ef800e499660581efdabdf25d9d817a9d124eaf900924f0504e7e27e12d"
+        "index": "sha256:4a7137ea573f79c86ae451ff05817ed762ef5597fcf732259e97abeb3108d873"
       },
       {
         "components": [
