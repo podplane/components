@@ -7,7 +7,7 @@ podplane:
     namePrefix: platform-podplane-operator
     image:
       repository: ghcr.io/podplane/operator
-      tag: "v0.10.0"
+      tag: "v0.11.0"
       pullPolicy: IfNotPresent
     serviceAccountName: platform-podplane-operator
     googleWorkloadIdentity:
@@ -21,13 +21,6 @@ podplane:
       # NetworkPolicy peers for trusted collectors. Empty denies all metrics
       # ingress. Use BOTH namespaceSelector and podSelector in each peer.
       allowedPeers: []
-    registry:
-      auth:
-        securePort: 9443
-        backendTLSPolicy:
-          enabled: true
-          caCertificateRef:
-            name: certificates.podplane.dev:workload:roots
     aggregatedApiService:
       securePort: 8443
     config:
@@ -45,9 +38,6 @@ podplane:
         allowSyncToKubernetesSecrets: false
         defaultProvider: ""
         providers: {}
-      registry:
-        auth:
-          enabled: false
       ingressCertificates:
         provider: ""
         keyPrefix: ""

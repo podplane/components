@@ -99,7 +99,7 @@ test: ## Run Go tests with the race detector
 	go test -race ./...
 	go -C tests test -race ./...
 
-precommit: check ## Fast local pre-commit check: JSON fmt + helm lint (no network)
+precommit: check check-release-manifest ## Offline checks: JSON fmt + image alignment/inventory + helm lint
 	@command -v helm >/dev/null 2>&1 || { echo "helm is required but not installed"; exit 1; }
 	@for chart in $(CHARTS); do \
 		extra_args=""; \
@@ -134,9 +134,9 @@ check-crd-freshness: ## Compare upstream CRDs without changes (CHART=<name>, def
 
 .PHONY: update-manifests check-release-manifest release-manifest release-assets
 
-update-manifests: ## Generate manifests/components.json from rendered non-CRD charts
+update-manifests: ## Update image manifest (COMPONENT=<name> or all non-CRD charts)
 	@echo "Updating manifests/components.json from rendered non-CRD charts..."
-	@go run ./scripts/manifests --output manifests/components.json
+	@go run ./scripts/manifests --output manifests/components.json $(if $(COMPONENT),--component "$(COMPONENT)")
 
 RELEASE_DIR ?= dist/release
 

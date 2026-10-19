@@ -39,15 +39,12 @@ app.kubernetes.io/component: operator
 {{- $secretsValues := $valuesConfig.secrets | default dict -}}
 {{- $workloadValues := $valuesConfig.workloadCertificates | default dict -}}
 {{- $ingressValues := $valuesConfig.ingressCertificates | default dict -}}
-{{- $registryAuthEnabled := eq (include "podplane-operator.registryAuth.enabled" .) "true" -}}
 {{- $clusterID := $clusterValues.id -}}
 {{- $_ := required "podplane.operator.config.cluster.id is required" $clusterID -}}
 {{- $oidcValues := $clusterValues.oidc | default dict -}}
-{{- if $registryAuthEnabled -}}{{- $_ := required "podplane.operator.config.cluster.oidc.issuerURL is required when registry auth is enabled" $oidcValues.issuerURL -}}{{- end -}}
 {{- $config := dict
   "cluster" (dict "id" $clusterID "oidc" (dict "client_id" (default $clusterID $oidcValues.clientID)))
   "secrets" (dict "key_rotation" (default "6h" $secretsValues.keyRotation) "allow_sync_to_kubernetes_secrets" (default false $secretsValues.allowSyncToKubernetesSecrets) "default_provider" (default "" $secretsValues.defaultProvider) "providers" dict)
-  "registry" (dict "auth" (dict "enabled" $registryAuthEnabled))
 -}}
 {{- $spiffeValues := $clusterValues.spiffe | default dict -}}
 {{- $_ := required "podplane.operator.config.cluster.spiffe.trustDomain is required" $spiffeValues.trustDomain -}}
@@ -90,9 +87,4 @@ app.kubernetes.io/component: operator
 {{- end -}}
 {{- $_ := set $config "rbac" (dict "namespace_group_bindings" (dig "rbac" "namespaceGroupBindings" false $valuesConfig)) -}}
 {{- toPrettyJson $config -}}
-{{- end -}}
-
-{{- define "podplane-operator.registryAuth.enabled" -}}
-{{- $valuesConfig := .Values.podplane.operator.config | default dict -}}
-{{- dig "registry" "auth" "enabled" false $valuesConfig -}}
 {{- end -}}

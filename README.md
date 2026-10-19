@@ -183,14 +183,24 @@ CRDs with upstream without changing the checkout.
 
 ## Validation and Releases
 
+Run `make precommit` for offline checks, including shared-image version alignment
+(such as the operator and Envoy Gateway SDS sidecar) and manifest freshness.
+
 Run `make ci` for chart linting, schema validation, CRD compatibility, image
 inventory checks, and Go tests. Requires `helm`, `jq`, Go, and `kubeconform`;
 these checks do not install anything into a cluster.
 Schema validation skips CRD definitions, but validates custom resources against
 the schemas shipped in those CRDs.
 
-After changing image versions, run `make update-manifests`. Prepare chart
-packages, the release manifest, and SHA512 checksums locally with:
+After changing image versions, run `make update-manifests`, or
+`make update-manifests COMPONENT=envoy-gateway` to update only one component.
+The script also accepts `go run ./scripts/manifests --component envoy-gateway`.
+A single-component update requires an existing manifest and preserves its
+version, source, and unrelated images. It refreshes shared images while retaining
+their other component memberships. `--check` always checks the full inventory
+and cannot be combined with `--component`.
+
+Prepare chart packages, the release manifest, and SHA512 checksums locally with:
 
 ```sh
 VERSION=X.Y.Z make release-assets

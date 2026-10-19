@@ -56,7 +56,7 @@ driver trims slashes from rootdirectory, so "//" keeps keys at the bucket root.
     "writeTimeout" "60s"
     "accessControl" ($registry.accessControl | default dict)
     "auth" (dict "bearer" (dict
-      "realm" "zot"
+      "realm" (printf "https://%s/zot/auth/token" ($registry.registryHostname | default "zot-registry"))
       "service" ($registry.registryHostname | default "zot-registry")
       "oidc" (list (dict
         "issuer" $issuer

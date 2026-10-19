@@ -7,8 +7,8 @@ name: zot-registry
 description: Podplane zot-registry chart
 type: application
 version: "1.0.0"
-appVersion: "v2.1.18"
+appVersion: "v2.1.22"
 dependencies:
   - name: zot
-    version: "0.1.118"
+    version: "0.1.128"
     repository: "https://zotregistry.dev/helm-charts"

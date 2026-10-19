@@ -15,9 +15,6 @@ const workloadInjectionAnnotation = "certificates.podplane.dev/inject-ca-from: w
 func TestOperatorServingCertificateContract(t *testing.T) {
 	rendered := render(t, "../charts/podplane-operator",
 		"--namespace", "platform-podplane-operator", "-f", "../tests/values/podplane-operator.yaml",
-		"--set", "podplane.operator.config.registry.auth.enabled=true",
-		"--set", "podplane.operator.config.cluster.oidc.issuerURL=https://issuer.example",
-		"--set", "podplane.operator.config.cluster.oidc.clientID=registry",
 	)
 	for _, doc := range chartDocuments(t, rendered) {
 		if doc["kind"] != "Deployment" {
@@ -39,10 +36,7 @@ func TestOperatorServingCertificateContract(t *testing.T) {
 		"--aggregated-api-tls-cert-file=/var/run/podplane/serving/aggregated-api/tls.crt",
 		"--aggregated-api-tls-private-key-file=/var/run/podplane/serving/aggregated-api/tls.key",
 		"--aggregated-api-service-name=platform-podplane-operator-aggregated-api",
-		"--registry-auth-tls-cert-file=/var/run/podplane/serving/registry-auth/tls.crt",
-		"--registry-auth-tls-private-key-file=/var/run/podplane/serving/registry-auth/tls.key",
-		"--registry-auth-service-name=platform-podplane-operator-registry-auth",
-		"name: aggregated-api-serving-tls", "name: registry-auth-serving-tls", "emptyDir: {}",
+		"name: aggregated-api-serving-tls", "emptyDir: {}",
 	} {
 		if !strings.Contains(rendered, required) {
 			t.Errorf("operator render is missing %q", required)
@@ -50,7 +44,7 @@ func TestOperatorServingCertificateContract(t *testing.T) {
 	}
 	for _, forbidden := range []string{
 		"apiVersion: cert-manager.io/", "kind: Certificate", "secretName: platform-podplane-operator-tls", "cert-manager.io/inject-ca-from",
-		"--aggregated-api-tls-dns-names", "--registry-auth-tls-dns-names",
+		"--aggregated-api-tls-dns-names", "registry-auth",
 	} {
 		if strings.Contains(rendered, forbidden) {
 			t.Errorf("operator render unexpectedly contains %q", forbidden)

@@ -52,12 +52,6 @@ spec:
             - --aggregated-api-tls-cert-file=/var/run/podplane/serving/aggregated-api/tls.crt
             - --aggregated-api-tls-private-key-file=/var/run/podplane/serving/aggregated-api/tls.key
             - --aggregated-api-service-name={{ include "podplane-operator.namePrefix" . }}-aggregated-api
-{{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}
-            - --registry-auth-bind-address=:{{ .Values.podplane.operator.registry.auth.securePort }}
-            - --registry-auth-tls-cert-file=/var/run/podplane/serving/registry-auth/tls.crt
-            - --registry-auth-tls-private-key-file=/var/run/podplane/serving/registry-auth/tls.key
-            - --registry-auth-service-name={{ include "podplane-operator.namePrefix" . }}-registry-auth
-{{- end }}
           ports:
 {{- if .Values.podplane.operator.metrics.enabled }}
             - name: metrics
@@ -65,10 +59,6 @@ spec:
 {{- end }}
             - name: aggregated-api
               containerPort: {{ .Values.podplane.operator.aggregatedApiService.securePort }}
-{{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}
-            - name: registry-auth
-              containerPort: {{ .Values.podplane.operator.registry.auth.securePort }}
-{{- end }}
 {{- if or .Values.podplane.operator.googleWorkloadIdentity.provider .Values.podplane.operator.env }}
           env:
 {{- if .Values.podplane.operator.googleWorkloadIdentity.provider }}
@@ -108,10 +98,6 @@ spec:
               readOnly: true
             - name: aggregated-api-serving-tls
               mountPath: /var/run/podplane/serving/aggregated-api
-{{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}
-            - name: registry-auth-serving-tls
-              mountPath: /var/run/podplane/serving/registry-auth
-{{- end }}
             - name: config
               mountPath: /config
               readOnly: true
@@ -140,10 +126,6 @@ spec:
               secretProviderClass: platform-podplane-operator
         - name: aggregated-api-serving-tls
           emptyDir: {}
-{{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}
-        - name: registry-auth-serving-tls
-          emptyDir: {}
-{{- end }}
         - name: config
           configMap:
             name: {{ include "podplane-operator.namePrefix" . }}-config

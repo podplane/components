@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 {{- $m := .Values.podplane.operator.metrics }}
 {{- if $m.enabled }}
-{{- if or (eq (int $m.port) (int .Values.podplane.operator.aggregatedApiService.securePort)) (eq (int $m.port) (int .Values.podplane.operator.registry.auth.securePort)) (lt (int $m.port) 1024) (gt (int $m.port) 65535) }}
-{{- fail "metrics.port must be an unprivileged port distinct from operator HTTPS ports" }}
+{{- if or (eq (int $m.port) (int .Values.podplane.operator.aggregatedApiService.securePort)) (lt (int $m.port) 1024) (gt (int $m.port) 65535) }}
+{{- fail "metrics.port must be an unprivileged port distinct from the operator HTTPS port" }}
 {{- end }}
 {{- if $m.service.enabled }}
 ---
@@ -38,14 +38,10 @@ spec:
 {{ include "podplane-operator.selectorLabels" . | indent 6 }}
   policyTypes: [Ingress]
   ingress:
-    # Preserve existing authenticated HTTPS endpoints, not metrics.
+    # Preserve the authenticated HTTPS endpoint, not metrics.
     - ports:
         - port: {{ .Values.podplane.operator.aggregatedApiService.securePort }}
           protocol: TCP
-{{- if eq (include "podplane-operator.registryAuth.enabled" .) "true" }}
-        - port: {{ .Values.podplane.operator.registry.auth.securePort }}
-          protocol: TCP
-{{- end }}
 {{- with $m.allowedPeers }}
     - from:
 {{ toYaml . | indent 8 }}

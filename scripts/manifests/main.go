@@ -34,6 +34,7 @@ var (
 	outputPath  = flag.String("output", "manifests/components.json", "Path to write the component manifest JSON.")
 	version     = flag.String("version", "", "Component manifest version. Defaults to VERSION, or dev when VERSION is unset.")
 	checkOnly   = flag.Bool("check", false, "Check the manifest against chart renders without resolving images or writing files.")
+	component   = flag.String("component", "", "Update only this non-CRD component in an existing manifest, preserving its version and source.")
 	extraImages = []extraImage{
 		// Keep a full glibc-based Go toolchain available for air-gapped Jobs.
 		{Repo: "docker.io/library/golang", Tag: "1.26.2-trixie"},
@@ -129,6 +130,9 @@ func main() {
 
 // run renders non-CRD charts, resolves image metadata, and writes the manifest.
 func run() error {
+	if *component != "" && *checkOnly {
+		return fmt.Errorf("--component cannot be combined with --check")
+	}
 	repoRoot, err := os.Getwd()
 	if err != nil {
 		return err
@@ -145,9 +149,24 @@ func run() error {
 			chartNames = append(chartNames, entry.Name())
 		}
 	}
+	var doc manifest
+	if *component != "" {
+		if !slices.Contains(chartNames, *component) {
+			return fmt.Errorf("unknown non-CRD component %q", *component)
+		}
+		chartNames = []string{*component}
+		body, err := os.ReadFile(*outputPath)
+		if err != nil {
+			return fmt.Errorf("read existing manifest for --component: %w", err)
+		}
+		if err := json.Unmarshal(body, &doc); err != nil {
+			return fmt.Errorf("parse existing manifest: %w", err)
+		}
+	}
 
 	imageRefs := map[string]string{}
 	componentsByImage := map[string]map[string]bool{}
+	unscopedImages := map[string]bool{}
 	sort.Slice(extraImages, func(i, j int) bool {
 		if extraImages[i].Repo != extraImages[j].Repo {
 			return extraImages[i].Repo < extraImages[j].Repo
@@ -157,6 +176,12 @@ func run() error {
 	fmt.Fprintf(os.Stderr, "resolving %d static extra image(s)\n", len(extraImages))
 	for _, extra := range extraImages {
 		imageRef := normalizeImage(extra.Repo + ":" + extra.Tag)
+		if len(extra.Components) == 0 {
+			unscopedImages[imageRef] = true
+		}
+		if *component != "" && !slices.Contains(extra.Components, *component) {
+			continue
+		}
 		if err := validateImageRef(imageRefs, imageRef); err != nil {
 			return err
 		}
@@ -191,12 +216,37 @@ func run() error {
 		return checkManifest(componentsByImage)
 	}
 
+	images := []image{}
+	for _, row := range doc.Components.Images {
+		remaining := slices.DeleteFunc(slices.Clone(row.Components), func(name string) bool { return name == *component })
+		if len(row.Components) > 0 && len(remaining) == 0 && !unscopedImages[row.Image] {
+			continue
+		}
+		if err := validateImageRef(imageRefs, row.Image); err != nil {
+			return err
+		}
+		if memberships, refreshing := componentsByImage[row.Image]; refreshing {
+			for _, name := range remaining {
+				memberships[name] = true
+			}
+			continue
+		}
+		if len(remaining) != len(row.Components) {
+			row.Components = remaining
+			meta, err := sharedMetadata(remaining)
+			if err != nil {
+				return err
+			}
+			row.Providers, row.Addon = meta.Providers, meta.Addon
+		}
+		images = append(images, row)
+	}
+
 	sources := make([]string, 0, len(componentsByImage))
 	for source := range componentsByImage {
 		sources = append(sources, source)
 	}
 	sort.Strings(sources)
-	images := []image{}
 	for i, source := range sources {
 		components := slices.Sorted(maps.Keys(componentsByImage[source]))
 		fmt.Fprintf(os.Stderr, "resolving image %d/%d: %s\n", i+1, len(sources), source)
@@ -220,11 +270,12 @@ func run() error {
 	if manifestVersion == "" {
 		manifestVersion = "dev"
 	}
-	body, err := json.MarshalIndent(manifest{Components: components{
-		Version: manifestVersion,
-		Source:  componentsSource(manifestVersion),
-		Images:  images,
-	}}, "", "  ")
+	if *component == "" {
+		doc.Components.Version = manifestVersion
+		doc.Components.Source = componentsSource(manifestVersion)
+	}
+	doc.Components.Images = images
+	body, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {
 		return err
 	}

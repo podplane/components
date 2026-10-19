@@ -210,28 +210,6 @@ func TestVaultWorkloadCertificateContract(t *testing.T) {
 	}
 }
 
-// TestWorkloadCertificateGatewayTrustContract verifies direct Gateway API workload trust.
-func TestWorkloadCertificateGatewayTrustContract(t *testing.T) {
-	rendered := render(t, "../charts/podplane-operator",
-		"--namespace", "platform-podplane-operator", "-f", "../tests/values/podplane-operator.yaml",
-		"--set", "podplane.operator.config.cluster.spiffe.trustDomain=cluster.example",
-		"--set", "podplane.operator.config.cluster.oidc.issuerURL=https://issuer.example",
-		"--set", "podplane.operator.config.registry.auth.enabled=true",
-	)
-	for _, required := range []string{
-		"kind: ClusterTrustBundle", "name: certificates.podplane.dev:workload:roots",
-	} {
-		if !strings.Contains(rendered, required) {
-			t.Errorf("Gateway trust render is missing %q", required)
-		}
-	}
-	for _, forbidden := range []string{"workload-ca-bundle", "platform-podplane-workload-bundle", "ca_bundle_mirror"} {
-		if strings.Contains(rendered, forbidden) {
-			t.Errorf("Gateway trust render contains obsolete mirror reference %q", forbidden)
-		}
-	}
-}
-
 // TestWorkloadCertificateOrdering verifies workload certificate runtime dependencies.
 func TestWorkloadCertificateOrdering(t *testing.T) {
 	rendered := render(t, "../charts/platform-components",

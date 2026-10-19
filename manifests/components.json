@@ -265,11 +265,11 @@
           "envoy-gateway",
           "podplane-operator"
         ],
-        "image": "ghcr.io/podplane/operator:v0.9.0",
-        "digest": "sha256:f7269646932c0c290442137cdf0412731e3e1c9d251df7c920df90f521a18419",
-        "size": 29410954,
+        "image": "ghcr.io/podplane/operator:v0.11.0",
+        "digest": "sha256:2d32e92df13f0cdbd417b2e01dd957cc3edd78dde47ba886f37b164e08d84765",
+        "size": 29104155,
         "platform": "linux/amd64",
-        "index": "sha256:e398cc227b271aecac55fb6554f647ceb07758de10a31ff3667204289528e999",
+        "index": "sha256:b320b7982bf7cdf25d63b51e30fac562fedc778c250bf059782aef2a89927b18",
         "addon": true
       },
       {
@@ -277,32 +277,32 @@
           "envoy-gateway",
           "podplane-operator"
         ],
-        "image": "ghcr.io/podplane/operator:v0.9.0",
-        "digest": "sha256:21d42ece23e6bdbef2133aa3b2fd93bc6e8084b62ce34f9403209cf28753be26",
-        "size": 26341971,
+        "image": "ghcr.io/podplane/operator:v0.11.0",
+        "digest": "sha256:7faf53802cde509055b23b02ce61b3f386b36942921b84826fcc74099a7965c9",
+        "size": 26075995,
         "platform": "linux/arm64",
-        "index": "sha256:e398cc227b271aecac55fb6554f647ceb07758de10a31ff3667204289528e999",
+        "index": "sha256:b320b7982bf7cdf25d63b51e30fac562fedc778c250bf059782aef2a89927b18",
         "addon": true
       },
       {
         "components": [
           "zot-registry"
         ],
-        "image": "ghcr.io/project-zot/zot:v2.1.18",
-        "digest": "sha256:34f18f783037f967dba10df02f9d4086c4d626f5643ef9f5e51e4a4547280a0b",
-        "size": 74148805,
+        "image": "ghcr.io/project-zot/zot:v2.1.22",
+        "digest": "sha256:46f688dc26315a35a247e1784368829e66a67bf91de94c7d8d1645044fac1d5b",
+        "size": 75600225,
         "platform": "linux/amd64",
-        "index": "sha256:6f7bf2b8e43437c7c3a121bc80214845c85f27321e66f2ff4be6bf4220775fd7"
+        "index": "sha256:96cda11459ce6f8c60da3b03f03e9f67fd11b3ae2d82c4c04c92b3c608996080"
       },
       {
         "components": [
           "zot-registry"
         ],
-        "image": "ghcr.io/project-zot/zot:v2.1.18",
-        "digest": "sha256:96913b282b93ee7bc415555c14887e81ece9078631f3189c2e8c1fbb5f888af6",
-        "size": 67685366,
+        "image": "ghcr.io/project-zot/zot:v2.1.22",
+        "digest": "sha256:920e3e327a73513643c67d14f54092c45ece6d29660bff7e898107e00b49fa03",
+        "size": 68835367,
         "platform": "linux/arm64/v8",
-        "index": "sha256:6f7bf2b8e43437c7c3a121bc80214845c85f27321e66f2ff4be6bf4220775fd7"
+        "index": "sha256:96cda11459ce6f8c60da3b03f03e9f67fd11b3ae2d82c4c04c92b3c608996080"
       },
       {
         "components": [
