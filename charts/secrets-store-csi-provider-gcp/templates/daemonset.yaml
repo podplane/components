@@ -63,7 +63,16 @@ spec:
           env:
             - name: TARGET_DIR
               value: {{ .Values.gcp.socketDir | quote }}
+{{- if .Values.platform.secretsStoreCSIProviderGCP.googleWorkloadIdentity.provider }}
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/run/google/identity/credentials.json
+{{- end }}
           volumeMounts:
+{{- if .Values.platform.secretsStoreCSIProviderGCP.googleWorkloadIdentity.provider }}
+            - name: google-identity
+              mountPath: /var/run/google/identity
+              readOnly: true
+{{- end }}
             - name: providervol
               mountPath: {{ .Values.gcp.socketDir }}
               mountPropagation: None
@@ -79,6 +88,17 @@ spec:
           resources:
 {{ toYaml .Values.gcp.resources | indent 12 }}
       volumes:
+{{- with .Values.platform.secretsStoreCSIProviderGCP.googleWorkloadIdentity.provider }}
+        - name: google-identity
+          projected:
+            sources:
+              - serviceAccountToken:
+                  audience: {{ printf "https://iam.googleapis.com/%s" . | quote }}
+                  expirationSeconds: 3600
+                  path: token
+              - configMap:
+                  name: google-workload-identity
+{{- end }}
         - name: providervol
           hostPath:
             path: {{ .Values.gcp.socketDir }}

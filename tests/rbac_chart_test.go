@@ -14,6 +14,33 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
+// TestSecretProviderClassWriters rejects raw SPC bypasses, even with forged ownership.
+func TestSecretProviderClassWriters(t *testing.T) {
+	policy := renderValidatingPolicy(t, "../charts/platform-rbac", "platform-spc-writer-vap", "--namespace", "platform-cluster")
+	for _, tc := range []struct {
+		user, group string
+		want        bool
+	}{
+		{"alice", "podplane:admins", true},
+		{"root", "system:masters", true},
+		{"system:serviceaccount:platform-podplane-operator:platform-podplane-operator", "system:serviceaccounts", true},
+		{"system:serviceaccount:platform-fluxcd:helm-controller", "system:serviceaccounts", true},
+		{"alice", "podplane:managers", false},
+		{"alice", "podplane:editors", false},
+		{"system:serviceaccount:team-a:platform-podplane-operator", "system:serviceaccounts", false},
+		{"system:serviceaccount:platform-cluster:platform-podplane-operator", "system:serviceaccounts", false},
+		{"system:serviceaccount:team-a:helm-controller", "system:serviceaccounts", false},
+	} {
+		got := policy.admits(t, map[string]any{
+			"request": map[string]any{"userInfo": map[string]any{"username": tc.user, "groups": []string{tc.group}}},
+			"object":  map[string]any{"metadata": map[string]any{"labels": map[string]any{"app.kubernetes.io/managed-by": "podplane"}, "ownerReferences": []any{map[string]any{"kind": "SecretProviderBinding", "name": "stolen"}}}},
+		})
+		if got != tc.want {
+			t.Errorf("%s (%s): allowed=%v, want %v", tc.user, tc.group, got, tc.want)
+		}
+	}
+}
+
 // TestReserveNamespacePrefixesPolicy evaluates who may create kube-* and platform-* namespaces.
 func TestReserveNamespacePrefixesPolicy(t *testing.T) {
 	policy := renderValidatingPolicy(t, "../charts/platform-rbac", "platform-reserve-namespace-prefixes-vap")

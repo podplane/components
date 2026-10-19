@@ -2,6 +2,10 @@
 # Copyright The Podplane Authors
 # SPDX-License-Identifier: Apache-2.0
 ---
+platform:
+  cilium:
+    # Google nodes keep host metadata access; ordinary Pods use federated identities.
+    blockGoogleMetadata: false
 # https://docs.cilium.io/en/stable/helm-reference/
 # https://github.com/cilium/cilium/blob/main/install/kubernetes/cilium/values.yaml
 cilium:

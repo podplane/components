@@ -13,3 +13,9 @@ platform:
         enabled: true
       podSecurityDefaults:
         enabled: true
+      secretProviderClassRestriction:
+        enabled: true
+        excludeNamespacesWithLabel:
+          enabled: false
+          key: secrets.podplane.dev/secretproviderclass-restriction-policy
+          value: bypass

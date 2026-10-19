@@ -85,16 +85,21 @@ func TestWorkloadCertificateContract(t *testing.T) {
 		"mountPath: /var/run/podplane/certificates", "readOnly: true", "type: Recreate", "resources: [\"podcertificaterequests\"]",
 		"resourceNames: [\"certificates.podplane.dev/workload\"]", "verbs: [\"sign\", \"attest\"]",
 		"resourceNames: [\"certificates.podplane.dev:workload:roots\"]", "resources: [\"pods\", \"services\"]",
-		"reserved-workload-ca-spc-vap",
 		"\"trust_domain\": \"cluster.example\"", "\"certificates\":", "\"ca_path\": \"/var/run/podplane/certificates/workload-ca-key\"",
 	} {
 		if !strings.Contains(enabled, required) {
 			t.Errorf("enabled render is missing %q", required)
 		}
 	}
-	for _, forbidden := range []string{"kind: Secret\n", "Podplane Workload CA", "providerCredentials", "helm.sh/hook", "subPath:", "\"workload_certificates\""} {
+	for _, forbidden := range []string{"kind: Secret\n", "kind: ValidatingAdmissionPolicy", "Podplane Workload CA", "providerCredentials", "helm.sh/hook", "subPath:", "\"workload_certificates\""} {
 		if strings.Contains(enabled, forbidden) {
 			t.Errorf("workload contract unexpectedly contains %q", forbidden)
+		}
+	}
+	policies := render(t, "../charts/platform-rbac", "--namespace", "platform-cluster")
+	for _, required := range []string{"platform-reserved-workload-ca-spc-vap", "object.metadata.namespace == 'platform-podplane-operator'", "object.metadata.name == 'platform-podplane-operator'"} {
+		if !strings.Contains(policies, required) {
+			t.Errorf("platform workload CA protection is missing %q", required)
 		}
 	}
 }

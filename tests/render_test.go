@@ -62,11 +62,11 @@ type validatingPolicy struct {
 
 // renderValidatingPolicy renders chart and compiles the named policy, failing
 // the calling test unless the policy fails closed and is bound with Deny.
-func renderValidatingPolicy(t *testing.T, chart, name string) validatingPolicy {
+func renderValidatingPolicy(t *testing.T, chart, name string, args ...string) validatingPolicy {
 	t.Helper()
 	var spec map[string]any
 	bound := false
-	for _, doc := range chartDocuments(t, render(t, chart)) {
+	for _, doc := range chartDocuments(t, render(t, chart, args...)) {
 		switch {
 		case doc["kind"] == "ValidatingAdmissionPolicy" && chartMap(doc, "metadata")["name"] == name:
 			spec = chartMap(doc, "spec")

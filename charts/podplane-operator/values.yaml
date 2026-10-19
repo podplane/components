@@ -7,9 +7,12 @@ podplane:
     namePrefix: platform-podplane-operator
     image:
       repository: ghcr.io/podplane/operator
-      tag: "v0.9.0"
+      tag: "v0.10.0"
       pullPolicy: IfNotPresent
     serviceAccountName: platform-podplane-operator
+    googleWorkloadIdentity:
+      # Full projects/NUMBER/locations/global/workloadIdentityPools/POOL/providers/PROVIDER name.
+      provider: ""
     metrics:
       enabled: false
       port: 8080
@@ -74,13 +77,6 @@ podplane:
       enabled: true
       group: secrets-api.podplane.dev
       version: v1beta1
-    admissionPolicies:
-      secretProviderClassRestriction:
-        enabled: true
-        excludeNamespacesWithLabel:
-          enabled: false
-          key: secrets.podplane.dev/secretproviderclass-restriction-policy
-          value: bypass
     rbac:
       defaultRoles:
         enabled: true

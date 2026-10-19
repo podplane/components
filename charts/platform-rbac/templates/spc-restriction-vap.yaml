@@ -1,16 +1,14 @@
 # Podplane <https://podplane.dev>
 # Copyright The Podplane Authors
 # SPDX-License-Identifier: Apache-2.0
-{{- $policy := .Values.podplane.operator.admissionPolicies.secretProviderClassRestriction | default dict -}}
+{{- $policy := .Values.platform.rbac.admissionPolicies.secretProviderClassRestriction | default dict -}}
 {{- if ne false ($policy.enabled) }}
 {{- $exclude := $policy.excludeNamespacesWithLabel | default dict -}}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
 metadata:
-  name: {{ include "podplane-operator.spcRestrictionPolicyName" . }}
-  labels:
-{{ include "podplane-operator.labels" . | indent 4 }}
+  name: platform-spc-restriction-vap
 spec:
   failurePolicy: Fail
   matchConstraints:
@@ -38,11 +36,9 @@ spec:
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
 metadata:
-  name: {{ include "podplane-operator.spcRestrictionBindingName" . }}
-  labels:
-{{ include "podplane-operator.labels" . | indent 4 }}
+  name: platform-spc-restriction-vapb
 spec:
-  policyName: {{ include "podplane-operator.spcRestrictionPolicyName" . }}
+  policyName: platform-spc-restriction-vap
   validationActions: ["Deny", "Audit"]
   matchResources:
 {{- if $exclude.enabled }}
@@ -60,9 +56,7 @@ spec:
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
 metadata:
-  name: {{ include "podplane-operator.namePrefix" . }}-reserved-workload-ca-spc-vap
-  labels:
-{{ include "podplane-operator.labels" . | indent 4 }}
+  name: platform-reserved-workload-ca-spc-vap
 spec:
   failurePolicy: Fail
   matchConstraints:
@@ -74,18 +68,16 @@ spec:
   validations:
     - expression: >
         !object.spec.parameters.exists(key, value, value.contains('workload-ca-key')) ||
-        (object.metadata.namespace == {{ .Release.Namespace | squote }} &&
+        (object.metadata.namespace == 'platform-podplane-operator' &&
          object.metadata.name == 'platform-podplane-operator')
       message: "The reserved workload-ca-key may only be referenced by the managed platform-podplane-operator SecretProviderClass."
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
 metadata:
-  name: {{ include "podplane-operator.namePrefix" . }}-reserved-workload-ca-spc-vapb
-  labels:
-{{ include "podplane-operator.labels" . | indent 4 }}
+  name: platform-reserved-workload-ca-spc-vapb
 spec:
-  policyName: {{ include "podplane-operator.namePrefix" . }}-reserved-workload-ca-spc-vap
+  policyName: platform-reserved-workload-ca-spc-vap
   validationActions: ["Deny", "Audit"]
   matchResources:
     namespaceSelector: {}

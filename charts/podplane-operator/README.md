@@ -197,31 +197,12 @@ podplane:
 The chart also supports optional `env` and `envFrom` for provider SDK settings
 or Secret-backed environment variables.
 
-## SecretProviderClass restriction bypass
+## SecretProviderClass policies
 
-The chart renders a default ValidatingAdmissionPolicy that prevents pods from
-mounting a Secrets Store CSI `SecretProviderClass` unless its name matches the
-pod `serviceAccountName`. Pods with Secrets Store CSI volumes must set
-`serviceAccountName` explicitly; omitted or empty service account names are
-denied rather than treated as `default`. Cluster admins can optionally enable a
-bypass scoped per-namespace by defining the following label on each namespace:
-
-```yaml
-metadata:
-  labels:
-    secrets.podplane.dev/secretproviderclass-restriction-policy: bypass
-```
-
-Enable that bypass with:
-
-```yaml
-podplane:
-  operator:
-    admissionPolicies:
-      secretProviderClassRestriction:
-        excludeNamespacesWithLabel:
-          enabled: true
-```
+The `platform-rbac` chart owns the cluster-wide secrets admission policies,
+so they remain enforced when the operator is uninstalled. Configure the optional
+namespace bypass in [that chart's values](../platform-rbac/values.yaml) under
+`platform.rbac.admissionPolicies.secretProviderClassRestriction`.
 
 ## Values
 
@@ -252,10 +233,6 @@ Common values:
 | `podplane.operator.apiService.version` | APIService version served by the operator. |
 | `podplane.operator.rbac.defaultRoles.enabled` | Renders default Podplane Secrets ClusterRoles. |
 | `podplane.operator.rbac.defaultRoles.namePrefix` | Name prefix for default Podplane Secrets ClusterRoles. |
-| `podplane.operator.admissionPolicies.secretProviderClassRestriction.enabled` | Renders the default ValidatingAdmissionPolicy restricting direct SecretProviderClass mounts. |
-| `podplane.operator.admissionPolicies.secretProviderClassRestriction.excludeNamespacesWithLabel.enabled` | Excludes namespaces with the configured label from the SecretProviderClass restriction. |
-| `podplane.operator.admissionPolicies.secretProviderClassRestriction.excludeNamespacesWithLabel.key` | Namespace label key used for SecretProviderClass restriction bypass. |
-| `podplane.operator.admissionPolicies.secretProviderClassRestriction.excludeNamespacesWithLabel.value` | Namespace label value used for SecretProviderClass restriction bypass. |
 | `podplane.operator.extraVolumes` | Additional pod volumes. |
 | `podplane.operator.extraVolumeMounts` | Additional operator container mounts. |
 | `podplane.operator.env` | Additional operator environment variables. |

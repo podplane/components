@@ -33,14 +33,6 @@ app.kubernetes.io/component: operator
 {{- .Values.podplane.operator.serviceAccountName | default "platform-podplane-operator" -}}
 {{- end -}}
 
-{{- define "podplane-operator.spcRestrictionPolicyName" -}}
-{{ include "podplane-operator.namePrefix" . }}-spc-restriction-vap
-{{- end -}}
-
-{{- define "podplane-operator.spcRestrictionBindingName" -}}
-{{ include "podplane-operator.namePrefix" . }}-spc-restriction-vapb
-{{- end -}}
-
 {{- define "podplane-operator.configJSON" -}}
 {{- $valuesConfig := .Values.podplane.operator.config | default dict -}}
 {{- $clusterValues := $valuesConfig.cluster | default dict -}}

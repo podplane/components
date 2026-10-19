@@ -1,0 +1,27 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+{{- if .Values.platform.cilium.blockGoogleMetadata }}
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: platform-deny-google-metadata
+spec:
+  # Endpoint selection excludes the host network used by bootstrap services.
+  endpointSelector: {}
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  egressDeny:
+    - toCIDR:
+        - 169.254.169.254/32
+        - fd20:ce::254/128
+      # Google also serves DNS on this IP. Deny the metadata APIs, not DNS.
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+{{- end }}

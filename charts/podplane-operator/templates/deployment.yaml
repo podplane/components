@@ -69,9 +69,15 @@ spec:
             - name: registry-auth
               containerPort: {{ .Values.podplane.operator.registry.auth.securePort }}
 {{- end }}
-{{- with .Values.podplane.operator.env }}
+{{- if or .Values.podplane.operator.googleWorkloadIdentity.provider .Values.podplane.operator.env }}
           env:
+{{- if .Values.podplane.operator.googleWorkloadIdentity.provider }}
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/run/google/identity/credentials.json
+{{- end }}
+{{- with .Values.podplane.operator.env }}
 {{ toYaml . | indent 12 }}
+{{- end }}
 {{- end }}
 {{- with .Values.podplane.operator.envFrom }}
           envFrom:
@@ -92,6 +98,11 @@ spec:
             periodSeconds: 10
             failureThreshold: 6
           volumeMounts:
+{{- if .Values.podplane.operator.googleWorkloadIdentity.provider }}
+            - name: google-identity
+              mountPath: /var/run/google/identity
+              readOnly: true
+{{- end }}
             - name: workload-ca-key
               mountPath: /var/run/podplane/certificates
               readOnly: true
@@ -110,6 +121,17 @@ spec:
           resources:
 {{ toYaml .Values.podplane.operator.resources | indent 12 }}
       volumes:
+{{- with .Values.podplane.operator.googleWorkloadIdentity.provider }}
+        - name: google-identity
+          projected:
+            sources:
+              - serviceAccountToken:
+                  audience: {{ printf "https://iam.googleapis.com/%s" . | quote }}
+                  expirationSeconds: 3600
+                  path: token
+              - configMap:
+                  name: google-workload-identity
+{{- end }}
         - name: workload-ca-key
           csi:
             driver: secrets-store.csi.k8s.io

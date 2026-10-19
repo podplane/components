@@ -46,6 +46,7 @@ spec:
 {{- else if eq $provider "gcp" }}
   provider: gcp
   parameters:
+    auth: provider-adc
     secrets: |
 {{- range .Values.platform.envoyGateway.ingress.domains }}
       - resourceName: {{ printf "projects/%s/secrets/%s_platform-cluster_ingress-certificates_%s/versions/latest" (required "platform.envoyGateway.ingress.certificates.projectID is required for gcp" $certs.projectID) (trimAll "_" $certs.keyPrefix) (include "podplane.envoyGateway.bundle" .) | quote }}

@@ -6,6 +6,9 @@ platform:
   zotRegistry:
     registryHostname: ""
     logLevel: info
+    googleWorkloadIdentity:
+      # Full provider name; generated cluster values also wire Zot's token volume and ADC env.
+      provider: ""
     storage:
       # Object storage driver: s3 (AWS S3 or S3-compatible) or gcs (Google
       # Cloud Storage). Other settings below apply to both drivers unless
@@ -18,11 +21,6 @@ platform:
       # GCS only: path to a service account key file mounted into the pod.
       # Leave empty for Application Default Credentials.
       keyfile: ""
-      # GCS only: projects/.../secrets/.../versions/latest (or a pinned version)
-      # containing the service-account JSON key. Creates a SecretProviderClass
-      # named after Zot's service account, using the CSI provider's ADC identity.
-      # Runtime values supply the CSI volume/mount and matching keyfile path.
-      googleSecretVersion: ""
       # S3 only settings follow.
       region: local
       endpoint: ""
@@ -30,7 +28,7 @@ platform:
       secure: true
       skipVerify: false
       # Static credentials are only for local fake-S3 development. Production
-      # clusters use AWS pod role annotations or a GCS service-account key.
+      # clusters use AWS pod role annotations or Google Workload Identity Federation.
       accessKeyID: ""
       secretAccessKey: ""
     oidc:

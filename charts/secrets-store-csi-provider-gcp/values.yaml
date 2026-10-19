@@ -2,6 +2,11 @@
 # Copyright The Podplane Authors
 # SPDX-License-Identifier: Apache-2.0
 ---
+platform:
+  secretsStoreCSIProviderGCP:
+    googleWorkloadIdentity:
+      # Full projects/NUMBER/locations/global/workloadIdentityPools/POOL/providers/PROVIDER name.
+      provider: ""
 gcp:
   name: gcp
   image:
