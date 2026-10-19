@@ -19,6 +19,69 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// TestBootstrapInstallProfiles locks the addon membership of each public profile.
+func TestBootstrapInstallProfiles(t *testing.T) {
+	platform := map[string][]string{
+		"crds": {"podplane-operator-crds", "secrets-store-csi-driver-crds", "envoy-gateway-crds"},
+		"apps": {"podplane-operator", "secrets-store-csi-driver", "secrets-store-csi-provider-openbao", "envoy-gateway", "zot-registry"},
+	}
+	for _, profile := range []string{"default", "minimal", "platform", "agentic", "all"} {
+		t.Run(profile, func(t *testing.T) {
+			args := []string{}
+			if profile != "default" {
+				args = append(args, "--set", "bootstrap.install="+profile)
+			}
+			var components map[string]any
+			for _, doc := range chartDocuments(t, render(t, "../bootstrap", args...)) {
+				if doc["kind"] == "HelmRelease" {
+					components = chartMap(doc, "spec", "values", "platform", "components")
+				}
+			}
+			if components == nil {
+				t.Fatal("missing platform-components HelmRelease")
+			}
+			for _, section := range []string{"apps", "crds"} {
+				want := map[string]any{}
+				if profile == "platform" || profile == "agentic" || profile == "all" {
+					for _, name := range platform[section] {
+						want[name] = map[string]any{"enabled": true}
+					}
+				}
+				if profile == "agentic" || profile == "all" {
+					name := "agent-sandbox"
+					if section == "crds" {
+						name += "-crds"
+					}
+					want[name] = map[string]any{"enabled": true}
+				}
+				if profile == "all" {
+					extra := []string{"snapshot-crds"}
+					if section == "apps" {
+						extra = []string{"secrets-store-csi-provider-aws", "secrets-store-csi-provider-gcp", "secrets-store-csi-provider-vault", "snapshot", "metrics-server", "node-problem-detector", "cluster-autoscaler"}
+					}
+					for _, name := range extra {
+						want[name] = map[string]any{"enabled": true}
+					}
+				}
+				got, _ := components[section].(map[string]any)
+				if len(want) == 0 {
+					if components[section] != nil {
+						t.Errorf("%s must omit addon overrides", section)
+					}
+				} else if !reflect.DeepEqual(got, want) {
+					t.Errorf("%s = %v, want %v", section, got, want)
+				}
+			}
+		})
+	}
+	for _, retired := range []string{"recommended", "app"} {
+		cmd := exec.Command("helm", "template", "../bootstrap", "--set", "bootstrap.install="+retired)
+		if output, err := cmd.CombinedOutput(); err == nil || !strings.Contains(string(output), "schema") {
+			t.Fatalf("removed profile %q must fail schema validation: %v\n%s", retired, err, output)
+		}
+	}
+}
+
 // TestNstanceBootstrapAndSleepConfig verifies rendered bootstrap references,
 // sleep settings, and placement compatible with the final control-plane node.
 func TestNstanceBootstrapAndSleepConfig(t *testing.T) {
@@ -290,7 +353,7 @@ func TestNstanceProviderOverlay(t *testing.T) {
 		}
 	}
 	// "none" means no bootstrap chart at all; it is not a bootstrap install set.
-	for _, install := range []string{"minimal", "recommended", "all"} {
+	for _, install := range []string{"minimal", "platform", "agentic", "all"} {
 		rendered := render(t, "../bootstrap", "--set", "bootstrap.install="+install)
 		for _, name := range []string{"cluster-api", "nstance-operator"} {
 			if strings.Contains(rendered, name+":") {

@@ -5,9 +5,9 @@
 bootstrap:
   # Select the additional platform-components CRDs/apps to install:
   #   minimal     - core only; no addon overrides are rendered.
-  #   recommended - core + curated addons: agent-sandbox, envoy gateway,
-  #                 podplane-operator, secrets-store-csi-driver,
-  #                 OpenBao secrets provider.
+  #   platform    - core + envoy gateway, podplane-operator,
+  #                 secrets-store-csi-driver, OpenBao secrets provider, Zot.
+  #   agentic     - platform + Agent Sandbox and its CRDs.
   #   all         - every addon CRD/app listed below.
   install: minimal
   clusterID: default
@@ -46,22 +46,22 @@ bootstrap:
   addons:
     crds:
       - name: agent-sandbox-crds
-        install: [recommended, all]
+        install: [agentic, all]
       - name: podplane-operator-crds
-        install: [recommended, all]
+        install: [platform, agentic, all]
       - name: secrets-store-csi-driver-crds
-        install: [recommended, all]
+        install: [platform, agentic, all]
       - name: envoy-gateway-crds
-        install: [recommended, all]
+        install: [platform, agentic, all]
       - name: snapshot-crds
         install: [all]
     apps:
       - name: agent-sandbox
-        install: [recommended, all]
+        install: [agentic, all]
       - name: podplane-operator
-        install: [recommended, all]
+        install: [platform, agentic, all]
       - name: secrets-store-csi-driver
-        install: [recommended, all]
+        install: [platform, agentic, all]
       - name: secrets-store-csi-provider-aws
         install: [all]
       - name: secrets-store-csi-provider-gcp
@@ -69,9 +69,9 @@ bootstrap:
       - name: secrets-store-csi-provider-vault
         install: [all]
       - name: secrets-store-csi-provider-openbao
-        install: [recommended, all]
+        install: [platform, agentic, all]
       - name: envoy-gateway
-        install: [recommended, all]
+        install: [platform, agentic, all]
       - name: snapshot
         install: [all]
       - name: metrics-server
@@ -81,4 +81,4 @@ bootstrap:
       - name: cluster-autoscaler
         install: [all]
       - name: zot-registry
-        install: [recommended, all]
+        install: [platform, agentic, all]

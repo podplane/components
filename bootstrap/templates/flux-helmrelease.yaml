@@ -29,7 +29,7 @@ spec:
           hostname: {{ .Values.bootstrap.registry.hostname }}
           prefix: mirror
 {{- end }}
-{{- if or (eq .Values.bootstrap.install "recommended") (eq .Values.bootstrap.install "all") }}
+{{- if or (eq .Values.bootstrap.install "platform") (eq .Values.bootstrap.install "agentic") (eq .Values.bootstrap.install "all") }}
         crds:
 {{- range .Values.bootstrap.addons.crds }}
 {{- if has $.Values.bootstrap.install .install }}

@@ -151,7 +151,7 @@ func TestOpenBaoWorkloadCertificateContract(t *testing.T) {
 func TestLocalBootstrapCertificates(t *testing.T) {
 	rendered := render(t, "../bootstrap",
 		"--namespace", "platform-components",
-		"--set", "bootstrap.install=recommended",
+		"--set", "bootstrap.install=platform",
 		"--set", "bootstrap.domain=default.localhost",
 		"--set", "bootstrap.spiffeTrustDomain=default.k8s.localhost",
 		"--set-string", "bootstrap.secrets.localFakeVault.address=https://10.0.2.15:19443/vault/default",
@@ -170,7 +170,7 @@ func TestLocalBootstrapCertificates(t *testing.T) {
 		"certificates:\n                    provider: node",
 	} {
 		if !strings.Contains(rendered, required) {
-			t.Errorf("recommended local bootstrap is missing %q", required)
+			t.Errorf("platform local bootstrap is missing %q", required)
 		}
 	}
 	if strings.Contains(rendered, "ingressCertificates:") {

@@ -100,8 +100,8 @@ kubectl get helmreleases -A
 
 Common environment variables to configure bootstrap:
 
-- `PLATFORM_INSTALL=minimal|recommended|all` — which platform-components install set to enable (default `minimal`). `recommended` adds Agent Sandbox, Envoy Gateway, Podplane operator, Secrets Store CSI Driver, and the OpenBao Secrets Store CSI provider atop minimal.
-- `CLUSTER_ID=<id>` — cluster ID to set on the Podplane operator when using `PLATFORM_INSTALL=recommended` or `all` (default `default`).
+- `PLATFORM_INSTALL=minimal|platform|agentic|all` — which platform-components install set to enable (bootstrap foundation default `minimal`; the user-facing Podplane seed default is `agentic`). `platform` adds Envoy Gateway, Podplane operator, Secrets Store CSI Driver, the OpenBao Secrets Store CSI provider, Zot, and their CRDs atop minimal. `agentic` adds Agent Sandbox and its CRDs atop `platform`. `all` enables every listed addon.
+- `CLUSTER_ID=<id>` — cluster ID to set on the Podplane operator when using `PLATFORM_INSTALL=platform`, `agentic`, or `all` (default `default`).
 - `SPIFFE_TRUST_DOMAIN=<domain>` — immutable SPIFFE trust domain for workload identities. Local bootstrap targets default this to `<cluster-id>.k8s.localhost`.
 - `DOMAIN=<zone>` — supplies the cluster domain to bootstrap consumers. Local bootstrap enables Envoy ingress using the Nstance node ingress certificate; secrets-backed production ingress uses the configured external secrets provider.
 - `REGISTRY_HOSTNAME=<host>` — pull component images via the given registry mirror.
@@ -120,21 +120,22 @@ go run . local start --components none --follow
 
 cd ../components
 make git-sync
-DOMAIN=default.localhost make recommended
+DOMAIN=default.localhost make agentic
 ```
 
 `make git-sync` snapshots the current components repo checkout (including unstaged 
 changes) into `~/.podplane/cache/deps/git/components.git` on the `local-dev` 
 branch. The Podplane local server exposes that cache to the VM over HTTPS. 
-`make recommended` reads `podplane local status --json` to discover the VM Git 
+`make agentic` reads `podplane local status --json` to discover the VM Git
 URL, Flux `secretRef`, and CA certificate, then runs `bootstrap/apply.sh` with the 
-recommended component set.
+agentic component set.
 
 The local bootstrap targets are:
 
 - `make minimal` for development and testing with only core components.
-- `make recommended` for generating a new Netsy snapshots for the seeds repo.
-- `make all` for testing all recommended and additional addons.
+- `make platform` for platform components and generating Netsy snapshots for the seeds repo.
+- `make agentic` for the platform baseline plus Agent Sandbox and its CRDs.
+- `make all` for testing all platform, agentic, and additional addons.
 
 After bootstrap, run `make git-sync` again for manual updates, or 
 `make git-watch` to sync automatically on file changes:

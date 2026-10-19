@@ -1,5 +1,5 @@
-# Non-secret representative AWS recommended provider overlay.
-# Generic recommended/minimal/none seeds do not contain these overrides.
+# Non-secret representative AWS platform provider overlay.
+# Generic platform/agentic/minimal/none seeds do not contain these overrides.
 platform:
   components:
     imageMirror:

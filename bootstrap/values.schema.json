@@ -9,7 +9,7 @@
       "properties": {
         "install": {
           "type": "string",
-          "enum": ["minimal", "recommended", "all"]
+          "enum": ["minimal", "platform", "agentic", "all"]
         },
         "clusterID": {
           "type": "string"
@@ -179,7 +179,7 @@
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "enum": ["recommended", "all"]
+            "enum": ["platform", "agentic", "all"]
           }
         }
       },

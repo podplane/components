@@ -21,7 +21,7 @@ help: ## Show available targets
 	@echo "Typical local test workflow:"
 	@echo "  podplane local start --components=none --follow"
 	@echo "  make git-sync"
-	@echo "  make recommended"
+	@echo "  make agentic"
 
 ##@ Checks
 
@@ -159,13 +159,16 @@ release-assets: ## Package all charts + manifest + SHA512 checksums locally (VER
 
 ##@ Local Development
 
-.PHONY: minimal recommended all _local-bootstrap git-sync git-watch clean
+.PHONY: minimal platform agentic all _local-bootstrap git-sync git-watch clean
 
 minimal: ## Bootstrap minimal/core components using the local Podplane Git cache
 	@$(MAKE) --no-print-directory _local-bootstrap PLATFORM_INSTALL=minimal
 
-recommended: ## Bootstrap recommended components using the local Podplane Git cache
-	@$(MAKE) --no-print-directory _local-bootstrap PLATFORM_INSTALL=recommended
+platform: ## Bootstrap platform components using the local Podplane Git cache
+	@$(MAKE) --no-print-directory _local-bootstrap PLATFORM_INSTALL=platform
+
+agentic: ## Bootstrap platform components plus Agent Sandbox using the local Podplane Git cache
+	@$(MAKE) --no-print-directory _local-bootstrap PLATFORM_INSTALL=agentic
 
 all: ## Bootstrap all components using the local Podplane Git cache
 	@$(MAKE) --no-print-directory _local-bootstrap PLATFORM_INSTALL=all

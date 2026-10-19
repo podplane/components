@@ -12,7 +12,7 @@ over.
   current `kubectl` context.
 - **Bootstrap a local Podplane VM from local sources**: create a bare local VM
   from the Podplane CLI repo with `podplane local start --components=none`,
-  then run `make git-sync` and one of `make minimal`, `make recommended`, or
+  then run `make git-sync` and one of `make minimal`, `make platform`, `make agentic`, or
   `make all` from this repo. Use `make git-watch` to re-sync automatically on
   file changes.
 - **Lint all charts**: `make lint`.
@@ -22,7 +22,7 @@ over.
 
 Dependencies: `helm`, `kubectl`; `watchexec` is optional for `make git-watch`.
 
-Note: agents must NEVER run `./bootstrap/apply.sh`, `make minimal`, `make recommended`,
+Note: agents must NEVER run `./bootstrap/apply.sh`, `make minimal`, `make platform`, `make agentic`,
 or `make all` against a real cluster without explicit user approval.
 
 ## Architecture
