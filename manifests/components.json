@@ -265,11 +265,11 @@
           "envoy-gateway",
           "podplane-operator"
         ],
-        "image": "ghcr.io/podplane/operator:v0.11.0",
-        "digest": "sha256:2d32e92df13f0cdbd417b2e01dd957cc3edd78dde47ba886f37b164e08d84765",
-        "size": 29104155,
+        "image": "ghcr.io/podplane/operator:v0.11.1",
+        "digest": "sha256:9ad8c7c9f20bf932d3a84b1c6eadc2e9a127ee5ba2fe26940552a332b3e7515a",
+        "size": 29144405,
         "platform": "linux/amd64",
-        "index": "sha256:b320b7982bf7cdf25d63b51e30fac562fedc778c250bf059782aef2a89927b18",
+        "index": "sha256:d914f5f4842f59f93ef379298ba925f8c697390630377abc821be1d583b85168",
         "addon": true
       },
       {
@@ -277,11 +277,11 @@
           "envoy-gateway",
           "podplane-operator"
         ],
-        "image": "ghcr.io/podplane/operator:v0.11.0",
-        "digest": "sha256:7faf53802cde509055b23b02ce61b3f386b36942921b84826fcc74099a7965c9",
-        "size": 26075995,
+        "image": "ghcr.io/podplane/operator:v0.11.1",
+        "digest": "sha256:fb0cbfc397a4b7d153ad4a038dcef82d659726ad54f50828c1cfbbe8dc4269df",
+        "size": 26107246,
         "platform": "linux/arm64",
-        "index": "sha256:b320b7982bf7cdf25d63b51e30fac562fedc778c250bf059782aef2a89927b18",
+        "index": "sha256:d914f5f4842f59f93ef379298ba925f8c697390630377abc821be1d583b85168",
         "addon": true
       },
       {
