@@ -10,6 +10,25 @@ import (
 	"testing"
 )
 
+// TestEnvoyGatewayProxyIsolation verifies separate proxy fleets and
+// Gateway-namespace placement are explicit controller defaults.
+func TestEnvoyGatewayProxyIsolation(t *testing.T) {
+	for _, doc := range chartDocuments(t, render(t, "../charts/envoy-gateway")) {
+		if doc["kind"] != "ConfigMap" || chartMap(doc, "metadata")["name"] != "envoy-gateway-config" {
+			continue
+		}
+		config := chartDocuments(t, chartMap(doc, "data")["envoy-gateway.yaml"].(string))[0]
+		if chartMap(config, "envoyProxy")["mergeGateways"] != false {
+			t.Errorf("expected explicit mergeGateways=false, got %v", config["envoyProxy"])
+		}
+		if chartMap(config, "provider", "kubernetes", "deploy")["type"] != "GatewayNamespace" {
+			t.Errorf("expected GatewayNamespace placement, got %v", config["provider"])
+		}
+		return
+	}
+	t.Fatal("controller configuration missing")
+}
+
 // TestEnvoyGatewayFinalNodeScheduling checks the data-plane scheduling contract,
 // not merely the gateway controller Deployment's tolerations.
 func TestEnvoyGatewayFinalNodeScheduling(t *testing.T) {
@@ -122,6 +141,7 @@ func TestEnvoyGatewaySDSContract(t *testing.T) {
 	for _, required := range []string{
 		"apiVersion: gateway.envoyproxy.io/v1alpha1", "kind: EnvoyProxy", "envoyDaemonSet:", "type: ClusterIP", "name: http-80", "containerPort: 10080", "hostPort: 80",
 		"name: https-443", "containerPort: 10443", "hostPort: 443", "name: podplane-sds", `image: "docker.io/envoyproxy/envoy:distroless-v1.39.1"`, `image: "registry.example.com/custom-sds:contract-test"`, "name: podplane-sds\n                      emptyDir:\n                        medium: Memory",
+		"dev.gvisor.spec.mount.ai-gateway-extproc-uds.share: pod",
 		"name: certs\n                      configMap: null\n                      projected:", "name: certificates.podplane.dev:workload:roots", "path: ca.crt",
 		"kind: ServiceAccount", "name: platform-envoy-gateway-ingress-certificates", "serviceAccountName: platform-envoy-gateway-ingress-certificates",
 		"driver: secrets-store.csi.k8s.io", "--socket=/var/run/podplane-sds/sds.sock",

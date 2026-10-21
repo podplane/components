@@ -48,6 +48,8 @@ __Addons (optional, installable via `podplane install <name>`):__
 
 - [Agent Sandbox](https://agent-sandbox.sigs.k8s.io/) for isolated,
   stateful singleton workloads such as AI agent runtimes (_Apache 2.0_).
+- [Agent Router](https://theagentrouter.ai/) for LLM and MCP routing through the
+  shared Envoy Gateway (_Apache 2.0_).
 - [Envoy Gateway](https://gateway.envoyproxy.io/) for ingress (_Apache-2.0_).
 - [Snapshot Controller](https://github.com/kubernetes-csi/external-snapshotter)
   for persistent volume snapshotting (_Apache 2.0_).
@@ -100,7 +102,7 @@ kubectl get helmreleases -A
 
 Common environment variables to configure bootstrap:
 
-- `PLATFORM_INSTALL=minimal|platform|agentic|all` — which platform-components install set to enable (bootstrap foundation default `minimal`; the user-facing Podplane seed default is `agentic`). `platform` adds Envoy Gateway, Podplane operator, Secrets Store CSI Driver, the OpenBao Secrets Store CSI provider, Zot, and their CRDs atop minimal. `agentic` adds Agent Sandbox and its CRDs atop `platform`. `all` enables every listed addon.
+- `PLATFORM_INSTALL=minimal|platform|agentic|all` — which platform-components install set to enable (bootstrap foundation default `minimal`; the user-facing Podplane seed default is `agentic`). `platform` adds Envoy Gateway, Podplane operator, Secrets Store CSI Driver, the OpenBao Secrets Store CSI provider, Zot, and their CRDs atop minimal. `agentic` adds Agent Sandbox, Agent Router and their CRDs atop `platform`. `all` enables every listed addon.
 - `CLUSTER_ID=<id>` — cluster ID to set on the Podplane operator when using `PLATFORM_INSTALL=platform`, `agentic`, or `all` (default `default`).
 - `SPIFFE_TRUST_DOMAIN=<domain>` — immutable SPIFFE trust domain for workload identities. Local bootstrap targets default this to `<cluster-id>.k8s.localhost`.
 - `DOMAIN=<zone>` — supplies the cluster domain to bootstrap consumers. Local bootstrap enables Envoy ingress using the Nstance node ingress certificate; secrets-backed production ingress uses the configured external secrets provider.
@@ -108,6 +110,10 @@ Common environment variables to configure bootstrap:
 
 Envoy ingress supports secrets-backed certificates (default) and node-local
 certificates for tunnel deployments.
+
+Envoy Gateway defaults to separate proxy fleets per Gateway (`mergeGateways: false`).
+See [Gateway isolation](./charts/envoy-gateway/UPSTREAM.md#gateway-isolation) for
+separating AI/MCP traffic from public ingress.
 
 ## Local Testing
 
@@ -134,7 +140,8 @@ The local bootstrap targets are:
 
 - `make minimal` for development and testing with only core components.
 - `make platform` for platform components and generating Netsy snapshots for the seeds repo.
-- `make agentic` for the platform baseline plus Agent Sandbox and its CRDs.
+- `make agentic` for the platform baseline plus Agent Sandbox, Agent Router
+  and their CRDs.
 - `make all` for testing all platform, agentic, and additional addons.
 
 After bootstrap, run `make git-sync` again for manual updates, or 

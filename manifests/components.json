@@ -30,6 +30,50 @@
       },
       {
         "components": [
+          "agent-router"
+        ],
+        "image": "docker.io/envoyproxy/ai-gateway-controller:v1.2.0",
+        "digest": "sha256:30c2cfea92f39adad64d6dac8504cf1b9031c1080bf6945fa40f0f2ddd140ae2",
+        "size": 47671988,
+        "platform": "linux/amd64",
+        "index": "sha256:4d663346354321a677c4e942017277f690d0d7715f8e3348a535db174679e4f8",
+        "addon": true
+      },
+      {
+        "components": [
+          "agent-router"
+        ],
+        "image": "docker.io/envoyproxy/ai-gateway-controller:v1.2.0",
+        "digest": "sha256:0b44a8bca3cc2fe513d85825e24faa942f5dd00ecd5c93f72004b661fcf5ae62",
+        "size": 42206717,
+        "platform": "linux/arm64",
+        "index": "sha256:4d663346354321a677c4e942017277f690d0d7715f8e3348a535db174679e4f8",
+        "addon": true
+      },
+      {
+        "components": [
+          "agent-router"
+        ],
+        "image": "docker.io/envoyproxy/ai-gateway-extproc:v1.2.0",
+        "digest": "sha256:d5e4351bc7965b6c14d5b0a19c0da4507837859f3d28498f6a8e222e2e8e7802",
+        "size": 38131168,
+        "platform": "linux/amd64",
+        "index": "sha256:4af909a6f64ee6b97968995fec88c4fd3c41d020c6bcb7ca07136fdfffaa598c",
+        "addon": true
+      },
+      {
+        "components": [
+          "agent-router"
+        ],
+        "image": "docker.io/envoyproxy/ai-gateway-extproc:v1.2.0",
+        "digest": "sha256:c3e88c60a9d83c89a9726ba054dc78631c06aad259ee7edb2d06d80f2c1a3c7e",
+        "size": 33652965,
+        "platform": "linux/arm64",
+        "index": "sha256:4af909a6f64ee6b97968995fec88c4fd3c41d020c6bcb7ca07136fdfffaa598c",
+        "addon": true
+      },
+      {
+        "components": [
           "envoy-gateway"
         ],
         "image": "docker.io/envoyproxy/envoy:distroless-v1.39.1",

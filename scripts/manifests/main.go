@@ -36,6 +36,9 @@ var (
 	checkOnly   = flag.Bool("check", false, "Check the manifest against chart renders without resolving images or writing files.")
 	component   = flag.String("component", "", "Update only this non-CRD component in an existing manifest, preserving its version and source.")
 	extraImages = []extraImage{
+		// Helm passes this image as --extProcImage; the webhook injects the
+		// sidecar into Envoy Pods at admission, outside the rendered container specs.
+		{Repo: "docker.io/envoyproxy/ai-gateway-extproc", Tag: "v1.2.0", Components: []string{"agent-router"}},
 		// Keep a full glibc-based Go toolchain available for air-gapped Jobs.
 		{Repo: "docker.io/library/golang", Tag: "1.26.2-trixie"},
 		{Repo: "docker.io/envoyproxy/envoy", Tag: "distroless-v1.39.1", Components: []string{"envoy-gateway"}},
@@ -49,6 +52,7 @@ var (
 		"linux/arm64": true,
 	}
 	componentMetadata = map[string]metadata{
+		"agent-router":                       {Addon: true},
 		"agent-sandbox":                      {Addon: true},
 		"cluster-api":                        {Providers: []string{"aws", "google"}},
 		"cluster-autoscaler":                 {Providers: []string{"aws", "google"}, Addon: true},

@@ -1,0 +1,20 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+ai-gateway-helm:
+  envoyGateway:
+    namespace: platform-envoy-gateway
+  controller:
+    fullnameOverride: agent-router
+    nodeSelector:
+      kubernetes.io/os: linux
+    securityContext:
+      readOnlyRootFilesystem: true
+    extraEnvVars:
+      - name: DISABLE_PPROF
+        value: "true"
+  extProc:
+    enableRedaction: true
+    extraEnvVars:
+      - name: DISABLE_PPROF
+        value: "true"

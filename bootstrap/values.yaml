@@ -7,7 +7,7 @@ bootstrap:
   #   minimal     - core only; no addon overrides are rendered.
   #   platform    - core + envoy gateway, podplane-operator,
   #                 secrets-store-csi-driver, OpenBao secrets provider, Zot.
-  #   agentic     - platform + Agent Sandbox and its CRDs.
+  #   agentic     - platform + Agent Sandbox, Agent Router and CRDs.
   #   all         - every addon CRD/app listed below.
   install: minimal
   clusterID: default
@@ -45,6 +45,8 @@ bootstrap:
         semver: "^2.0.0"
   addons:
     crds:
+      - name: agent-router-crds
+        install: [agentic, all]
       - name: agent-sandbox-crds
         install: [agentic, all]
       - name: podplane-operator-crds
@@ -56,6 +58,8 @@ bootstrap:
       - name: snapshot-crds
         install: [all]
     apps:
+      - name: agent-router
+        install: [agentic, all]
       - name: agent-sandbox
         install: [agentic, all]
       - name: podplane-operator

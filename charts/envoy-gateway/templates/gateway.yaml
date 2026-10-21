@@ -44,6 +44,10 @@ spec:
                     dev.gvisor.spec.mount.podplane-sds.share: pod
                     dev.gvisor.spec.mount.podplane-sds.type: tmpfs
                     dev.gvisor.spec.mount.podplane-sds.options: rw,rprivate
+                    # Agent Router injects this socket when AI/MCP routes attach.
+                    dev.gvisor.spec.mount.ai-gateway-extproc-uds.share: pod
+                    dev.gvisor.spec.mount.ai-gateway-extproc-uds.type: tmpfs
+                    dev.gvisor.spec.mount.ai-gateway-extproc-uds.options: rw,rprivate
                 spec:
                   serviceAccountName: platform-envoy-gateway-ingress-certificates
                   tolerations:

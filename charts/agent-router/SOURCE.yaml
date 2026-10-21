@@ -1,0 +1,4 @@
+repository: https://github.com/theagentrouter/agent-router
+chart: manifests/charts/ai-gateway-helm
+version: v1.2.0
+commit: daa9f891a8afcb18576d4593ad18870d1d18abac

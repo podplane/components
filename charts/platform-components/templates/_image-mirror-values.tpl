@@ -19,6 +19,14 @@ This helper itself is invoked by the `podplane.platform.values` helper in _helpe
 {{- if hasKey . "prefix" -}}{{- $prefix = trimAll "/" .prefix -}}{{- end -}}
 {{- $base := $hostname -}}
 {{- if $prefix -}}{{- $base = printf "%s/%s" $hostname $prefix -}}{{- end -}}
+agent-router:
+  ai-gateway-helm:
+    controller:
+      image:
+        repository: {{ printf "%s/docker.io/envoyproxy/ai-gateway-controller" $base | quote }}
+    extProc:
+      image:
+        repository: {{ printf "%s/docker.io/envoyproxy/ai-gateway-extproc" $base | quote }}
 agent-sandbox:
   image:
     repository: {{ printf "%s/registry.k8s.io/agent-sandbox/agent-sandbox-controller" $base | quote }}

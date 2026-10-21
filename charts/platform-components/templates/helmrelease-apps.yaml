@@ -9,13 +9,19 @@ Each HelmRelease pulls its chart from the podplane-components GitRepository.
 {{- $components := .Values.platform.components -}}
 {{- $helmRelease := $components.helmRelease | default dict -}}
 {{- $interval := $helmRelease.interval | default "10m" -}}
-{{- $values := $components.values | default dict -}}
+{{- $values := deepCopy ($components.values | default dict) -}}
 {{- $mirror := $components.imageMirror | default dict -}}
 {{- $mirrorEnabled := $mirror.enabled | default false -}}
 {{- $mirrorHostname := $mirror.hostname | default "" -}}
 {{- $mirrorPrefix := "mirror" -}}
 {{- if hasKey $mirror "prefix" -}}{{- $mirrorPrefix = trimAll "/" $mirror.prefix -}}{{- end -}}
 {{- $sourceNs := .Release.Namespace -}}
+{{- $agentRouter := index $components.apps "agent-router" -}}
+{{- if $agentRouter.enabled -}}
+{{- $routerValues := include "podplane.platform.agentRouterValues" $agentRouter | fromYaml -}}
+{{- $envoyValues := index $values "envoy-gateway" | default dict -}}
+{{- $_ := set $values "envoy-gateway" (mergeOverwrite $routerValues $envoyValues) -}}
+{{- end -}}
 
 {{ range $name, $entry := $components.apps }}
 {{- if $entry.enabled }}

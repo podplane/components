@@ -31,6 +31,14 @@ limiting, Wasm extensions, and OIDC/OAuth2 SecurityPolicies — are not supporte
 by this chart until their credentials can also be supplied without Kubernetes
 Secrets.
 
+## Gateway isolation
+
+The controller default `gateway-helm.config.envoyGateway.envoyProxy.mergeGateways`
+is explicitly `false`: each Gateway gets its own proxy fleet. Attach AI/MCP routes
+to a separate Gateway to keep provider credentials out of the public ingress proxy
+process. Routes attached to the same Gateway still share its proxies. This does
+not isolate the controllers or make a Gateway private.
+
 ## Updating
 
 `patches/gateway-helm.patch` is the authoritative Podplane delta. Do not edit

@@ -39,6 +39,9 @@ gateway-helm:
     envoyGateway:
       extensionApis:
         enableSDSSecretRef: true
+      envoyProxy:
+        # Keep separate data planes per Gateway, including AI/MCP gateways.
+        mergeGateways: false
       provider:
         type: Kubernetes
         kubernetes:

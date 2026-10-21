@@ -53,6 +53,23 @@ type crdInfo struct {
 
 var charts = []crdChart{
 	{
+		Name: "agent-router-crds",
+		Env:  "AGENT_ROUTER_VERSION",
+		Update: func(ctx updateContext) error {
+			version := firstNonEmpty(ctx.Version, "v1.2.0")
+			files, err := githubYAMLFiles("theagentrouter/agent-router", "manifests/charts/ai-gateway-crds-helm/templates", version)
+			if err != nil {
+				return err
+			}
+			for _, file := range files {
+				if err := downloadFile(fmt.Sprintf("https://raw.githubusercontent.com/theagentrouter/agent-router/%s/manifests/charts/ai-gateway-crds-helm/templates/%s", version, file), filepath.Join(ctx.OutDir, file)); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	},
+	{
 		Name: "cluster-api-crds",
 		Env:  "CLUSTER_API_VERSION",
 		Update: func(ctx updateContext) error {
