@@ -7,8 +7,8 @@ name: envoy-gateway
 description: Podplane Envoy Gateway chart
 type: application
 version: "1.0.0"
-appVersion: "1.9.0"
+appVersion: "1.9.2"
 dependencies:
   - name: gateway-helm
-    version: "v1.9.0"
+    version: "v1.9.2"
     repository: "file://upstream/gateway-helm"

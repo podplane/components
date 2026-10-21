@@ -38,7 +38,7 @@ the generated source directly. To import a new upstream release and run the
 focused validation:
 
 ```shell
-./charts/envoy-gateway/scripts/update-upstream.sh v1.9.0
+./charts/envoy-gateway/scripts/update-upstream.sh v1.9.2
 ```
 
 Patch conflicts intentionally stop the update so upstream changes can be

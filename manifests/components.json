@@ -32,44 +32,44 @@
         "components": [
           "envoy-gateway"
         ],
-        "image": "docker.io/envoyproxy/envoy:distroless-v1.39.0",
-        "digest": "sha256:9e24a3b459b463dd37e116a0f46d2abfcb6a1cb9897d87e85cf2ee25edbe373b",
-        "size": 43277886,
+        "image": "docker.io/envoyproxy/envoy:distroless-v1.39.1",
+        "digest": "sha256:9c9ca6bef1e4e355b00b4657cbe123baf3b4a78613cb949b6cbabaab897a6c28",
+        "size": 43290088,
         "platform": "linux/amd64",
-        "index": "sha256:7877ad87afd7459e1bd2a077ff601fec7c93aeecd62e71664560d96328c62cf4",
+        "index": "sha256:eb2c01c13125d1629637cb4e4cce7207009fb7cc2c8027f9742758549d15b6f4",
         "addon": true
       },
       {
         "components": [
           "envoy-gateway"
         ],
-        "image": "docker.io/envoyproxy/envoy:distroless-v1.39.0",
-        "digest": "sha256:8dbb967dba5d22a28f0e7974173aa6d4a5621ce48ac6d44142d9b4d9c960af14",
-        "size": 41967000,
+        "image": "docker.io/envoyproxy/envoy:distroless-v1.39.1",
+        "digest": "sha256:62649e9cb5073a995b57d888f98382927ad15e91c53affac92a8a48a365027db",
+        "size": 41975956,
         "platform": "linux/arm64",
-        "index": "sha256:7877ad87afd7459e1bd2a077ff601fec7c93aeecd62e71664560d96328c62cf4",
+        "index": "sha256:eb2c01c13125d1629637cb4e4cce7207009fb7cc2c8027f9742758549d15b6f4",
         "addon": true
       },
       {
         "components": [
           "envoy-gateway"
         ],
-        "image": "docker.io/envoyproxy/gateway:v1.9.0",
-        "digest": "sha256:7709b70c6be63bba5b487f05239cb5c71c6065dac8bcd14bdea9273a589786a1",
-        "size": 74718795,
+        "image": "docker.io/envoyproxy/gateway:v1.9.2",
+        "digest": "sha256:bd722213a8433252efb56a3f6ef752c1c4d82b15e5dd8748b25973b9752c12b8",
+        "size": 74996428,
         "platform": "linux/amd64",
-        "index": "sha256:6f40c7b218b4ff1c4cb481923ed2c9a7634580365913434dd5dda9e954c0114b",
+        "index": "sha256:9d67017c442a70e6ae9f1a358e6c80eb653c67c2e40823d9a991e0daf37ba926",
         "addon": true
       },
       {
         "components": [
           "envoy-gateway"
         ],
-        "image": "docker.io/envoyproxy/gateway:v1.9.0",
-        "digest": "sha256:47db1ae68eead0ca7ba96ca23e7654fd95a43c1c8fdc63f55b9e77054107f6c5",
-        "size": 69876898,
+        "image": "docker.io/envoyproxy/gateway:v1.9.2",
+        "digest": "sha256:a8d5dd3bf27282a955a9b1277742502dbd5d68d68310c4e41edcd8bc32b64ccb",
+        "size": 70161530,
         "platform": "linux/arm64",
-        "index": "sha256:6f40c7b218b4ff1c4cb481923ed2c9a7634580365913434dd5dda9e954c0114b",
+        "index": "sha256:9d67017c442a70e6ae9f1a358e6c80eb653c67c2e40823d9a991e0daf37ba926",
         "addon": true
       },
       {

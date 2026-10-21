@@ -228,7 +228,7 @@ esac
 	want.Components.Images[0].Components = []string{"podplane-operator"}
 	want.Components.Images[3].Components = nil
 	want.Components.Images[3].Addon = false
-	for _, ref := range []string{"example.com/new:v2", "example.com/shared:v1", "docker.io/envoyproxy/envoy:distroless-v1.39.0"} {
+	for _, ref := range []string{"example.com/new:v2", "example.com/shared:v1", "docker.io/envoyproxy/envoy:distroless-v1.39.1"} {
 		members := []string{"envoy-gateway"}
 		if ref == "example.com/shared:v1" {
 			members = append(members, "podplane-operator")

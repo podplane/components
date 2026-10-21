@@ -1,6 +1,6 @@
 dependencies:
 - name: gateway-helm
   repository: file://upstream/gateway-helm
-  version: v1.9.0
-digest: sha256:21901c64f18f8ce36853dc3af838f4d740ce752088b7e50745a268f6809070eb
-generated: "2026-09-24T22:46:06.154156+10:00"
+  version: v1.9.2
+digest: sha256:e9728809ad866de461151086e7082036d66ac793ce7b7400073297f93235eb08
+generated: "2026-10-21T11:15:24.108356+11:00"

@@ -49,7 +49,7 @@ for file in "${removed_files[@]}"; do
 done
 
 echo "Applying Podplane patches..."
-patch --batch --forward --strip=2 --directory="$tmp/gateway-helm" < "$patch_file"
+patch --batch --forward --no-backup-if-mismatch --strip=2 --directory="$tmp/gateway-helm" < "$patch_file"
 
 tag_ref="refs/tags/$version"
 refs="$(git ls-remote "$repository.git" "$tag_ref" "$tag_ref^{}")"
@@ -99,7 +99,7 @@ echo "Validating Envoy Gateway chart..."
 helm lint --kube-version 1.37.0 "$chart_dir"
 (
   cd "$repo_root"
-  go test ./tests -run TestEnvoyGateway -count=1
+  go -C tests test . -run TestEnvoyGateway -count=1
 )
 
 echo "Updated Envoy Gateway chart to $version ($commit)."

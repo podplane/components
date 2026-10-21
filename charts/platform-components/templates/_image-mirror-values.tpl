@@ -131,9 +131,9 @@ envoy-gateway:
     global:
       images:
         envoyGateway:
-          image: {{ printf "%s/docker.io/envoyproxy/gateway:v1.9.0" $base | quote }}
+          image: {{ printf "%s/docker.io/envoyproxy/gateway:v1.9.2" $base | quote }}
         envoyProxy:
-          image: {{ printf "%s/docker.io/envoyproxy/envoy:distroless-v1.39.0" $base | quote }}
+          image: {{ printf "%s/docker.io/envoyproxy/envoy:distroless-v1.39.1" $base | quote }}
   platform:
     envoyGateway:
       sdsSidecar:
