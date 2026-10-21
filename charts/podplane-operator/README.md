@@ -74,6 +74,7 @@ The chart renders a JSON config file and passes it to the operator with the real
   "secrets": {
     "key_rotation": "6h",
     "allow_sync_to_kubernetes_secrets": false,
+    "default_provider": "openbao-local",
     "providers": {
       "openbao-local": {
         "kind": "openbao",
