@@ -19,6 +19,10 @@ This helper itself is invoked by the `podplane.platform.values` helper in _helpe
 {{- if hasKey . "prefix" -}}{{- $prefix = trimAll "/" .prefix -}}{{- end -}}
 {{- $base := $hostname -}}
 {{- if $prefix -}}{{- $base = printf "%s/%s" $hostname $prefix -}}{{- end -}}
+sourcegateway:
+  sourcegateway:
+    image:
+      repository: {{ printf "%s/ghcr.io/sourcegateway/sourcegateway" $base | quote }}
 agent-router:
   ai-gateway-helm:
     controller:

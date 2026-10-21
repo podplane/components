@@ -1,0 +1,27 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+platform:
+  sourceGateway:
+    # Empty uses the cluster's default secrets provider.
+    providerName: ""
+sourcegateway:
+  fullnameOverride: sourcegateway
+  crds:
+    enabled: false
+  serviceAccount:
+    name: sourcegateway
+  encryptionKey:
+    secretProviderClass: sourcegateway
+    secretName: ""
+  servingTLS:
+    projected:
+      sources:
+        - podCertificate:
+            signerName: certificates.podplane.dev/workload
+            keyType: ED25519
+            keyPath: tls.key
+            certificateChainPath: tls.crt
+            userAnnotations:
+              certificates.podplane.dev/mode: service
+              certificates.podplane.dev/service: sourcegateway

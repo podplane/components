@@ -1,0 +1,14 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+apiVersion: v2
+name: sourcegateway
+description: Source Gateway
+type: application
+version: "1.0.0"
+appVersion: "v0.1.3"
+kubeVersion: ">=1.37.0-0"
+dependencies:
+  - name: sourcegateway
+    version: "0.1.3"
+    repository: oci://ghcr.io/sourcegateway/charts

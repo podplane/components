@@ -13,6 +13,45 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// TestSourceGatewayContract checks workload TLS and encryption-key binding wiring,
+// using the cluster default provider unless explicitly overridden.
+func TestSourceGatewayContract(t *testing.T) {
+	rendered := render(t, "../charts/sourcegateway", "--namespace", "platform-sourcegateway")
+	for _, want := range []string{"hostUsers: false", "serviceAccountName: sourcegateway", "secretProviderClass: \"sourcegateway\"", "signerName: certificates.podplane.dev/workload", "keyType: ED25519", "keyPath: tls.key", "certificateChainPath: tls.crt", "certificates.podplane.dev/mode: service", "certificates.podplane.dev/service: sourcegateway"} {
+		if !strings.Contains(rendered, want) {
+			t.Errorf("missing %q", want)
+		}
+	}
+	bindings := 0
+	for _, doc := range chartDocuments(t, rendered) {
+		switch doc["kind"] {
+		case "SecretProviderClass", "CustomResourceDefinition":
+			t.Errorf("unexpected resource %s", doc["kind"])
+		case "SecretProviderBinding":
+			bindings++
+			if doc["apiVersion"] != "secrets.podplane.dev/v1beta1" || chartMap(doc, "metadata")["name"] != "sourcegateway" || chartMap(doc, "metadata")["namespace"] != "platform-sourcegateway" {
+				t.Fatalf("incorrect binding: %v", doc)
+			}
+			if _, ok := chartMap(doc, "spec")["providerName"]; ok {
+				t.Fatal("default binding must omit providerName")
+			}
+			items := chartMap(doc, "spec")["items"].([]any)
+			if len(items) != 1 || items[0].(map[string]any)["key"] != "encryption-key" || items[0].(map[string]any)["path"] != "encryption-key" {
+				t.Fatalf("incorrect binding items: %v", items)
+			}
+		}
+	}
+	if bindings != 1 {
+		t.Fatalf("binding count %d", bindings)
+	}
+	override := render(t, "../charts/sourcegateway", "--set", "platform.sourceGateway.providerName=alternate")
+	for _, doc := range chartDocuments(t, override) {
+		if doc["kind"] == "SecretProviderBinding" && chartMap(doc, "spec")["providerName"] != "alternate" {
+			t.Fatalf("incorrect provider override: %v", doc)
+		}
+	}
+}
+
 // TestAgentRouterContract checks that the upstream chart patch uses Podplane
 // workload TLS and CA injection without generating a separate serving secret.
 func TestAgentRouterContract(t *testing.T) {
@@ -52,13 +91,12 @@ func TestAgentRouterContract(t *testing.T) {
 // mirrors, and that enabling Agent Router preserves Envoy's SDS configuration
 // while disabling it removes the extension dependency.
 func TestAgenticGatewayPlatformContract(t *testing.T) {
-	rendered := render(t, "../charts/platform-components", "-f", "values/platform-components.yaml", "--set", "platform.components.apps.agent-router.enabled=true,platform.components.apps.envoy-gateway.enabled=true")
+	rendered := render(t, "../charts/platform-components", "-f", "values/platform-components.yaml", "--set", "platform.components.apps.sourcegateway.enabled=true,platform.components.apps.agent-router.enabled=true,platform.components.apps.envoy-gateway.enabled=true")
 	for _, doc := range chartDocuments(t, rendered) {
 		name := chartMap(doc, "metadata")["name"]
-		if doc["kind"] == "Namespace" && name == "platform-agent-router" {
+		if doc["kind"] == "Namespace" && (name == "platform-sourcegateway" || name == "platform-agent-router") {
 			labels := chartMap(doc, "metadata", "labels")
-			want := "restricted"
-			if labels["pod-security.kubernetes.io/enforce"] != want || labels["runtime.podplane.dev/runc"] != nil {
+			if labels["pod-security.kubernetes.io/enforce"] != "restricted" || labels["runtime.podplane.dev/runc"] != nil {
 				t.Errorf("unsafe namespace %v", doc)
 			}
 		}
@@ -67,6 +105,21 @@ func TestAgenticGatewayPlatformContract(t *testing.T) {
 		}
 		spec := chartMap(doc, "spec")
 		switch name {
+		case "sourcegateway":
+			deps := map[string]string{}
+			for _, dep := range spec["dependsOn"].([]any) {
+				entry := dep.(map[string]any)
+				deps[entry["name"].(string)] = entry["namespace"].(string)
+			}
+			for _, dep := range []string{"sourcegateway-crds", "podplane-operator", "secrets-store-csi-driver"} {
+				if deps[dep] == "" {
+					t.Errorf("missing dependency %s", dep)
+				}
+			}
+			image := chartMap(spec, "values", "sourcegateway", "image")
+			if image["repository"] != "registry.example/mirror/ghcr.io/sourcegateway/sourcegateway" {
+				t.Errorf("source mirror %v", image)
+			}
 		case "agent-router":
 			values := chartMap(spec, "values", "ai-gateway-helm")
 			for part, suffix := range map[string]string{"controller": "controller", "extProc": "extproc"} {

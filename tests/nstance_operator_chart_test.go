@@ -48,7 +48,7 @@ func TestBootstrapInstallProfiles(t *testing.T) {
 					}
 				}
 				if profile == "agentic" || profile == "all" {
-					for _, name := range []string{"agent-sandbox", "agent-router"} {
+					for _, name := range []string{"agent-sandbox", "sourcegateway", "agent-router"} {
 						if section == "crds" {
 							name += "-crds"
 						}

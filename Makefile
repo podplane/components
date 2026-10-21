@@ -167,7 +167,7 @@ minimal: ## Bootstrap minimal/core components using the local Podplane Git cache
 platform: ## Bootstrap platform components using the local Podplane Git cache
 	@$(MAKE) --no-print-directory _local-bootstrap PLATFORM_INSTALL=platform
 
-agentic: ## Bootstrap platform plus Agent Sandbox and Agent Router
+agentic: ## Bootstrap platform plus Agent Sandbox, Source Gateway and Agent Router
 	@$(MAKE) --no-print-directory _local-bootstrap PLATFORM_INSTALL=agentic
 
 all: ## Bootstrap all components using the local Podplane Git cache

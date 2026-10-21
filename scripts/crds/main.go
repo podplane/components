@@ -53,6 +53,23 @@ type crdInfo struct {
 
 var charts = []crdChart{
 	{
+		Name: "sourcegateway-crds",
+		Env:  "SOURCEGATEWAY_VERSION",
+		Update: func(ctx updateContext) error {
+			version := firstNonEmpty(ctx.Version, "v0.1.3")
+			files, err := githubYAMLFiles("sourcegateway/sourcegateway", "deploy/crds", version)
+			if err != nil {
+				return err
+			}
+			for _, file := range files {
+				if err := downloadFile(fmt.Sprintf("https://raw.githubusercontent.com/sourcegateway/sourcegateway/%s/deploy/crds/%s", version, file), filepath.Join(ctx.OutDir, file)); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	},
+	{
 		Name: "agent-router-crds",
 		Env:  "AGENT_ROUTER_VERSION",
 		Update: func(ctx updateContext) error {
