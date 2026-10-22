@@ -103,7 +103,7 @@ var charts = []crdChart{
 		Name: "nstance-operator-crds",
 		Env:  "NSTANCE_OPERATOR_VERSION",
 		Update: func(ctx updateContext) error {
-			version := firstNonEmpty(ctx.Version, "v2.0.0")
+			version := firstNonEmpty(ctx.Version, "v2.3.2")
 			files := []string{
 				"nstanceclusters.infrastructure.cluster.x-k8s.io.yaml",
 				"nstancemachinepools.infrastructure.cluster.x-k8s.io.yaml",

@@ -14,7 +14,7 @@ import (
 )
 
 // TestSourceGatewayContract checks workload TLS and encryption-key binding wiring,
-// using the cluster default provider unless explicitly overridden.
+// always using the cluster default provider.
 func TestSourceGatewayContract(t *testing.T) {
 	rendered := render(t, "../charts/sourcegateway", "--namespace", "platform-sourcegateway")
 	for _, want := range []string{"hostUsers: false", "serviceAccountName: sourcegateway", "secretProviderClass: \"sourcegateway\"", "signerName: certificates.podplane.dev/workload", "keyType: ED25519", "keyPath: tls.key", "certificateChainPath: tls.crt", "certificates.podplane.dev/mode: service", "certificates.podplane.dev/service: sourcegateway"} {
@@ -46,8 +46,10 @@ func TestSourceGatewayContract(t *testing.T) {
 	}
 	override := render(t, "../charts/sourcegateway", "--set", "platform.sourceGateway.providerName=alternate")
 	for _, doc := range chartDocuments(t, override) {
-		if doc["kind"] == "SecretProviderBinding" && chartMap(doc, "spec")["providerName"] != "alternate" {
-			t.Fatalf("incorrect provider override: %v", doc)
+		if doc["kind"] == "SecretProviderBinding" {
+			if _, ok := chartMap(doc, "spec")["providerName"]; ok {
+				t.Fatal("obsolete provider override must not replace the cluster default")
+			}
 		}
 	}
 }
