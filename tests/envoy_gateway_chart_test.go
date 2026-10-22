@@ -141,7 +141,6 @@ func TestEnvoyGatewaySDSContract(t *testing.T) {
 	for _, required := range []string{
 		"apiVersion: gateway.envoyproxy.io/v1alpha1", "kind: EnvoyProxy", "envoyDaemonSet:", "type: ClusterIP", "name: http-80", "containerPort: 10080", "hostPort: 80",
 		"name: https-443", "containerPort: 10443", "hostPort: 443", "name: podplane-sds", `image: "docker.io/envoyproxy/envoy:distroless-v1.39.1"`, `image: "registry.example.com/custom-sds:contract-test"`, "name: podplane-sds\n                      emptyDir:\n                        medium: Memory",
-		"dev.gvisor.spec.mount.ai-gateway-extproc-uds.share: pod",
 		"name: certs\n                      configMap: null\n                      projected:", "name: certificates.podplane.dev:workload:roots", "path: ca.crt",
 		"kind: ServiceAccount", "name: platform-envoy-gateway-ingress-certificates", "serviceAccountName: platform-envoy-gateway-ingress-certificates",
 		"driver: secrets-store.csi.k8s.io", "--socket=/var/run/podplane-sds/sds.sock",
@@ -155,7 +154,8 @@ func TestEnvoyGatewaySDSContract(t *testing.T) {
 			t.Errorf("Envoy Gateway render is missing %q", required)
 		}
 	}
-	for _, forbidden := range []string{"--certificates-dir", "tls.crt:", "tls.key:", "kubernetes.io/tls", "cert-manager.io/", "traefik.io/", "platform-acme"} {
+	// gVisor rejects Pods whose mount annotations name a volume they lack
+	for _, forbidden := range []string{"--certificates-dir", "tls.crt:", "tls.key:", "kubernetes.io/tls", "cert-manager.io/", "traefik.io/", "platform-acme", "ai-gateway-extproc-uds"} {
 		if strings.Contains(rendered, forbidden) {
 			t.Errorf("Envoy Gateway render unexpectedly contains %q", forbidden)
 		}
