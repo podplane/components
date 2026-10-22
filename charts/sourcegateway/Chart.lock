@@ -1,6 +1,6 @@
 dependencies:
 - name: sourcegateway
   repository: oci://ghcr.io/sourcegateway/charts
-  version: 0.1.4
-digest: sha256:db2a3ba6ed61627ee4dd03bf2184c7747f0494c0c6a9bbb015451249270e46c5
-generated: "2026-10-22T22:48:52.103581+11:00"
+  version: 0.1.5
+digest: sha256:8909e992bf56908151fb4305bf740e806800cbae0eed5d2a54d38e1a7bbd5214
+generated: "2026-10-22T23:51:14.588989+11:00"

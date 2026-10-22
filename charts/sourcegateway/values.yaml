@@ -7,6 +7,15 @@ sourcegateway:
     enabled: false
   serviceAccount:
     name: sourcegateway
+  # gVisor cannot join a Pod user namespace, so run as a fixed non-root UID
+  # instead of UID 0 with hostUsers=false. fsGroup keeps the native Secret and
+  # projected TLS files readable; Secrets Store CSI files are 0644 by default.
+  hostUsers: true
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+    fsGroup: 65532
   encryptionKey:
     secretProviderClass: sourcegateway
     secretName: ""

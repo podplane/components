@@ -17,10 +17,15 @@ import (
 // always using the cluster default provider.
 func TestSourceGatewayContract(t *testing.T) {
 	rendered := render(t, "../charts/sourcegateway", "--namespace", "platform-sourcegateway")
-	for _, want := range []string{"hostUsers: false", "serviceAccountName: sourcegateway", "secretProviderClass: \"sourcegateway\"", "signerName: certificates.podplane.dev/workload", "keyType: ED25519", "keyPath: tls.key", "certificateChainPath: tls.crt", "certificates.podplane.dev/mode: service", "certificates.podplane.dev/service: sourcegateway"} {
+	// gVisor cannot join a Pod user namespace, so Source Gateway must run non-root
+	// without one rather than as UID 0 with hostUsers=false.
+	for _, want := range []string{"hostUsers: true", "runAsUser: 65532", "fsGroup: 65532", "serviceAccountName: sourcegateway", "secretProviderClass: \"sourcegateway\"", "signerName: certificates.podplane.dev/workload", "keyType: ED25519", "keyPath: tls.key", "certificateChainPath: tls.crt", "certificates.podplane.dev/mode: service", "certificates.podplane.dev/service: sourcegateway"} {
 		if !strings.Contains(rendered, want) {
 			t.Errorf("missing %q", want)
 		}
+	}
+	if strings.Contains(rendered, "runAsUser: 0\n") {
+		t.Error("Source Gateway must not run as UID 0 without a user namespace")
 	}
 	bindings := 0
 	for _, doc := range chartDocuments(t, rendered) {
