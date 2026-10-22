@@ -55,6 +55,37 @@ cluster-autoscaler:
 nstance-operator:
   image:
     repository: {{ printf "%s/ghcr.io/nstance-dev/nstance-operator" $base | quote }}
+csi-gce-pd:
+  images:
+    driver:
+      repository: {{ printf "%s/registry.k8s.io/cloud-provider-gcp/gcp-compute-persistent-disk-csi-driver" $base | quote }}
+    provisioner:
+      repository: {{ printf "%s/registry.k8s.io/sig-storage/csi-provisioner" $base | quote }}
+    attacher:
+      repository: {{ printf "%s/registry.k8s.io/sig-storage/csi-attacher" $base | quote }}
+    resizer:
+      repository: {{ printf "%s/registry.k8s.io/sig-storage/csi-resizer" $base | quote }}
+    registrar:
+      repository: {{ printf "%s/registry.k8s.io/sig-storage/csi-node-driver-registrar" $base | quote }}
+csi-openebs-lvm:
+  lvm-localpv:
+    lvmPlugin:
+      image:
+        registry: {{ printf "%s/docker.io/" $base | quote }}
+    lvmNode:
+      driverRegistrar:
+        image:
+          registry: {{ printf "%s/registry.k8s.io/" $base | quote }}
+    lvmController:
+      provisioner:
+        image:
+          registry: {{ printf "%s/registry.k8s.io/" $base | quote }}
+      resizer:
+        image:
+          registry: {{ printf "%s/registry.k8s.io/" $base | quote }}
+      snapshotter:
+        image:
+          registry: {{ printf "%s/registry.k8s.io/" $base | quote }}
 csi-aws-ebs:
   aws-ebs-csi-driver:
     image:

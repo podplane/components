@@ -63,19 +63,27 @@ func TestNormalizeImage(t *testing.T) {
 	}
 }
 
-// TestSharedMetadata verifies metadata is shared only by compatible components.
+// TestSharedMetadata verifies shared images cover all their consumers.
 func TestSharedMetadata(t *testing.T) {
-	got, err := sharedMetadata([]string{"agent-sandbox", "secrets-store-csi-driver"})
-	if err != nil {
-		t.Fatal(err)
-	}
+	got := sharedMetadata([]string{"agent-sandbox", "secrets-store-csi-driver"})
 	want := metadata{Addon: true}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("sharedMetadata() = %#v, want %#v", got, want)
 	}
 
-	if _, err := sharedMetadata([]string{"agent-sandbox", "cluster-api"}); err == nil {
-		t.Fatal("sharedMetadata() returned nil error for differing component metadata")
+	for _, tc := range []struct {
+		components []string
+		want       metadata
+	}{
+		{[]string{"agent-sandbox", "cluster-api"}, metadata{}},
+		{[]string{"csi-gce-pd", "csi-openebs-lvm"}, metadata{Providers: []string{"google", "local"}}},
+		{[]string{"csi-openebs-lvm", "csi-gce-pd", "csi-openebs-lvm-crds"}, metadata{Providers: []string{"google", "local"}}},
+		{[]string{"csi-gce-pd", "secrets-store-csi-driver"}, metadata{}},
+	} {
+		got := sharedMetadata(tc.components)
+		if !reflect.DeepEqual(got, tc.want) {
+			t.Fatalf("sharedMetadata(%v) = %#v; want %#v", tc.components, got, tc.want)
+		}
 	}
 }
 

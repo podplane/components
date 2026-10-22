@@ -204,6 +204,32 @@
       },
       {
         "components": [
+          "csi-openebs-lvm"
+        ],
+        "image": "docker.io/openebs/lvm-driver:1.10.1",
+        "digest": "sha256:ae4b9e0b57c64e35fc8f742496420bc8f9d3aadd990e1a0e19b4083fafdd6639",
+        "size": 62392923,
+        "platform": "linux/amd64",
+        "index": "sha256:41f73aba7f31eee4a033053d9c2f203e007a838c14823f3fd472c50651a98999",
+        "providers": [
+          "local"
+        ]
+      },
+      {
+        "components": [
+          "csi-openebs-lvm"
+        ],
+        "image": "docker.io/openebs/lvm-driver:1.10.1",
+        "digest": "sha256:bc49182f9cde4a70b282b1500f7505707afbd37ff069d6f6fec61e66cab093f4",
+        "size": 61065248,
+        "platform": "linux/arm64",
+        "index": "sha256:41f73aba7f31eee4a033053d9c2f203e007a838c14823f3fd472c50651a98999",
+        "providers": [
+          "local"
+        ]
+      },
+      {
+        "components": [
           "fluxcd"
         ],
         "image": "ghcr.io/fluxcd/flux-cli:v2.8.5",
@@ -692,6 +718,32 @@
       },
       {
         "components": [
+          "csi-gce-pd"
+        ],
+        "image": "registry.k8s.io/cloud-provider-gcp/gcp-compute-persistent-disk-csi-driver:v1.27.1",
+        "digest": "sha256:2bc6bbac651427cce2c838cf311a337fbf5ee2f91bc892e6ed02d27476a932ed",
+        "size": 133234442,
+        "platform": "linux/amd64",
+        "index": "sha256:3c40baa435c0bf7c66dac277bf13a3cad9c3a3a992d93d39f63ef02bbada939d",
+        "providers": [
+          "google"
+        ]
+      },
+      {
+        "components": [
+          "csi-gce-pd"
+        ],
+        "image": "registry.k8s.io/cloud-provider-gcp/gcp-compute-persistent-disk-csi-driver:v1.27.1",
+        "digest": "sha256:b98fc5bdf059d95d460b19ce062f16208730d528463cf552b96c4ad9e40ba315",
+        "size": 125662332,
+        "platform": "linux/arm64/v8",
+        "index": "sha256:3c40baa435c0bf7c66dac277bf13a3cad9c3a3a992d93d39f63ef02bbada939d",
+        "providers": [
+          "google"
+        ]
+      },
+      {
+        "components": [
           "cluster-api"
         ],
         "image": "registry.k8s.io/cluster-api/cluster-api-controller:v1.12.10",
@@ -800,25 +852,139 @@
       },
       {
         "components": [
+          "csi-gce-pd"
+        ],
+        "image": "registry.k8s.io/sig-storage/csi-attacher:v4.8.1",
+        "digest": "sha256:8eb112854b025cacea3a0d04e9f8fbb46a7152258ada2437d8c80c70a823c3ac",
+        "size": 32249680,
+        "platform": "linux/amd64",
+        "index": "sha256:69888dba58159c8bc0d7c092b9fb97900c9ca8710d088b0b7ea7bd9052df86f6",
+        "providers": [
+          "google"
+        ]
+      },
+      {
+        "components": [
+          "csi-gce-pd"
+        ],
+        "image": "registry.k8s.io/sig-storage/csi-attacher:v4.8.1",
+        "digest": "sha256:93dfdfe0079cc3b26336289e885e9a0b0306cd8a4e6a087c908d23bbac7de079",
+        "size": 30558363,
+        "platform": "linux/arm64",
+        "index": "sha256:69888dba58159c8bc0d7c092b9fb97900c9ca8710d088b0b7ea7bd9052df86f6",
+        "providers": [
+          "google"
+        ]
+      },
+      {
+        "components": [
+          "csi-gce-pd",
+          "csi-openebs-lvm",
           "secrets-store-csi-driver"
         ],
         "image": "registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.16.0",
         "digest": "sha256:aeecba5b171b50558bab359fdb8e28b9da185f666cef35cd87ac9784e51956c5",
         "size": 14107192,
         "platform": "linux/amd64",
-        "index": "sha256:ab482308a4921e28a6df09a16ab99a457e9af9641ff44fb1be1a690d07ce8b70",
-        "addon": true
+        "index": "sha256:ab482308a4921e28a6df09a16ab99a457e9af9641ff44fb1be1a690d07ce8b70"
       },
       {
         "components": [
+          "csi-gce-pd",
+          "csi-openebs-lvm",
           "secrets-store-csi-driver"
         ],
         "image": "registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.16.0",
         "digest": "sha256:108aadeb3bcdea7c60199f83ff53358bdcf42c365ed274b754baac2f81dd3883",
         "size": 13064276,
         "platform": "linux/arm64",
-        "index": "sha256:ab482308a4921e28a6df09a16ab99a457e9af9641ff44fb1be1a690d07ce8b70",
-        "addon": true
+        "index": "sha256:ab482308a4921e28a6df09a16ab99a457e9af9641ff44fb1be1a690d07ce8b70"
+      },
+      {
+        "components": [
+          "csi-gce-pd",
+          "csi-openebs-lvm"
+        ],
+        "image": "registry.k8s.io/sig-storage/csi-provisioner:v6.1.0",
+        "digest": "sha256:6b5a502366ecd4ed81bcdc768699fe431ab70437324f5a7883e9f49a5d640863",
+        "size": 42384575,
+        "platform": "linux/amd64",
+        "index": "sha256:e5900dc98b0d02f317ea9572f3824983c47a2fb5d5fe2b160aedf1b99c14c9e4",
+        "providers": [
+          "google",
+          "local"
+        ]
+      },
+      {
+        "components": [
+          "csi-gce-pd",
+          "csi-openebs-lvm"
+        ],
+        "image": "registry.k8s.io/sig-storage/csi-provisioner:v6.1.0",
+        "digest": "sha256:c60f53d362458fb2a1de97d5dafd0c28a3fd6f97aff2d8b129e8a1a3ed4712c0",
+        "size": 39999634,
+        "platform": "linux/arm64",
+        "index": "sha256:e5900dc98b0d02f317ea9572f3824983c47a2fb5d5fe2b160aedf1b99c14c9e4",
+        "providers": [
+          "google",
+          "local"
+        ]
+      },
+      {
+        "components": [
+          "csi-gce-pd",
+          "csi-openebs-lvm"
+        ],
+        "image": "registry.k8s.io/sig-storage/csi-resizer:v2.0.0",
+        "digest": "sha256:25b17c4f84b0ab061da6397caf407c7251a571df5c4071e4917942684c61689a",
+        "size": 40253626,
+        "platform": "linux/amd64",
+        "index": "sha256:4a95d94e57ad82f6977cd8d4fdcfcfc0b83f02d990e4e7715b688c20970a906d",
+        "providers": [
+          "google",
+          "local"
+        ]
+      },
+      {
+        "components": [
+          "csi-gce-pd",
+          "csi-openebs-lvm"
+        ],
+        "image": "registry.k8s.io/sig-storage/csi-resizer:v2.0.0",
+        "digest": "sha256:4131adb358337184f9a4da57304a93345ab908debc1c54455248fdb7d41e5f87",
+        "size": 37943228,
+        "platform": "linux/arm64",
+        "index": "sha256:4a95d94e57ad82f6977cd8d4fdcfcfc0b83f02d990e4e7715b688c20970a906d",
+        "providers": [
+          "google",
+          "local"
+        ]
+      },
+      {
+        "components": [
+          "csi-openebs-lvm"
+        ],
+        "image": "registry.k8s.io/sig-storage/csi-snapshotter:v8.2.0",
+        "digest": "sha256:339a83a86e6e1eead14413fe494b43de8bc48243d146c2810b39dd741d26ca6a",
+        "size": 31141020,
+        "platform": "linux/amd64",
+        "index": "sha256:dd788d79cf4c1b8edee6d9b80b8a1ebfc51a38a365c5be656986b129be9ac784",
+        "providers": [
+          "local"
+        ]
+      },
+      {
+        "components": [
+          "csi-openebs-lvm"
+        ],
+        "image": "registry.k8s.io/sig-storage/csi-snapshotter:v8.2.0",
+        "digest": "sha256:8c67bd89af4e3203925f7f71620e12fe91057bd1c5ec4e0f1c147b233f6cff18",
+        "size": 29504772,
+        "platform": "linux/arm64",
+        "index": "sha256:dd788d79cf4c1b8edee6d9b80b8a1ebfc51a38a365c5be656986b129be9ac784",
+        "providers": [
+          "local"
+        ]
       },
       {
         "components": [

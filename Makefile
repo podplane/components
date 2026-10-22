@@ -111,7 +111,7 @@ precommit: check check-release-manifest ## Offline checks: JSON fmt + image alig
 	@go -C tests vet ./...
 	@echo "precommit ok"
 
-ci: check lint validate check-crds check-release-manifest test ## Full CI suite (no cluster writes)
+ci: check lint validate check-crds check-crd-freshness check-release-manifest test ## Full CI suite (no cluster writes)
 
 ##@ CRDs
 
@@ -127,8 +127,8 @@ check-crds: ## Validate vendored CRDs with the compatibility checker
 update-crds: ## Update vendored CRDs with compatibility checks (CHART=<name> or all)
 	@go run ./scripts/crds --update $${CHART:-all}
 
-check-crd-freshness: ## Compare upstream CRDs without changes (CHART=<name>, default Nstance)
-	@go run ./scripts/crds --check $${CHART:-nstance-operator-crds}
+check-crd-freshness: ## Check all generated CRDs and app manifests at pinned versions (CHART=<name> or all)
+	@go run ./scripts/crds --check $${CHART:-all}
 
 ##@ Manifests
 

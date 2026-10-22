@@ -7,6 +7,7 @@ package tests
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -27,11 +28,17 @@ func TestSourceGatewayContract(t *testing.T) {
 	if strings.Contains(rendered, "runAsUser: 0\n") {
 		t.Error("Source Gateway must not run as UID 0 without a user namespace")
 	}
-	bindings := 0
+	bindings, pvcs := 0, 0
 	for _, doc := range chartDocuments(t, rendered) {
 		switch doc["kind"] {
 		case "SecretProviderClass", "CustomResourceDefinition":
 			t.Errorf("unexpected resource %s", doc["kind"])
+		case "PersistentVolumeClaim":
+			pvcs++
+			spec := chartMap(doc, "spec")
+			if spec["storageClassName"] != nil || !reflect.DeepEqual(spec["accessModes"], []any{"ReadWriteOnce"}) || chartMap(spec, "resources", "requests")["storage"] != "30Gi" {
+				t.Fatal("Source Gateway must use the default class with upstream capacity and access mode", spec)
+			}
 		case "SecretProviderBinding":
 			bindings++
 			if doc["apiVersion"] != "secrets.podplane.dev/v1beta1" || chartMap(doc, "metadata")["name"] != "sourcegateway" || chartMap(doc, "metadata")["namespace"] != "platform-sourcegateway" {
@@ -46,8 +53,8 @@ func TestSourceGatewayContract(t *testing.T) {
 			}
 		}
 	}
-	if bindings != 1 {
-		t.Fatalf("binding count %d", bindings)
+	if bindings != 1 || pvcs != 1 {
+		t.Fatalf("got %d bindings and %d PVCs, want one of each", bindings, pvcs)
 	}
 	override := render(t, "../charts/sourcegateway", "--set", "platform.sourceGateway.providerName=alternate")
 	for _, doc := range chartDocuments(t, override) {

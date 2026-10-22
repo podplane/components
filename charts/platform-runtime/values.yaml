@@ -18,11 +18,13 @@ platform:
     runcDefaultNamespaces:
       # Agent and operator: host networking, BPF, and mount propagation.
       - platform-cilium
-      # The node plugin needs mount propagation, kubelet plugin sockets, and
-      # devices. The controller only calls AWS APIs, but its containers share a
+      # CSI node plugins need mount propagation, devices, and kubelet sockets.
+      # The EBS controller also stays in runc because its containers share a
       # socket at a path with a trailing slash, which gVisor's shared mounts
-      # cannot create, so it stays in runc until that is fixed.
+      # cannot create.
       - platform-csi-aws-ebs
+      - platform-csi-gce-pd
+      - platform-csi-openebs-lvm
       # Mount propagation, and kubelet plugin and provider sockets.
       - platform-secrets-store-csi-driver
       # Providers serve a Unix socket to the CSI driver from a host directory.
@@ -32,4 +34,3 @@ platform:
       - platform-secrets-store-csi-provider-vault
       # /dev/kmsg and the containerd socket.
       - platform-node-problem-detector
-    

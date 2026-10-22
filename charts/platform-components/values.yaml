@@ -49,6 +49,9 @@ platform:
         enabled: false
       snapshot-crds:
         enabled: false
+      csi-openebs-lvm-crds:
+        enabled: false
+        core: true
       secrets-store-csi-driver-crds:
         enabled: false
 
@@ -121,6 +124,22 @@ platform:
         # hostPath mounts of kubelet and device directories.
         podSecurity: privileged
         runcAllowed: true
+      csi-gce-pd:
+        enabled: false
+        core: true
+        namespace: platform-csi-gce-pd
+        podSecurity: privileged
+        runcAllowed: true
+      csi-openebs-lvm:
+        enabled: false
+        core: true
+        namespace: platform-csi-openebs-lvm
+        podSecurity: privileged
+        runcAllowed: true
+        dependsOn:
+          - csi-openebs-lvm-crds
+          # Upstream always runs a snapshotter sidecar, but no controller.
+          - snapshot-crds
       podplane-operator:
         enabled: false
         namespace: platform-podplane-operator

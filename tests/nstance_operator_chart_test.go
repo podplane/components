@@ -22,8 +22,8 @@ import (
 // TestBootstrapInstallProfiles locks the addon membership of each public profile.
 func TestBootstrapInstallProfiles(t *testing.T) {
 	platform := map[string][]string{
-		"crds": {"podplane-operator-crds", "secrets-store-csi-driver-crds", "envoy-gateway-crds"},
-		"apps": {"podplane-operator", "secrets-store-csi-driver", "secrets-store-csi-provider-openbao", "envoy-gateway", "zot-registry"},
+		"crds": {"podplane-operator-crds", "secrets-store-csi-driver-crds", "envoy-gateway-crds", "csi-openebs-lvm-crds", "snapshot-crds"},
+		"apps": {"podplane-operator", "secrets-store-csi-driver", "secrets-store-csi-provider-openbao", "envoy-gateway", "zot-registry", "csi-openebs-lvm"},
 	}
 	for _, profile := range []string{"default", "minimal", "platform", "agentic", "all"} {
 		t.Run(profile, func(t *testing.T) {

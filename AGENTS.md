@@ -18,6 +18,7 @@ over.
 - **Lint all charts**: `make lint`.
 - **Template all charts (no install)**: `make render`.
 - **Validate vendored CRDs**: `make check-crds`.
+- **Check generated CRDs and app manifests**: `make check-crd-freshness` (all pinned generators, or `CHART=<name>`).
 - **Update vendored CRDs**: `make update-crds` (or `make update-crds CHART=<name>`).
 
 Dependencies: `helm`, `kubectl`; `watchexec` is optional for `make git-watch`.
@@ -60,6 +61,12 @@ or `make all` against a real cluster without explicit user approval.
   Helm chart that depends on an upstream chart (Cilium, Envoy Gateway, etc.)
   or vendors upstream CRDs in `templates/external/`. Vendored
   CRDs are updated through the shared `scripts/crds` Go command.
+- **CSI storage**: `csi-gce-pd/templates/external/` is generated from the
+  pinned upstream Linux base by `scripts/crds/gce_pd.go`; do not edit it directly.
+  Its identity, cloud config and StorageClass are chart-owned. OpenEBS uses the
+  standalone `lvm-localpv` dependency; its three LocalPV CRDs are generated into
+  `csi-openebs-lvm-crds` with `renderHelmCRDs`. `snapshot-crds` remains the sole
+  snapshot API owner. Run `make check-crd-freshness` for pinned upstream freshness.
 - **Post-bootstrap changes**: edit the platform chart's values and let Flux
   reconcile. The `podplane install` / `podplane uninstall` CLI commands
   toggle entries in `platform.components.{apps,crds}`.

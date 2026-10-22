@@ -53,6 +53,25 @@ type crdInfo struct {
 
 var charts = []crdChart{
 	{
+		Name: "csi-gce-pd",
+		Env:  "CSI_GCE_PD_VERSION",
+		Update: func(ctx updateContext) error {
+			return generateGCEPD(ctx.AppOutDir, firstNonEmpty(ctx.Version, "v1.27.1"))
+		},
+	},
+	{
+		Name: "csi-openebs-lvm-crds",
+		Env:  "CSI_OPENEBS_LVM_VERSION",
+		Update: func(ctx updateContext) error {
+			return renderHelmCRDs(ctx.OutDir, helmDependency{
+				Name: "lvm-localpv", Release: "csi-openebs-lvm-crds",
+				Version: firstNonEmpty(ctx.Version, "1.10.1"), Repository: "https://openebs.github.io/lvm-localpv",
+			}, map[string]any{"lvm-localpv": map[string]any{
+				"crds": map[string]any{"csi": map[string]any{"volumeSnapshots": map[string]any{"enabled": false}}},
+			}})
+		},
+	},
+	{
 		Name: "sourcegateway-crds",
 		Env:  "SOURCEGATEWAY_VERSION",
 		Update: func(ctx updateContext) error {
@@ -124,14 +143,7 @@ var charts = []crdChart{
 		Name: "agent-sandbox-crds",
 		Env:  "AGENT_SANDBOX_VERSION",
 		Update: func(ctx updateContext) error {
-			version := ctx.Version
-			if version == "" {
-				latest, err := githubLatestTag("kubernetes-sigs/agent-sandbox")
-				if err != nil {
-					return err
-				}
-				version = latest
-			}
+			version := firstNonEmpty(ctx.Version, "v1.0.4")
 			files, err := githubYAMLFiles("kubernetes-sigs/agent-sandbox", "helm/crds", version)
 			if err != nil {
 				return err
@@ -149,14 +161,7 @@ var charts = []crdChart{
 		Name: "cilium-crds",
 		Env:  "CILIUM_VERSION",
 		Update: func(ctx updateContext) error {
-			version := ctx.Version
-			if version == "" {
-				latest, err := githubLatestTag("cilium/cilium")
-				if err != nil {
-					return err
-				}
-				version = latest
-			}
+			version := firstNonEmpty(ctx.Version, "v1.19.2")
 			for _, apiVersion := range []string{"v2", "v2alpha1"} {
 				path := "pkg/k8s/apis/cilium.io/client/crds/" + apiVersion
 				files, err := githubYAMLFiles("cilium/cilium", path, version)
@@ -200,14 +205,7 @@ var charts = []crdChart{
 		Name: "gateway-api-crds",
 		Env:  "GATEWAY_API_VERSION",
 		Update: func(ctx updateContext) error {
-			version := ctx.Version
-			if version == "" {
-				latest, err := githubLatestTag("kubernetes-sigs/gateway-api")
-				if err != nil {
-					return err
-				}
-				version = latest
-			}
+			version := firstNonEmpty(ctx.Version, "v1.6.1")
 			url := fmt.Sprintf("https://github.com/kubernetes-sigs/gateway-api/releases/download/%s/experimental-install.yaml", version)
 			return downloadAndSplit(url, ctx.OutDir)
 		},
@@ -216,14 +214,7 @@ var charts = []crdChart{
 		Name: "snapshot-crds",
 		Env:  "SNAPSHOT_VERSION",
 		Update: func(ctx updateContext) error {
-			version := ctx.Version
-			if version == "" {
-				latest, err := githubLatestTag("kubernetes-csi/external-snapshotter")
-				if err != nil {
-					return err
-				}
-				version = latest
-			}
+			version := firstNonEmpty(ctx.Version, "v8.5.0")
 			files := []string{
 				"groupsnapshot.storage.k8s.io_volumegroupsnapshotclasses.yaml",
 				"groupsnapshot.storage.k8s.io_volumegroupsnapshotcontents.yaml",
@@ -252,6 +243,16 @@ var charts = []crdChart{
 				Version:    version,
 				Repository: "https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts",
 			}, map[string]any{})
+		},
+	},
+	{
+		Name: "podplane-operator-crds",
+		Env:  "PODPLANE_OPERATOR_VERSION",
+		Update: func(ctx updateContext) error {
+			version := firstNonEmpty(ctx.Version, "v0.14.1")
+			file := "secrets.podplane.dev_secretproviderbindings.yaml"
+			url := fmt.Sprintf("https://raw.githubusercontent.com/podplane/operator/%s/config/crd/bases/%s", version, file)
+			return downloadFile(url, filepath.Join(ctx.OutDir, file))
 		},
 	},
 }
@@ -319,6 +320,10 @@ func updateOne(repoRoot string, chart crdChart, checkOnly bool) error {
 	if chart.Name == "cluster-api-crds" {
 		appTargetDir = filepath.Join(repoRoot, "charts", "cluster-api", "templates", "external")
 	}
+	if chart.Name == "csi-gce-pd" {
+		appTargetDir = targetDir
+		targetDir = ""
+	}
 	work, err := os.MkdirTemp("", "podplane-crds-*")
 	if err != nil {
 		return err
@@ -328,7 +333,11 @@ func updateOne(repoRoot string, chart crdChart, checkOnly bool) error {
 	oldDir := filepath.Join(work, "old")
 	newDir := filepath.Join(work, "new")
 	newAppDir := filepath.Join(work, "new-app")
-	if err := copyDir(targetDir, oldDir); err != nil {
+	if targetDir != "" {
+		if err := copyDir(targetDir, oldDir); err != nil {
+			return err
+		}
+	} else if err := os.MkdirAll(oldDir, 0o755); err != nil {
 		return err
 	}
 	if err := os.MkdirAll(newDir, 0o755); err != nil {
@@ -366,11 +375,13 @@ func updateOne(repoRoot string, chart crdChart, checkOnly bool) error {
 		fmt.Printf("%s matches upstream\n", chart.Name)
 		return nil
 	}
-	if err := os.RemoveAll(targetDir); err != nil {
-		return err
-	}
-	if err := copyDir(newDir, targetDir); err != nil {
-		return err
+	if targetDir != "" {
+		if err := os.RemoveAll(targetDir); err != nil {
+			return err
+		}
+		if err := copyDir(newDir, targetDir); err != nil {
+			return err
+		}
 	}
 	if appTargetDir != "" {
 		if err := os.RemoveAll(appTargetDir); err != nil {
@@ -397,7 +408,7 @@ func splitClusterAPI(body []byte, crdDir, appDir string) error {
 		if err := yaml.Unmarshal(rawDoc, &doc); err != nil {
 			return err
 		}
-		if doc == nil || doc["kind"] == "Namespace" {
+		if doc == nil || doc["kind"] == "Namespace" || doc["apiVersion"] == "cert-manager.io/v1" {
 			continue
 		}
 		metadata, _ := doc["metadata"].(map[string]any)
@@ -410,6 +421,9 @@ func splitClusterAPI(body []byte, crdDir, appDir string) error {
 		if kind == "CustomResourceDefinition" {
 			target = crdDir
 		}
+		rawDoc = bytes.ReplaceAll(rawDoc,
+			[]byte("cert-manager.io/inject-ca-from: capi-system/capi-serving-cert"),
+			[]byte("certificates.podplane.dev/inject-ca-from: workload"))
 		rawDoc = bytes.ReplaceAll(rawDoc, []byte("capi-system"), []byte("platform-cluster-api"))
 		if kind == "Deployment" && name == "capi-controller-manager" {
 			rawDoc = clusterAPIControllerImage.ReplaceAll(rawDoc,
@@ -418,6 +432,20 @@ ${1}imagePullPolicy: {{ .Values.image.pullPolicy }}`))
 			if !bytes.Contains(rawDoc, []byte(".Values.image.repository")) {
 				return fmt.Errorf("upstream Cluster API controller image layout changed")
 			}
+			secretVolume := []byte("        secret:\n          secretName: capi-webhook-service-cert")
+			if !bytes.Contains(rawDoc, secretVolume) {
+				return fmt.Errorf("upstream Cluster API webhook certificate volume layout changed")
+			}
+			rawDoc = bytes.ReplaceAll(rawDoc, secretVolume, []byte(`        projected:
+          sources:
+          - podCertificate:
+              signerName: certificates.podplane.dev/workload
+              keyType: ED25519
+              keyPath: tls.key
+              certificateChainPath: tls.crt
+              userAnnotations:
+                certificates.podplane.dev/mode: service
+                certificates.podplane.dev/service: capi-webhook-service`))
 		}
 		if kind == "CustomResourceDefinition" {
 			// ClusterClass schema descriptions contain Go-template examples.
@@ -615,24 +643,6 @@ func sourceBasename(doc []byte) string {
 		}
 	}
 	return ""
-}
-
-// githubLatestTag returns the tag of a repository's latest GitHub release.
-func githubLatestTag(repo string) (string, error) {
-	body, err := download("https://api.github.com/repos/" + repo + "/releases/latest")
-	if err != nil {
-		return "", err
-	}
-	var response struct {
-		TagName string `json:"tag_name"`
-	}
-	if err := json.Unmarshal(body, &response); err != nil {
-		return "", err
-	}
-	if response.TagName == "" {
-		return "", fmt.Errorf("GitHub latest release for %s did not include tag_name", repo)
-	}
-	return response.TagName, nil
 }
 
 // githubYAMLFiles lists YAML files at a GitHub repository path and ref.

@@ -1,0 +1,26 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+platform:
+  csiGcePd:
+    projectID: ""
+    zone: ""
+    googleWorkloadIdentity:
+      provider: ""
+# Sidecar pins follow upstream, aligned across Podplane charts where shared.
+images:
+  driver:
+    repository: registry.k8s.io/cloud-provider-gcp/gcp-compute-persistent-disk-csi-driver
+    tag: v1.27.1
+  provisioner:
+    repository: registry.k8s.io/sig-storage/csi-provisioner
+    tag: v6.1.0
+  attacher:
+    repository: registry.k8s.io/sig-storage/csi-attacher
+    tag: v4.8.1
+  resizer:
+    repository: registry.k8s.io/sig-storage/csi-resizer
+    tag: v2.0.0
+  registrar:
+    repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
+    tag: v2.16.0

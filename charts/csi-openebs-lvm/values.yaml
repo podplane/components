@@ -1,0 +1,21 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+lvm-localpv:
+  lvmNode:
+    driverRegistrar:
+      image:
+        # Align with the shared Secrets Store CSI registrar.
+        tag: v2.16.0
+  analytics:
+    enabled: false
+  lvmController:
+    snapshotController:
+      enabled: false
+  crds:
+    enabled: false
+    lvmLocalPv:
+      enabled: false
+    csi:
+      volumeSnapshots:
+        enabled: false

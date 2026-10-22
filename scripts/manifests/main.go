@@ -64,6 +64,9 @@ var (
 		"metrics-server":                     {Addon: true},
 		"node-problem-detector":              {Addon: true},
 		"csi-aws-ebs":                        {Providers: []string{"aws"}},
+		"csi-gce-pd":                         {Providers: []string{"google"}},
+		"csi-openebs-lvm":                    {Providers: []string{"local"}},
+		"csi-openebs-lvm-crds":               {Providers: []string{"local"}},
 		"secrets-store-csi-driver":           {Addon: true},
 		"secrets-store-csi-provider-aws":     {Providers: []string{"aws"}, Addon: true},
 		"secrets-store-csi-provider-gcp":     {Providers: []string{"gcp"}, Addon: true},
@@ -238,10 +241,7 @@ func run() error {
 		}
 		if len(remaining) != len(row.Components) {
 			row.Components = remaining
-			meta, err := sharedMetadata(remaining)
-			if err != nil {
-				return err
-			}
+			meta := sharedMetadata(remaining)
 			row.Providers, row.Addon = meta.Providers, meta.Addon
 		}
 		images = append(images, row)
@@ -315,10 +315,7 @@ func checkManifest(expected map[string]map[string]bool) error {
 			return fmt.Errorf("invalid source, digest, or size for %q; run make update-manifests", row.Image)
 		}
 		components := slices.Sorted(maps.Keys(memberships))
-		meta, err := sharedMetadata(components)
-		if err != nil {
-			return err
-		}
+		meta := sharedMetadata(components)
 		if !slices.Equal(row.Components, components) || !slices.Equal(row.Providers, meta.Providers) || row.Addon != meta.Addon {
 			return fmt.Errorf("stale component membership or provider/addon metadata for %s; run make update-manifests", row.Image)
 		}
@@ -363,10 +360,7 @@ func componentsSource(version string) source {
 // platform. For multi-platform indexes, digest is the platform manifest digest
 // and indexDigest records the resolved upstream index digest.
 func resolveImage(components []string, sourceImage string) ([]image, error) {
-	metadata, err := sharedMetadata(components)
-	if err != nil {
-		return nil, fmt.Errorf("resolve metadata for %s: %w", sourceImage, err)
-	}
+	metadata := sharedMetadata(components)
 	repo, tag, digest := splitRef(sourceImage)
 	resolvedImage := repo + "@" + digest
 	if digest == "" {
@@ -430,20 +424,28 @@ func resolveImage(components []string, sourceImage string) ([]image, error) {
 	return items, nil
 }
 
-// sharedMetadata returns the common selection metadata for components that use
-// the same image. Differing metadata cannot be represented on one manifest row.
-func sharedMetadata(components []string) (metadata, error) {
+// sharedMetadata selects an image whenever any of its consumers needs it.
+// An unrestricted consumer makes providers unrestricted; a core consumer makes
+// the image core. Component memberships retain the precise ownership.
+func sharedMetadata(components []string) metadata {
 	if len(components) == 0 {
-		return metadata{}, nil
+		return metadata{}
 	}
-	shared := componentMetadata[components[0]]
-	for _, component := range components[1:] {
+	shared := metadata{Addon: true}
+	unrestricted := false
+	for _, component := range components {
 		current := componentMetadata[component]
-		if shared.Addon != current.Addon || !slices.Equal(shared.Providers, current.Providers) {
-			return metadata{}, fmt.Errorf("components %q and %q use different provider/addon metadata", components[0], component)
-		}
+		shared.Addon = shared.Addon && current.Addon
+		unrestricted = unrestricted || len(current.Providers) == 0
+		shared.Providers = append(shared.Providers, current.Providers...)
 	}
-	return shared, nil
+	if unrestricted {
+		shared.Providers = nil
+	} else {
+		slices.Sort(shared.Providers)
+		shared.Providers = slices.Compact(shared.Providers)
+	}
+	return shared
 }
 
 // chartImages renders a chart and extracts normalized images from pod specs.

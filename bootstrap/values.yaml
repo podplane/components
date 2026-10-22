@@ -58,8 +58,12 @@ bootstrap:
       - name: envoy-gateway-crds
         install: [platform, agentic, all]
       - name: snapshot-crds
-        install: [all]
+        install: [platform, agentic, all]
+      - name: csi-openebs-lvm-crds
+        install: [platform, agentic, all]
     apps:
+      - name: csi-openebs-lvm
+        install: [platform, agentic, all]
       - name: sourcegateway
         install: [agentic, all]
       - name: agent-router

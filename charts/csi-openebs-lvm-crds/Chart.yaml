@@ -1,0 +1,10 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+apiVersion: v2
+name: csi-openebs-lvm-crds
+description: OpenEBS LVM LocalPV CRDs
+type: application
+version: "1.0.0"
+appVersion: "1.10.1"
+kubeVersion: ">=1.37.0-0"

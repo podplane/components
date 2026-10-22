@@ -66,6 +66,10 @@ __Provider-Specific Core (always installed for certain providers):__
 
 - [AWS EBS CSI Driver](https://github.com/kubernetes-sigs/aws-ebs-csi-driver)
   for persistent storage on AWS (_Apache 2.0_).
+- [Google PD CSI Driver](https://github.com/kubernetes-sigs/gcp-compute-persistent-disk-csi-driver)
+  for persistent storage on Google Cloud (_Apache 2.0_).
+- [OpenEBS LVM LocalPV](https://github.com/openebs/lvm-localpv)
+  for persistent storage on the local VM (_Apache 2.0_).
 - [Cluster API](https://cluster-api.sigs.k8s.io/) core controller and CRDs for
   declarative infrastructure-provider cluster lifecycle management (_Apache 2.0_).
 - [Nstance Operator](https://nstance.dev/) as the Cluster API infrastructure
@@ -146,6 +150,12 @@ The local bootstrap targets are:
   Agent Router and their CRDs.
 - `make all` for testing all platform, agentic, and additional addons.
 
+`platform`, `agentic`, and `all` also enable `csi-openebs-lvm`, its three
+LocalPV CRDs, and `snapshot-crds`. Only `all` enables the snapshot controller;
+the LocalPV chart's snapshotter sidecar requires the snapshot CRDs even when
+snapshots are unused. The local bootstrap profiles are for local VMs, not cloud
+provider selection.
+
 After bootstrap, run `make git-sync` again for manual updates, or 
 `make git-watch` to sync automatically on file changes:
 
@@ -155,6 +165,12 @@ make git-watch
 
 See the Podplane CLI `docs/development.md` guide for the full cross-repository
 local development flow, including dependency caching and seed snapshot creation.
+
+## Persistent storage
+
+See the Podplane [Persistent Storage reference](https://github.com/podplane/podplane/blob/main/docs/reference/persistent-storage.md)
+for default storage classes, PVC usage, capacity, and data retention.
+The CLI selects the provider's driver and supplies cloud IAM configuration.
 
 ## Repository Layout
 
@@ -187,8 +203,27 @@ stops serving a previously served version.
 Use `make update-crds` to update every Podplane-managed CRD chart, or
 `make update-crds CHART=<name>` for one chart.
 
-Use `make check-crd-freshness CHART=nstance-operator-crds` to compare vendored
-CRDs with upstream without changing the checkout.
+The same generator owns Google's pinned Linux CSI manifests in
+`charts/csi-gce-pd/templates/external/`. Change their transforms in
+`scripts/crds/gce_pd.go`, then regenerate with
+`make update-crds CHART=csi-gce-pd`. Identity, cloud config, and StorageClass
+templates remain chart-owned. OpenEBS uses the standalone `lvm-localpv`
+dependency; `csi-openebs-lvm-crds` owns its three LocalPV CRDs and
+`snapshot-crds` owns the snapshot API. Keep shared CSI sidecar versions aligned
+across charts for the image inventory.
+
+Run `make check-crd-freshness` to regenerate and compare every managed CRD
+chart and generated app manifest without changing the checkout. CI runs this
+check at the versions pinned in `scripts/crds`, never upstream's latest release.
+Use `CHART=<name>` to check one generator. Version environment overrides remain
+available for testing an intentional upgrade; check compatibility before
+updating the pins and chart metadata.
+
+This includes `podplane-operator-crds`, copied from the pinned operator release.
+`envoy-gateway-crds` instead uses a locked upstream Helm dependency, checked by
+the normal dependency, lint, and render targets. Cilium and snapshot CRD pins
+describe the already-vendored schemas, independently of their controller chart
+versions; the freshness check does not upgrade those controllers or schemas.
 
 ## Validation and Releases
 

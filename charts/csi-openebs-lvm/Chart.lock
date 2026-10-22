@@ -1,0 +1,6 @@
+dependencies:
+- name: lvm-localpv
+  repository: https://openebs.github.io/lvm-localpv
+  version: 1.10.1
+digest: sha256:52cad50975125b12bf8186175ba014df308874a14313d600f431372234573a79
+generated: "2026-10-22T23:50:52.699867+11:00"

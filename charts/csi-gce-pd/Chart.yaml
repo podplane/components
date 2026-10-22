@@ -1,0 +1,10 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+apiVersion: v2
+name: csi-gce-pd
+description: Google Persistent Disk CSI driver
+type: application
+version: "1.0.0"
+appVersion: "v1.27.1"
+kubeVersion: ">=1.37.0-0"
