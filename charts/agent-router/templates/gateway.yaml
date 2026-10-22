@@ -1,0 +1,28 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Agent Router's dedicated Gateway. With mergeGateways=false and GatewayNamespace
+# placement, Envoy Gateway runs a separate proxy Deployment for Agent Router in
+# this namespace, so provider credentials and the extproc sidecar stay out of the
+# public ingress DaemonSet. It is cluster-internal: no host ports.
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: platform-agent-router-gateway
+spec:
+  # Rendered by the envoy-gateway chart.
+  gatewayClassName: platform-envoy-gateway
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: platform-agent-router-gateway
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All

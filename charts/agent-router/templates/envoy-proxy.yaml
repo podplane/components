@@ -1,0 +1,38 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Proxy infrastructure for platform-agent-router-gateway (see gateway.yaml).
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: platform-agent-router-gateway
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        type: ClusterIP
+      envoyDeployment:
+        patch:
+          type: StrategicMerge
+          value:
+            spec:
+              template:
+                spec:
+                  securityContext:
+                    runAsNonRoot: true
+                    fsGroup: 65532
+                    seccompProfile:
+                      type: RuntimeDefault
+                  volumes:
+                    # Envoy Gateway's xDS CA is the Podplane workload signer
+                    # (see charts/envoy-gateway/UPSTREAM.md).
+                    - name: certs
+                      configMap: null
+                      projected:
+                        sources:
+                          - clusterTrustBundle:
+                              name: certificates.podplane.dev:workload:roots
+                              path: ca.crt

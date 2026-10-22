@@ -87,6 +87,18 @@ func TestAgentRouterContract(t *testing.T) {
 	if secrets != 1 || webhooks != 1 {
 		t.Fatalf("got %d Secrets and %d webhooks", secrets, webhooks)
 	}
+	// AI/MCP routes get their own internal proxy fleet, separate from the
+	// ingress DaemonSet and its host ports.
+	for _, want := range []string{"kind: Gateway\n", "gatewayClassName: platform-envoy-gateway", "envoyDeployment:", "type: ClusterIP", "name: platform-agent-router-extproc-gvisor-map", "reinvocationPolicy: IfNeeded"} {
+		if !strings.Contains(rendered, want) {
+			t.Errorf("missing %q", want)
+		}
+	}
+	for _, forbidden := range []string{"envoyDaemonSet:", "hostPort:"} {
+		if strings.Contains(rendered, forbidden) {
+			t.Errorf("unexpected %q", forbidden)
+		}
+	}
 }
 
 // TestAgenticGatewayPlatformContract checks gateway release wiring and image

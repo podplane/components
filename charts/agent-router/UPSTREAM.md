@@ -18,3 +18,9 @@ bash charts/agent-router/scripts/update-upstream.sh v1.2.0
 
 Review patch conflicts before updating. Agent Router extends the shared Envoy
 Gateway over upstream's plaintext gRPC endpoint; it does not replace xDS TLS.
+
+The Podplane-owned `templates/` add the cluster-internal
+`platform-agent-router-gateway` Gateway, whose proxy Deployment is separate
+from the ingress DaemonSet; attach AIGatewayRoutes and MCPRoutes to it. They
+also add a MutatingAdmissionPolicy that shares the injected extproc socket
+volume across the Pod under gVisor.

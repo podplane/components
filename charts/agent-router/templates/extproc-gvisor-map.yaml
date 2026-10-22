@@ -1,0 +1,49 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Agent Router's webhook injects the extproc sidecar and its Unix socket
+# emptyDir only once AI/MCP routes attach to a Gateway. Under gVisor each
+# container gets its own view of an emptyDir, so Envoy cannot reach the socket
+# unless the volume is shared across the Pod. The share annotations cannot be
+# static on an EnvoyProxy: gVisor rejects a Pod whose annotations name a volume
+# it does not have. Add them only to Pods that have the injected volume.
+#
+# Admission policies run before webhooks, and IfNeeded reinvokes only bindings
+# that already ran in the first pass, so match every Envoy Gateway proxy Pod
+# and test for the volume in the mutation rather than in a matchCondition.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: platform-agent-router-extproc-gvisor-map
+spec:
+  failurePolicy: Fail
+  reinvocationPolicy: IfNeeded
+  matchConstraints:
+    objectSelector:
+      matchLabels:
+        app.kubernetes.io/managed-by: envoy-gateway
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >
+          Object{metadata: Object.metadata{annotations:
+            object.spec.?volumes.orValue([]).exists(v, v.name == "ai-gateway-extproc-uds") ? {
+              "dev.gvisor.spec.mount.ai-gateway-extproc-uds.share": "pod",
+              "dev.gvisor.spec.mount.ai-gateway-extproc-uds.type": "tmpfs",
+              "dev.gvisor.spec.mount.ai-gateway-extproc-uds.options": "rw,rprivate"
+            } : {}
+          }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: platform-agent-router-extproc-gvisor-mapb
+spec:
+  policyName: platform-agent-router-extproc-gvisor-map
