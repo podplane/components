@@ -2,6 +2,11 @@
 # Copyright The Podplane Authors
 # SPDX-License-Identifier: Apache-2.0
 ---
+platform:
+  coredns:
+    # Hostname -> list of IPv4/IPv6 addresses (A/AAAA and automatic PTR records).
+    # Empty by default; local cluster seeding supplies host.podplane.internal.
+    staticRecords: {}
 # https://github.com/coredns/helm/blob/master/charts/coredns/values.yaml
 coredns:
   image:
@@ -40,9 +45,15 @@ coredns:
       hostPath:
         path: /run/systemd/resolve/resolv.conf
         type: File
+    - name: static-records
+      configMap:
+        name: platform-coredns-static-records
   extraVolumeMounts:
     - name: systemd-resolve
       mountPath: /etc/resolv.conf
+      readOnly: true
+    - name: static-records
+      mountPath: /etc/coredns-static
       readOnly: true
   servers:
     - zones:
@@ -55,6 +66,11 @@ coredns:
           configBlock: |-
             lameduck 10s
         - name: ready
+        - name: hosts
+          parameters: /etc/coredns-static/hosts
+          configBlock: |-
+            ttl 30
+            fallthrough
         - name: kubernetes
           parameters: cluster.local in-addr.arpa ip6.arpa
           configBlock: |-

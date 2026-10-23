@@ -292,6 +292,8 @@ The platform defaults assume Podplane's standard dual-stack network design:
 
   * The kubelet is configured to use the above two addresses as clusterDNS.
 
+  * Optional [static DNS records](charts/coredns/README.md) map hostnames to IP addresses.
+
 ## Container Runtimes
 
 Pods run in [gVisor](https://gvisor.dev/) by default. `platform-runtime` enforces
