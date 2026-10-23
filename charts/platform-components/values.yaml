@@ -201,9 +201,13 @@ platform:
         enabled: false
         namespace: platform-agent-router
         podSecurity: restricted
+        # Agent Router runs its own Envoy Gateway controller, so it needs only
+        # the shared CRDs and its workload certificates, not the envoy-gateway app.
         dependsOn:
           - agent-router-crds
-          - envoy-gateway
+          - envoy-gateway-crds
+          - gateway-api-crds
+          - podplane-operator
       agent-sandbox:
         enabled: false
         namespace: platform-agent-sandbox

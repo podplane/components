@@ -98,6 +98,7 @@
       },
       {
         "components": [
+          "agent-router",
           "envoy-gateway"
         ],
         "image": "docker.io/envoyproxy/gateway:v1.9.2",
@@ -109,6 +110,7 @@
       },
       {
         "components": [
+          "agent-router",
           "envoy-gateway"
         ],
         "image": "docker.io/envoyproxy/gateway:v1.9.2",

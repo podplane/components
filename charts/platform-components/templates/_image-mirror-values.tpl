@@ -31,6 +31,11 @@ agent-router:
     extProc:
       image:
         repository: {{ printf "%s/docker.io/envoyproxy/ai-gateway-extproc" $base | quote }}
+  gateway-helm:
+    global:
+      images:
+        envoyGateway:
+          image: {{ printf "%s/docker.io/envoyproxy/gateway:v1.9.2" $base | quote }}
   platform:
     agentRouter:
       envoyProxy:

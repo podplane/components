@@ -2,5 +2,8 @@ dependencies:
 - name: ai-gateway-helm
   repository: file://upstream/ai-gateway-helm
   version: v1.2.0
-digest: sha256:7f7a0e49f4a802b312b4a383baabf0d558b6a7c5f941b28b54b76b6fb8200f79
-generated: "2026-10-21T11:15:20.965321+11:00"
+- name: gateway-helm
+  repository: file://../envoy-gateway/upstream/gateway-helm
+  version: v1.9.2
+digest: sha256:adac2218c83e11cd9f1ea0ba1d2076efc963ac731ece4bb3f5e2b8474796604a
+generated: "2026-10-23T15:36:24.599896+11:00"

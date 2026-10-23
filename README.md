@@ -50,8 +50,8 @@ __Addons (optional, installable via `podplane install <name>`):__
   stateful singleton workloads such as AI agent runtimes (_Apache 2.0_).
 - [Source Gateway](https://sourcegateway.dev/) for Git and object storage access
   (_Apache 2.0_).
-- [Agent Router](https://theagentrouter.ai/) for LLM and MCP routing through the
-  shared Envoy Gateway (_Apache 2.0_).
+- [Agent Router](https://theagentrouter.ai/) for LLM and MCP routing through its
+  own Envoy Gateway controller (_Apache 2.0_).
 - [Envoy Gateway](https://gateway.envoyproxy.io/) for ingress (_Apache-2.0_).
 - [Snapshot Controller](https://github.com/kubernetes-csi/external-snapshotter)
   for persistent volume snapshotting (_Apache 2.0_).

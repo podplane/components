@@ -95,6 +95,13 @@ EOF
 echo "Refreshing Helm dependency..."
 helm dependency update --skip-refresh "$chart_dir"
 
+echo "Refreshing Agent Router's Envoy Gateway dependency..."
+agent_router_dir="$repo_root/charts/agent-router"
+sed -E "/^  - name: gateway-helm$/,/^    version:/s/^    version:.*/    version: \"$version\"/" \
+  "$agent_router_dir/Chart.yaml" > "$agent_router_dir/Chart.yaml.tmp"
+mv "$agent_router_dir/Chart.yaml.tmp" "$agent_router_dir/Chart.yaml"
+helm dependency update --skip-refresh "$agent_router_dir"
+
 echo "Validating Envoy Gateway chart..."
 helm lint --kube-version 1.37.0 "$chart_dir"
 (

@@ -16,12 +16,6 @@ Each HelmRelease pulls its chart from the podplane-components GitRepository.
 {{- $mirrorPrefix := "mirror" -}}
 {{- if hasKey $mirror "prefix" -}}{{- $mirrorPrefix = trimAll "/" $mirror.prefix -}}{{- end -}}
 {{- $sourceNs := .Release.Namespace -}}
-{{- $agentRouter := index $components.apps "agent-router" -}}
-{{- if $agentRouter.enabled -}}
-{{- $routerValues := include "podplane.platform.agentRouterValues" $agentRouter | fromYaml -}}
-{{- $envoyValues := index $values "envoy-gateway" | default dict -}}
-{{- $_ := set $values "envoy-gateway" (mergeOverwrite $routerValues $envoyValues) -}}
-{{- end -}}
 
 {{ range $name, $entry := $components.apps }}
 {{- if $entry.enabled }}

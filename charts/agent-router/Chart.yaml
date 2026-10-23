@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 apiVersion: v2
 name: agent-router
-description: Agent Router (Envoy Gateway installed separately)
+description: Agent Router and its dedicated Envoy Gateway controller
 type: application
 version: "1.0.0"
 appVersion: "v1.2.0"
@@ -12,3 +12,8 @@ dependencies:
   - name: ai-gateway-helm
     version: "v1.2.0"
     repository: file://upstream/ai-gateway-helm
+  # Agent Router's own Envoy Gateway controller, from the envoy-gateway chart's
+  # vendored copy (see UPSTREAM.md).
+  - name: gateway-helm
+    version: "v1.9.2"
+    repository: file://../envoy-gateway/upstream/gateway-helm

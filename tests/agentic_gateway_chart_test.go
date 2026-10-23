@@ -67,19 +67,38 @@ func TestSourceGatewayContract(t *testing.T) {
 }
 
 // TestAgentRouterContract checks that the upstream chart patch uses Podplane
-// workload TLS and CA injection without generating a separate serving secret.
+// workload TLS and CA injection without generating a separate serving secret,
+// and that Agent Router's extension runs on its own Envoy Gateway controller.
 func TestAgentRouterContract(t *testing.T) {
 	rendered := render(t, "../charts/agent-router", "--namespace", "platform-agent-router")
-	for _, want := range []string{"signerName: certificates.podplane.dev/workload", "certificates.podplane.dev/service: agent-router", "name: certificates.podplane.dev:workload:roots", "path: ca.crt"} {
+	for _, want := range []string{"signerName: certificates.podplane.dev/workload", "certificates.podplane.dev/service: agent-router", "name: certificates.podplane.dev:workload:roots", "path: ca.crt", "--envoyGatewayNamespace=platform-agent-router"} {
 		if !strings.Contains(rendered, want) {
 			t.Errorf("missing %q", want)
 		}
 	}
 	secrets, webhooks := 0, 0
+	controllerName, classController := "", ""
 	for _, doc := range chartDocuments(t, rendered) {
 		switch doc["kind"] {
-		case "GatewayClass", "CustomResourceDefinition", "Certificate", "Issuer":
+		case "CustomResourceDefinition", "Certificate", "Issuer":
 			t.Errorf("unexpected %s", doc["kind"])
+		case "GatewayClass":
+			if chartMap(doc, "metadata")["name"] != "platform-agent-router" {
+				t.Errorf("unexpected GatewayClass %v", chartMap(doc, "metadata"))
+			}
+			classController, _ = chartMap(doc, "spec")["controllerName"].(string)
+		case "ConfigMap":
+			if chartMap(doc, "metadata")["name"] != "envoy-gateway-config" {
+				continue
+			}
+			var config map[string]any
+			if err := yaml.Unmarshal([]byte(chartMap(doc, "data")["envoy-gateway.yaml"].(string)), &config); err != nil {
+				t.Fatal(err)
+			}
+			controllerName, _ = chartMap(config, "gateway")["controllerName"].(string)
+			if chartMap(config, "extensionManager", "service", "fqdn")["hostname"] != "agent-router.platform-agent-router.svc.cluster.local" || chartMap(config, "extensionApis")["enableBackend"] != true {
+				t.Errorf("Agent Router extension missing from its controller: %v", config)
+			}
 		case "Secret":
 			secrets++
 			if chartMap(doc, "metadata")["name"] != "agent-router-mcp-session-encryption" {
@@ -100,12 +119,18 @@ func TestAgentRouterContract(t *testing.T) {
 			}
 		}
 	}
+	// One webhook: the Envoy Gateway topology injector must stay disabled, since
+	// in GatewayNamespace mode it would intercept every Pod binding.
 	if secrets != 1 || webhooks != 1 {
 		t.Fatalf("got %d Secrets and %d webhooks", secrets, webhooks)
 	}
+	// The ingress controller uses Envoy Gateway's default controllerName.
+	if controllerName == "" || controllerName != classController || controllerName == "gateway.envoyproxy.io/gatewayclass-controller" {
+		t.Errorf("GatewayClass controller %q must be this chart's dedicated controller %q", classController, controllerName)
+	}
 	// AI/MCP routes get their own internal proxy fleet, separate from the
 	// ingress DaemonSet and its host ports.
-	for _, want := range []string{"kind: Gateway\n", "gatewayClassName: platform-envoy-gateway", "mergeType: Replace", "envoyDeployment:", "image: \"docker.io/envoyproxy/envoy:distroless-v1.39.1\"", "type: ClusterIP", "name: platform-agent-router-extproc-gvisor-map", "reinvocationPolicy: IfNeeded"} {
+	for _, want := range []string{"kind: Gateway\n", "gatewayClassName: platform-agent-router", "mergeType: Replace", "envoyDeployment:", "image: \"docker.io/envoyproxy/envoy:distroless-v1.39.1\"", "type: ClusterIP", "name: platform-agent-router-extproc-gvisor-map", "reinvocationPolicy: IfNeeded"} {
 		if !strings.Contains(rendered, want) {
 			t.Errorf("missing %q", want)
 		}
@@ -118,8 +143,7 @@ func TestAgentRouterContract(t *testing.T) {
 }
 
 // TestAgenticGatewayPlatformContract checks gateway release wiring and image
-// mirrors, and that enabling Agent Router preserves Envoy's SDS configuration
-// while disabling it removes the extension dependency.
+// mirrors, and that the ingress Envoy Gateway never depends on Agent Router.
 func TestAgenticGatewayPlatformContract(t *testing.T) {
 	rendered := render(t, "../charts/platform-components", "-f", "values/platform-components.yaml", "--set", "platform.components.apps.sourcegateway.enabled=true,platform.components.apps.agent-router.enabled=true,platform.components.apps.envoy-gateway.enabled=true")
 	for _, doc := range chartDocuments(t, rendered) {
@@ -157,11 +181,15 @@ func TestAgenticGatewayPlatformContract(t *testing.T) {
 					t.Errorf("agent mirror %v", values)
 				}
 			}
-		case "envoy-gateway":
-			config := chartMap(spec, "values", "gateway-helm", "config", "envoyGateway")
-			if chartMap(config, "extensionApis")["enableBackend"] != true || chartMap(config, "extensionManager", "service", "fqdn")["hostname"] != "agent-router.platform-agent-router.svc.cluster.local" {
-				t.Errorf("Agent Router extension missing: %v", config)
+			if image := chartMap(spec, "values", "gateway-helm", "global", "images", "envoyGateway")["image"]; image != "registry.example/mirror/docker.io/envoyproxy/gateway:v1.9.2" {
+				t.Errorf("agent Envoy Gateway mirror %v", image)
 			}
+			for _, dep := range spec["dependsOn"].([]any) {
+				if dep.(map[string]any)["name"] == "envoy-gateway" {
+					t.Error("Agent Router must not wait for the ingress Envoy Gateway release")
+				}
+			}
+		case "envoy-gateway":
 			values, err := yaml.Marshal(spec["values"])
 			if err != nil {
 				t.Fatal(err)
@@ -171,10 +199,13 @@ func TestAgenticGatewayPlatformContract(t *testing.T) {
 				t.Fatal(err)
 			}
 			gateway := render(t, "../charts/envoy-gateway", "-f", file)
-			for _, want := range []string{"enableSDSSecretRef: true", "enableBackend: true", "includeAll: true", "agent-router.platform-agent-router.svc.cluster.local", "type: GatewayNamespace", "signerName: certificates.podplane.dev/workload"} {
+			for _, want := range []string{"enableSDSSecretRef: true", "type: GatewayNamespace", "signerName: certificates.podplane.dev/workload"} {
 				if !strings.Contains(gateway, want) {
 					t.Errorf("composed gateway configuration lost %q", want)
 				}
+			}
+			if strings.Contains(gateway, "extensionManager") || strings.Contains(gateway, "agent-router") {
+				t.Error("ingress Envoy Gateway must not call the Agent Router extension")
 			}
 		}
 	}

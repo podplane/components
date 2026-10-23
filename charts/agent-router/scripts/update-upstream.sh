@@ -30,7 +30,7 @@ test -n "$commit"
 
 mkdir -p "$chart_dir/upstream/ai-gateway-helm"
 rsync -a --delete "$tmp/ai-gateway-helm/" "$chart_dir/upstream/ai-gateway-helm/"
-sed -E "s/^appVersion:.*/appVersion: \"$version\"/; s/^    version:.*/    version: \"$version\"/" \
+sed -E "s/^appVersion:.*/appVersion: \"$version\"/; /^  - name: ai-gateway-helm$/{n;s/^    version:.*/    version: \"$version\"/;}" \
   "$chart_dir/Chart.yaml" > "$tmp/Chart.yaml"
 mv "$tmp/Chart.yaml" "$chart_dir/Chart.yaml"
 cat > "$chart_dir/SOURCE.yaml" <<EOF

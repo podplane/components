@@ -37,7 +37,8 @@ The controller default `gateway-helm.config.envoyGateway.envoyProxy.mergeGateway
 is explicitly `false`: each Gateway gets its own proxy fleet. Attach AI/MCP routes
 to a separate Gateway to keep provider credentials out of the public ingress proxy
 process. Routes attached to the same Gateway still share its proxies. This does
-not isolate the controllers or make a Gateway private.
+not isolate the controllers or make a Gateway private; Agent Router runs its own
+controller from this vendored source (see `charts/agent-router/UPSTREAM.md`).
 
 ## Updating
 

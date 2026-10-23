@@ -9,7 +9,8 @@ platform:
       image: docker.io/envoyproxy/envoy:distroless-v1.39.1
 ai-gateway-helm:
   envoyGateway:
-    namespace: platform-envoy-gateway
+    # This chart's own Envoy Gateway controller (gateway-helm below).
+    namespace: platform-agent-router
   controller:
     fullnameOverride: agent-router
     mutatingWebhook:
@@ -32,3 +33,44 @@ ai-gateway-helm:
     extraEnvVars:
       - name: DISABLE_PPROF
         value: "true"
+# Agent Router's dedicated Envoy Gateway controller. Envoy Gateway calls its
+# extension hooks for every Gateway it translates and fails closed, so sharing
+# the ingress controller would block ingress xDS whenever Agent Router is down.
+# This controller only serves the platform-agent-router GatewayClass.
+gateway-helm:
+  crds:
+    enabled: false
+  global:
+    images:
+      envoyGateway:
+        # Keep in sync with envoy-gateway's chart so both controllers share one
+        # cached image.
+        image: docker.io/envoyproxy/gateway:v1.9.2
+  # In GatewayNamespace mode the topology webhook matches every Pod binding in
+  # the cluster. The ingress controller already provides it.
+  topologyInjector:
+    enabled: false
+  config:
+    envoyGateway:
+      gateway:
+        controllerName: gateway.envoyproxy.io/platform-agent-router
+      extensionApis:
+        enableBackend: true
+      provider:
+        type: Kubernetes
+        kubernetes:
+          deploy:
+            type: GatewayNamespace
+      extensionManager:
+        hooks:
+          xdsTranslator:
+            translation:
+              listener: {includeAll: true}
+              route: {includeAll: true}
+              cluster: {includeAll: true}
+              secret: {includeAll: true}
+            post: [Translation, Cluster, Route]
+        service:
+          fqdn:
+            hostname: agent-router.platform-agent-router.svc.cluster.local
+            port: 1063
