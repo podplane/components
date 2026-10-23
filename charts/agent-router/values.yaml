@@ -12,6 +12,14 @@ ai-gateway-helm:
     namespace: platform-envoy-gateway
   controller:
     fullnameOverride: agent-router
+    mutatingWebhook:
+      # The webhook fails closed, so scope it to Agent Router's own proxy fleet.
+      # Matching every Envoy Gateway Pod would block the ingress Envoy until
+      # the Agent Router controller is running.
+      objectSelector:
+        matchLabels:
+          app.kubernetes.io/managed-by: envoy-gateway
+          gateway.envoyproxy.io/owning-gateway-name: platform-agent-router-gateway
     nodeSelector:
       kubernetes.io/os: linux
     securityContext:

@@ -94,6 +94,10 @@ func TestAgentRouterContract(t *testing.T) {
 			if chartMap(webhook, "clientConfig")["caBundle"] != nil || chartMap(webhook, "clientConfig", "service")["name"] != "agent-router" {
 				t.Errorf("incorrect webhook: %v", webhook)
 			}
+			// The webhook fails closed, so it must not gate ingress Envoy Pods.
+			if chartMap(webhook, "objectSelector", "matchLabels")["gateway.envoyproxy.io/owning-gateway-name"] != "platform-agent-router-gateway" {
+				t.Errorf("webhook must select only Agent Router's proxy Pods: %v", webhook["objectSelector"])
+			}
 		}
 	}
 	if secrets != 1 || webhooks != 1 {
