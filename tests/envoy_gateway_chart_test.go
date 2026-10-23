@@ -139,7 +139,7 @@ func TestEnvoyGatewaySDSContract(t *testing.T) {
 		"--set", "platform.envoyGateway.ingress.certificates.keyPrefix=clusters",
 		"--set", "platform.envoyGateway.ingress.domains[0].apex=example.com")
 	for _, required := range []string{
-		"apiVersion: gateway.envoyproxy.io/v1alpha1", "kind: EnvoyProxy", "envoyDaemonSet:", "type: ClusterIP", "name: http-80", "containerPort: 10080", "hostPort: 80",
+		"apiVersion: gateway.envoyproxy.io/v1alpha1", "kind: EnvoyProxy", "mergeType: Replace", "envoyDaemonSet:", "type: ClusterIP", "name: http-80", "containerPort: 10080", "hostPort: 80",
 		"name: https-443", "containerPort: 10443", "hostPort: 443", "name: podplane-sds", `image: "docker.io/envoyproxy/envoy:distroless-v1.39.1"`, `image: "registry.example.com/custom-sds:contract-test"`, "name: podplane-sds\n                      emptyDir:\n                        medium: Memory",
 		"name: certs\n                      configMap: null\n                      projected:", "name: certificates.podplane.dev:workload:roots", "path: ca.crt",
 		"kind: ServiceAccount", "name: platform-envoy-gateway-ingress-certificates", "serviceAccountName: platform-envoy-gateway-ingress-certificates",

@@ -9,12 +9,19 @@ kind: EnvoyProxy
 metadata:
   name: platform-agent-router-gateway
 spec:
+  # Must be Replace: a merge would drop the "configMap: null" in the patch
+  # below before it is applied, leaving the certs volume invalid.
+  mergeType: Replace
   provider:
     type: Kubernetes
     kubernetes:
       envoyService:
         type: ClusterIP
       envoyDeployment:
+        # Replace discards Envoy Gateway's default image, so set the
+        # mirrored one here.
+        container:
+          image: {{ required "platform.agentRouter.envoyProxy.image is required" .Values.platform.agentRouter.envoyProxy.image | quote }}
         patch:
           type: StrategicMerge
           value:

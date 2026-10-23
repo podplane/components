@@ -101,7 +101,7 @@ func TestAgentRouterContract(t *testing.T) {
 	}
 	// AI/MCP routes get their own internal proxy fleet, separate from the
 	// ingress DaemonSet and its host ports.
-	for _, want := range []string{"kind: Gateway\n", "gatewayClassName: platform-envoy-gateway", "envoyDeployment:", "type: ClusterIP", "name: platform-agent-router-extproc-gvisor-map", "reinvocationPolicy: IfNeeded"} {
+	for _, want := range []string{"kind: Gateway\n", "gatewayClassName: platform-envoy-gateway", "mergeType: Replace", "envoyDeployment:", "image: \"docker.io/envoyproxy/envoy:distroless-v1.39.1\"", "type: ClusterIP", "name: platform-agent-router-extproc-gvisor-map", "reinvocationPolicy: IfNeeded"} {
 		if !strings.Contains(rendered, want) {
 			t.Errorf("missing %q", want)
 		}

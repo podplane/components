@@ -17,6 +17,9 @@ kind: EnvoyProxy
 metadata:
   name: platform-envoy-gateway
 spec:
+  # Must be Replace: a merge would add the default's envoyDeployment
+  # alongside this envoyDaemonSet, creating a second proxy fleet.
+  mergeType: Replace
   provider:
     type: Kubernetes
     kubernetes:

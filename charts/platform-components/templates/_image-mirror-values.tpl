@@ -31,6 +31,10 @@ agent-router:
     extProc:
       image:
         repository: {{ printf "%s/docker.io/envoyproxy/ai-gateway-extproc" $base | quote }}
+  platform:
+    agentRouter:
+      envoyProxy:
+        image: {{ printf "%s/docker.io/envoyproxy/envoy:distroless-v1.39.1" $base | quote }}
 agent-sandbox:
   image:
     repository: {{ printf "%s/registry.k8s.io/agent-sandbox/agent-sandbox-controller" $base | quote }}

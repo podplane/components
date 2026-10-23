@@ -41,7 +41,7 @@ var (
 		{Repo: "docker.io/envoyproxy/ai-gateway-extproc", Tag: "v1.2.0", Components: []string{"agent-router"}},
 		// Keep a full glibc-based Go toolchain available for air-gapped Jobs.
 		{Repo: "docker.io/library/golang", Tag: "1.26.2-trixie"},
-		{Repo: "docker.io/envoyproxy/envoy", Tag: "distroless-v1.39.1", Components: []string{"envoy-gateway"}},
+		{Repo: "docker.io/envoyproxy/envoy", Tag: "distroless-v1.39.1", Components: []string{"agent-router", "envoy-gateway"}},
 		{Repo: "ghcr.io/podplane/hello", Tag: "latest"},
 		// Keep this version in sync with podplane/vmconfig scripts/manifests/sources.go.
 		// https://github.com/podplane/vmconfig/blob/main/scripts/manifests/sources.go#L203
