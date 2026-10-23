@@ -75,7 +75,7 @@ var charts = []crdChart{
 		Name: "sourcegateway-crds",
 		Env:  "SOURCEGATEWAY_VERSION",
 		Update: func(ctx updateContext) error {
-			version := firstNonEmpty(ctx.Version, "v0.1.5")
+			version := firstNonEmpty(ctx.Version, "v0.2.1")
 			files, err := githubYAMLFiles("sourcegateway/sourcegateway", "deploy/crds", version)
 			if err != nil {
 				return err

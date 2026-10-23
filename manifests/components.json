@@ -382,22 +382,22 @@
         "components": [
           "sourcegateway"
         ],
-        "image": "ghcr.io/sourcegateway/sourcegateway:v0.1.5",
-        "digest": "sha256:f5e5866ee1f59ae830ef2677bd660198cbe67bcabda560e91581f8c43d7e227b",
-        "size": 60816076,
+        "image": "ghcr.io/sourcegateway/sourcegateway:v0.2.1",
+        "digest": "sha256:665954c70d8b89098db8263166de212e47f5bbb4ea4f624118d4977026ee3f89",
+        "size": 60819243,
         "platform": "linux/amd64",
-        "index": "sha256:054be57f5349b328044da14f4ddae4bd6a98d2937079f7546d24904ac6325563",
+        "index": "sha256:971a2683b37ef330578b4bdd137e939a4473658655c453b9e0987ecc5c2a0916",
         "addon": true
       },
       {
         "components": [
           "sourcegateway"
         ],
-        "image": "ghcr.io/sourcegateway/sourcegateway:v0.1.5",
-        "digest": "sha256:5c5c57bfc6c4b24824592a3db7fa7a52b21cdb147d6bcdc8ef7f32c8fdbba14c",
-        "size": 55238786,
+        "image": "ghcr.io/sourcegateway/sourcegateway:v0.2.1",
+        "digest": "sha256:d366e69e30f0b9efbde55ab41d76233eef05911100fd83d331516794ab4c4df7",
+        "size": 55234322,
         "platform": "linux/arm64",
-        "index": "sha256:054be57f5349b328044da14f4ddae4bd6a98d2937079f7546d24904ac6325563",
+        "index": "sha256:971a2683b37ef330578b4bdd137e939a4473658655c453b9e0987ecc5c2a0916",
         "addon": true
       },
       {

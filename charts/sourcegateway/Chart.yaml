@@ -6,9 +6,9 @@ name: sourcegateway
 description: Source Gateway
 type: application
 version: "1.0.0"
-appVersion: "v0.1.5"
+appVersion: "v0.2.1"
 kubeVersion: ">=1.37.0-0"
 dependencies:
   - name: sourcegateway
-    version: "0.1.5"
+    version: "0.2.1"
     repository: oci://ghcr.io/sourcegateway/charts
