@@ -5,12 +5,13 @@
 # Release workflow: attaches Helm packages and a signed manifest to a new release.
 #
 # For tag vX.Y.Z (or vX.Y.Z-rcN for pre-releases), this:
-#   1. Validates manifests/components.json against renders and both architectures.
-#   2. Renders components_X.Y.Z.json with components.version set to X.Y.Z
+#   1. Runs the CI workflow, and releases only if it succeeds.
+#   2. Validates manifests/components.json against renders and both architectures.
+#   3. Renders components_X.Y.Z.json with components.version set to X.Y.Z
 #      and components.source.ref.tag set to vX.Y.Z; packages all charts at X.Y.Z.
-#   3. Writes components_X.Y.Z_checksums.txt (sha512) covering release assets
+#   4. Writes components_X.Y.Z_checksums.txt (sha512) covering release assets
 #      and signs it keyless with cosign, producing a self-contained bundle.
-#   4. Creates a new GitHub Release with charts, manifest, checksums, and bundle.
+#   5. Creates a new GitHub Release with charts, manifest, checksums, and bundle.
 #      Existing releases are never updated or their assets overwritten.
 
 name: release
@@ -29,7 +30,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  ci:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+
   release:
+    needs: ci
     runs-on: ubuntu-latest
     environment: release
     steps:

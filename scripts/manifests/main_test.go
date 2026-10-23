@@ -238,8 +238,12 @@ esac
 	want.Components.Images[3].Addon = false
 	for _, ref := range []string{"example.com/new:v2", "example.com/shared:v1", "docker.io/envoyproxy/envoy:distroless-v1.39.1"} {
 		members := []string{"envoy-gateway"}
-		if ref == "example.com/shared:v1" {
+		switch ref {
+		case "example.com/shared:v1":
 			members = append(members, "podplane-operator")
+		case "docker.io/envoyproxy/envoy:distroless-v1.39.1":
+			// The extra Envoy image is shared with Agent Router's proxy fleet.
+			members = []string{"agent-router", "envoy-gateway"}
 		}
 		for _, arch := range []string{"amd64", "arm64"} {
 			want.Components.Images = append(want.Components.Images, image{
