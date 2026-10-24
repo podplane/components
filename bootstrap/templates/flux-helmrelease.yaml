@@ -46,6 +46,14 @@ spec:
 {{- end }}
 {{- end }}
         values:
+{{- if .Values.bootstrap.localHostAddress }}
+          coredns:
+            platform:
+              coredns:
+                staticRecords:
+                  host.podplane.internal:
+                    - {{ .Values.bootstrap.localHostAddress | quote }}
+{{- end }}
           podplane-operator:
             podplane:
               operator:

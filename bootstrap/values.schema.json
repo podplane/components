@@ -14,6 +14,9 @@
         "clusterID": {
           "type": "string"
         },
+        "localHostAddress": {
+          "type": "string"
+        },
         "spiffeTrustDomain": {
           "type": "string"
         },

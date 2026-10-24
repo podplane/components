@@ -60,6 +60,7 @@ RESOLVED_REGISTRY="${REGISTRY_HOSTNAME:+${REGISTRY_HOSTNAME}/mirror/}"
 bootstrap_args=(--namespace platform-components)
 set_bootstrap_args bootstrap.install "${PLATFORM_INSTALL:-}"
 set_bootstrap_args bootstrap.clusterID "${CLUSTER_ID:-}"
+set_bootstrap_args bootstrap.localHostAddress "${LOCAL_SERVER_HOST_FROM_VM:-}"
 set_bootstrap_args bootstrap.spiffeTrustDomain "${SPIFFE_TRUST_DOMAIN:-}"
 # DOMAIN wires platform-components values so Envoy Gateway ingress uses a real
 # cluster domain. This matches what `podplane hooks netsy-seed` derives from
@@ -184,9 +185,15 @@ helm upgrade --install platform-cilium "${REPO_DIR}/charts/cilium" \
     --set-string "cilium.operator.image.repository=${RESOLVED_REGISTRY}quay.io/cilium/operator"
 
 step 7 "Installing CoreDNS (platform-coredns) -- waiting for cluster DNS to be Ready ..."
+# Match the local host record that Flux will retain after bootstrap.
+coredns_args=()
+if [[ -n "${LOCAL_SERVER_HOST_FROM_VM:-}" ]]; then
+    coredns_args+=(--set-string "platform.coredns.staticRecords.host\\.podplane\\.internal[0]=${LOCAL_SERVER_HOST_FROM_VM}")
+fi
 helm upgrade --install platform-coredns "${REPO_DIR}/charts/coredns" \
     --namespace platform-coredns --wait --skip-crds \
-    --set-string "coredns.image.repository=${RESOLVED_REGISTRY}docker.io/coredns/coredns"
+    --set-string "coredns.image.repository=${RESOLVED_REGISTRY}docker.io/coredns/coredns" \
+    "${coredns_args[@]}"
 
 step 8 "Installing Flux CRDs (platform-cluster) ..."
 helm upgrade --install platform-fluxcd-crds "${REPO_DIR}/charts/fluxcd-crds" \
