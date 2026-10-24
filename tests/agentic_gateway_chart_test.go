@@ -142,6 +142,34 @@ func TestAgentRouterContract(t *testing.T) {
 	}
 }
 
+// TestAgentRouterConnectionBuffer checks that one ClientTrafficPolicy targets the
+// Agent Router Gateway with the default buffer limit or a configured override.
+func TestAgentRouterConnectionBuffer(t *testing.T) {
+	for _, limit := range []string{"50Mi", "8Mi"} {
+		t.Run(limit, func(t *testing.T) {
+			args := []string{"--namespace", "platform-agent-router"}
+			if limit != "50Mi" {
+				args = append(args, "--set", "platform.agentRouter.clientTrafficPolicy.connection.bufferLimit="+limit)
+			}
+			policies := 0
+			for _, doc := range chartDocuments(t, render(t, "../charts/agent-router", args...)) {
+				if doc["kind"] != "ClientTrafficPolicy" {
+					continue
+				}
+				policies++
+				spec := chartMap(doc, "spec")
+				wantRefs := []any{map[string]any{"group": "gateway.networking.k8s.io", "kind": "Gateway", "name": "platform-agent-router-gateway"}}
+				if !reflect.DeepEqual(spec["targetRefs"], wantRefs) || chartMap(spec, "connection")["bufferLimit"] != limit {
+					t.Errorf("expected buffer %s on the Agent Router Gateway, got %v", limit, spec)
+				}
+			}
+			if policies != 1 {
+				t.Fatalf("got %d ClientTrafficPolicies, want one", policies)
+			}
+		})
+	}
+}
+
 // TestAgenticGatewayPlatformContract checks gateway release wiring and image
 // mirrors, and that the ingress Envoy Gateway never depends on Agent Router.
 func TestAgenticGatewayPlatformContract(t *testing.T) {

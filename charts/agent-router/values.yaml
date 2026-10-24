@@ -3,6 +3,11 @@
 # SPDX-License-Identifier: Apache-2.0
 platform:
   agentRouter:
+    clientTrafficPolicy:
+      connection:
+        # Envoy Gateway's 32Ki default is too small for AI requests. This matches
+        # upstream AI Gateway's example; tune per-connection buffering for available memory.
+        bufferLimit: 50Mi
     envoyProxy:
       # Keep in sync with envoy-gateway's gateway-helm.global.images.envoyProxy
       # so both Envoy fleets share one cached image.
