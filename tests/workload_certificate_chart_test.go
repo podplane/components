@@ -5,11 +5,178 @@
 package tests
 
 import (
+	"encoding/json"
+	"fmt"
 	"os/exec"
 	"reflect"
 	"strings"
 	"testing"
 )
+
+// TestOperatorTrustBundleSync verifies config mapping and namespace-scoped permissions.
+func TestOperatorTrustBundleSync(t *testing.T) {
+	const resources = `[
+		{"kind":"Secret","namespace":"consumer-a","name":"roots","key":"ca.crt","createIfMissing":false},
+		{"kind":"ConfigMap","namespace":"consumer-a","name":"roots","key":"ca.crt"},
+		{"kind":"ConfigMap","namespace":"consumer-a","name":"roots","key":"other.crt","createIfMissing":false},
+		{"kind":"ConfigMap","namespace":"consumer-a","name":"other.roots","key":"CA_bundle-1"},
+		{"kind":"Secret","namespace":"consumer-b","name":"roots","key":"ca.crt","createIfMissing":true},
+		{"kind":"ConfigMap","namespace":"consumer-c","name":"roots","key":"ca.crt","createIfMissing":false}
+	]`
+	for _, tc := range []struct {
+		name      string
+		resources string
+		create    bool
+		remove    string
+	}{
+		{"default", "[]", false, ""},
+		{"empty with creation enabled", "[]", true, ""},
+		{"creation opt-in", resources, false, ""},
+		{"creation opt-out", resources, true, ""},
+		{"null removes global boolean", "[]", false, "createIfMissing"},
+		{"null removes resources", "[]", false, "resources"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			args := []string{"--namespace", "operator-system", "-f", "values/podplane-operator.yaml",
+				"--set", "podplane.operator.namePrefix=custom-operator,podplane.operator.serviceAccountName=custom-sa"}
+			if tc.name != "default" {
+				args = append(args, "--set-json", fmt.Sprintf("podplane.operator.config.workloadCertificates.trustBundleSync={\"createIfMissing\":%t,\"resources\":%s}", tc.create, tc.resources))
+			}
+			if tc.remove != "" {
+				// Helm coalescing deletes null-valued default keys before rendering.
+				args = append(args, "--set-json", "podplane.operator.config.workloadCertificates.trustBundleSync."+tc.remove+"=null")
+			}
+			docs := chartDocuments(t, render(t, "../charts/podplane-operator", args...))
+			var config map[string]any
+			roles, bindings := map[string]any{}, map[string]any{}
+			for _, doc := range docs {
+				metadata := chartMap(doc, "metadata")
+				switch doc["kind"] {
+				case "ConfigMap":
+					if raw, ok := chartMap(doc, "data")["config.json"].(string); ok {
+						if err := json.Unmarshal([]byte(raw), &config); err != nil {
+							t.Fatal(err)
+						}
+					} else {
+						t.Fatal("chart must not provision trust-bundle destinations")
+					}
+				case "Secret":
+					t.Fatal("chart must not provision trust-bundle destinations")
+				case "ClusterRole":
+					for _, raw := range doc["rules"].([]any) {
+						for _, resource := range raw.(map[string]any)["resources"].([]any) {
+							if resource == "secrets" || resource == "configmaps" || resource == "*" {
+								t.Fatalf("cluster-wide trust destination access: %v", raw)
+							}
+						}
+					}
+				case "Role", "RoleBinding":
+					if metadata["name"] != "custom-operator-trust-bundle-sync" {
+						continue
+					}
+					namespace := metadata["namespace"].(string)
+					if doc["kind"] == "Role" {
+						if _, exists := roles[namespace]; exists {
+							t.Fatalf("duplicate Role in %s", namespace)
+						}
+						roles[namespace] = doc["rules"]
+					} else {
+						if _, exists := bindings[namespace]; exists {
+							t.Fatalf("duplicate RoleBinding in %s", namespace)
+						}
+						bindings[namespace] = true
+						wantRef := map[string]any{"apiGroup": "rbac.authorization.k8s.io", "kind": "Role", "name": "custom-operator-trust-bundle-sync"}
+						wantSubjects := []any{map[string]any{"kind": "ServiceAccount", "name": "custom-sa", "namespace": "operator-system"}}
+						if !reflect.DeepEqual(doc["roleRef"], wantRef) || !reflect.DeepEqual(doc["subjects"], wantSubjects) {
+							t.Fatalf("incorrect binding: %v", doc)
+						}
+					}
+				}
+			}
+			var wantSync map[string]any
+			wantJSON := fmt.Sprintf(`{"create_if_missing":%t,"resources":%s}`, tc.create, strings.ReplaceAll(tc.resources, "createIfMissing", "create_if_missing"))
+			if err := json.Unmarshal([]byte(wantJSON), &wantSync); err != nil {
+				t.Fatal(err)
+			}
+			if got := chartMap(config, "certificates", "trust_bundle_sync"); !reflect.DeepEqual(got, wantSync) {
+				t.Fatalf("trust bundle config = %v, want %v", got, wantSync)
+			}
+			wantRoles, wantBindings := map[string]any{}, map[string]any{}
+			if tc.resources != "[]" {
+				// Exact rules reject broad verbs, unnamed reads, and named create grants.
+				// rule builds the expected named read/write permission.
+				rule := func(kind string, names ...any) map[string]any {
+					return map[string]any{"apiGroups": []any{""}, "resources": []any{kind}, "resourceNames": names, "verbs": []any{"get", "patch"}}
+				}
+				// create builds the expected namespace-scoped creation permission.
+				create := func(kind string) map[string]any {
+					return map[string]any{"apiGroups": []any{""}, "resources": []any{kind}, "verbs": []any{"create"}}
+				}
+				a := []any{rule("configmaps", "other.roots", "roots")}
+				if tc.create {
+					a = append(a, create("configmaps"))
+				}
+				wantRoles["consumer-a"] = append(a, rule("secrets", "roots"))
+				wantRoles["consumer-b"] = []any{rule("secrets", "roots"), create("secrets")}
+				wantRoles["consumer-c"] = []any{rule("configmaps", "roots")}
+				wantBindings = map[string]any{"consumer-a": true, "consumer-b": true, "consumer-c": true}
+			}
+			if !reflect.DeepEqual(roles, wantRoles) || !reflect.DeepEqual(bindings, wantBindings) {
+				t.Fatalf("RBAC mismatch:\nroles: %v\nwant: %v\nbindings: %v\nwant: %v", roles, wantRoles, bindings, wantBindings)
+			}
+		})
+	}
+}
+
+// TestOperatorTrustBundleSyncValidation rejects malformed or duplicate destinations.
+func TestOperatorTrustBundleSyncValidation(t *testing.T) {
+	const target = `{"kind":"Secret","namespace":"consumer","name":"roots","key":"ca.crt"}`
+	cases := map[string]string{
+		"object required":         `[]`,
+		"global boolean":          `{"createIfMissing":"false"}`,
+		"resource list":           `{"resources":{}}`,
+		"resource object":         `{"resources":["Secret"]}`,
+		"null resource":           `{"resources":[null]}`,
+		"duplicate":               `{"resources":[` + target + `,` + target + `]}`,
+		"duplicate with override": `{"resources":[` + target + `,` + strings.TrimSuffix(target, "}") + `,"createIfMissing":true}]}`,
+	}
+	for name, replacement := range map[string]string{
+		"unsupported kind": `"kind":"Service"`,
+		"lowercase kind":   `"kind":"secret"`,
+		"missing kind":     `"other":"Secret"`,
+		"numeric kind":     `"kind":123`,
+	} {
+		cases[name] = `{"resources":[` + strings.Replace(target, `"kind":"Secret"`, replacement, 1) + `]}`
+	}
+	for field, invalid := range map[string][]any{
+		"namespace":       {"", "Upper", "a.b", "a/b", "-bad", strings.Repeat("a", 64), 123, nil},
+		"name":            {"", "Upper", "a/b", "a..b", "bad-", strings.Repeat("a", 254), 123, nil},
+		"key":             {"", "a/b", "a b", ".", "..", "..hidden", strings.Repeat("a", 254), 123, nil},
+		"createIfMissing": {"false", 0, nil},
+	} {
+		for i, value := range invalid {
+			var resource map[string]any
+			if err := json.Unmarshal([]byte(target), &resource); err != nil {
+				t.Fatal(err)
+			}
+			resource[field] = value
+			raw, err := json.Marshal(map[string]any{"resources": []any{resource}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			cases[fmt.Sprintf("invalid %s %d", field, i)] = string(raw)
+		}
+	}
+	for name, value := range cases {
+		t.Run(name, func(t *testing.T) {
+			out, err := exec.Command("helm", "template", "test", "../charts/podplane-operator", "--kube-version", "1.37.0",
+				"-f", "values/podplane-operator.yaml", "--set-json", "podplane.operator.config.workloadCertificates.trustBundleSync="+value).CombinedOutput()
+			if err == nil || !strings.Contains(string(out), "trustBundleSync") {
+				t.Fatalf("expected trustBundleSync validation error, got %v\n%s", err, out)
+			}
+		})
+	}
+}
 
 // TestOperatorCertificateMetrics verifies optional metrics exposure and collector access restrictions.
 func TestOperatorCertificateMetrics(t *testing.T) {

@@ -28,6 +28,9 @@ agent-router:
     controller:
       image:
         repository: {{ printf "%s/docker.io/envoyproxy/ai-gateway-controller" $base | quote }}
+      extraContainers:
+        controller-tls:
+          image: {{ printf "%s/docker.io/envoyproxy/envoy:distroless-v1.39.1" $base | quote }}
     extProc:
       image:
         repository: {{ printf "%s/docker.io/envoyproxy/ai-gateway-extproc" $base | quote }}
@@ -36,10 +39,15 @@ agent-router:
       images:
         envoyGateway:
           image: {{ printf "%s/docker.io/envoyproxy/gateway:v1.9.2" $base | quote }}
+        envoyProxy:
+          image: {{ printf "%s/docker.io/envoyproxy/envoy:distroless-v1.39.1" $base | quote }}
   platform:
     agentRouter:
       envoyProxy:
         image: {{ printf "%s/docker.io/envoyproxy/envoy:distroless-v1.39.1" $base | quote }}
+      sdsSidecar:
+        image:
+          repository: {{ printf "%s/ghcr.io/podplane/operator" $base | quote }}
 agent-sandbox:
   image:
     repository: {{ printf "%s/registry.k8s.io/agent-sandbox/agent-sandbox-controller" $base | quote }}

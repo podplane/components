@@ -47,3 +47,51 @@ metadata:
   name: platform-agent-router-extproc-gvisor-mapb
 spec:
   policyName: platform-agent-router-extproc-gvisor-map
+---
+# Keep MCP's raw HTTP listener inside the Pod. This separate policy preserves
+# the existing gVisor sharing policy's scope. Match before injection as well as
+# after it: IfNeeded must reinvoke this policy when the webhook adds extproc.
+# Only the injected flag/value pair changes; image, log level and the upstream
+# config-hash annotation stay intact, avoiding reconciler rollout churn.
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: platform-agent-router-mcp-loopback-map
+spec:
+  failurePolicy: Fail
+  reinvocationPolicy: IfNeeded
+  matchConstraints:
+    objectSelector:
+      matchLabels:
+        app.kubernetes.io/managed-by: envoy-gateway
+        gateway.envoyproxy.io/owning-gateway-name: platform-agent-router-gateway
+        gateway.envoyproxy.io/owning-gateway-namespace: {{ .Release.Namespace | quote }}
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+  mutations:
+    {{- range $field := list "containers" "initContainers" }}
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >
+          object.spec.?{{ $field }}.orValue([]).transformList(i, c,
+            c.name == "ai-gateway-extproc" &&
+            c.?args.orValue([]).exists(j, arg,
+              j > 0 && arg == ":9856" && c.args[j - 1] == "-mcpAddr"),
+            JSONPatch{
+              op: "replace",
+              path: "/spec/{{ $field }}/" + string(i) + "/args",
+              value: c.args.transformList(j, arg,
+                j > 0 && arg == ":9856" && c.args[j - 1] == "-mcpAddr"
+                  ? "127.0.0.1:9856" : arg)
+            })
+    {{- end }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: platform-agent-router-mcp-loopback-mapb
+spec:
+  policyName: platform-agent-router-mcp-loopback-map

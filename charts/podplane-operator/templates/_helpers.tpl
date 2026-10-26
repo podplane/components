@@ -51,6 +51,7 @@ app.kubernetes.io/component: operator
 {{- $_ := set (get $config "cluster") "spiffe" (dict "trust_domain" $spiffeValues.trustDomain) -}}
 {{- $_ := set $config "certificates" (dict
   "ca_path" ($workloadValues.caPath | default "/var/run/podplane/certificates/workload-ca-key")
+  "trust_bundle_sync" (include "podplane-operator.trustBundleSync" . | fromJson)
 ) -}}
 {{- $oidc := get (get $config "cluster") "oidc" -}}
 {{- with $oidcValues.issuerURL }}{{- $_ := set $oidc "issuer_url" . -}}{{- end -}}
@@ -87,4 +88,69 @@ app.kubernetes.io/component: operator
 {{- end -}}
 {{- $_ := set $config "rbac" (dict "namespace_group_bindings" (dig "rbac" "namespaceGroupBindings" false $valuesConfig)) -}}
 {{- toPrettyJson $config -}}
+{{- end -}}
+
+{{/* Validate and translate trust-bundle destinations once for config and RBAC. */}}
+{{- define "podplane-operator.trustBundleSync" -}}
+{{- $workload := .Values.podplane.operator.config.workloadCertificates | default dict -}}
+{{- $sync := dict -}}
+{{- if hasKey $workload "trustBundleSync" -}}
+{{- $sync = $workload.trustBundleSync -}}
+{{- end -}}
+{{- if not (kindIs "map" $sync) -}}
+{{- fail "workloadCertificates.trustBundleSync must be an object" -}}
+{{- end -}}
+{{- $create := false -}}
+{{- if hasKey $sync "createIfMissing" -}}
+{{- if not (kindIs "bool" $sync.createIfMissing) -}}
+{{- fail "workloadCertificates.trustBundleSync.createIfMissing must be a boolean" -}}
+{{- end -}}
+{{- $create = $sync.createIfMissing -}}
+{{- end -}}
+{{- $resources := list -}}
+{{- if hasKey $sync "resources" -}}
+{{- if not (kindIs "slice" $sync.resources) -}}
+{{- fail "workloadCertificates.trustBundleSync.resources must be a list" -}}
+{{- end -}}
+{{- $resources = $sync.resources -}}
+{{- end -}}
+{{- $entries := list -}}
+{{- $seen := dict -}}
+{{- range $index, $resource := $resources -}}
+{{- $path := printf "workloadCertificates.trustBundleSync.resources[%d]" $index -}}
+{{- if not (kindIs "map" $resource) -}}
+{{- fail (printf "%s must be an object" $path) -}}
+{{- end -}}
+{{- range $field := list "kind" "namespace" "name" "key" -}}
+{{- if not (kindIs "string" (get $resource $field)) -}}
+{{- fail (printf "%s.%s must be a string" $path $field) -}}
+{{- end -}}
+{{- end -}}
+{{- if not (has $resource.kind (list "Secret" "ConfigMap")) -}}
+{{- fail (printf "%s.kind must be Secret or ConfigMap" $path) -}}
+{{- end -}}
+{{- if or (gt (len $resource.namespace) 63) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" $resource.namespace)) -}}
+{{- fail (printf "%s.namespace must be a DNS label of at most 63 characters" $path) -}}
+{{- end -}}
+{{- if or (gt (len $resource.name) 253) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" $resource.name)) -}}
+{{- fail (printf "%s.name must be a DNS subdomain of at most 253 characters" $path) -}}
+{{- end -}}
+{{- if or (gt (len $resource.key) 253) (not (regexMatch "^[-._a-zA-Z0-9]+$" $resource.key)) (eq $resource.key ".") (hasPrefix ".." $resource.key) -}}
+{{- fail (printf "%s.key must be a valid Secret or ConfigMap data key" $path) -}}
+{{- end -}}
+{{- $destination := printf "%s/%s/%s/%s" $resource.kind $resource.namespace $resource.name $resource.key -}}
+{{- if hasKey $seen $destination -}}
+{{- fail (printf "%s duplicates trustBundleSync destination %s" $path $destination) -}}
+{{- end -}}
+{{- $_ := set $seen $destination true -}}
+{{- $entry := dict "kind" $resource.kind "namespace" $resource.namespace "name" $resource.name "key" $resource.key -}}
+{{- if hasKey $resource "createIfMissing" -}}
+{{- if not (kindIs "bool" $resource.createIfMissing) -}}
+{{- fail (printf "%s.createIfMissing must be a boolean" $path) -}}
+{{- end -}}
+{{- $_ := set $entry "create_if_missing" $resource.createIfMissing -}}
+{{- end -}}
+{{- $entries = append $entries $entry -}}
+{{- end -}}
+{{- toJson (dict "create_if_missing" $create "resources" $entries) -}}
 {{- end -}}

@@ -133,6 +133,15 @@ platform:
                 provider: openbao-local
                 domains:
                   staging.example.com: {}
+              workloadCertificates:
+                trustBundleSync:
+                  createIfMissing: false
+                  resources:
+                    - kind: ConfigMap
+                      namespace: application
+                      name: workload-roots
+                      key: ca.crt
+                      createIfMissing: true
 ```
 
 Secret material must not be placed in the operator config. Use Kubernetes
@@ -141,6 +150,11 @@ Secrets, workload identity, IAM, or the provider's native credential mechanism.
 The chart configures the aggregated Kubernetes API backend with
 `--aggregated-api-*` serving flags and a workload-CA-signed service certificate.
 Registry authentication is handled directly by Zot, not the operator.
+
+`workloadCertificates.trustBundleSync` copies only the public CA bundle to the
+listed Secrets or ConfigMaps. Target namespaces must exist. The chart grants
+named `get`/`patch` permissions, plus namespace-wide `create` for kinds with
+`createIfMissing` enabled; Kubernetes cannot restrict creation by name.
 
 ## Metrics
 
@@ -213,6 +227,8 @@ Common values:
 | `podplane.operator.config.secrets.defaultProvider` | Default external backend; also used for operator-owned ingress certificate state unless overridden. |
 | `podplane.operator.config.secrets.providers` | Non-sensitive provider config map. Each provider may set `keyPrefix`; it defaults to `cluster.id` when omitted. |
 | `podplane.operator.config.ingressCertificates` | Apex-keyed ingress certificate configuration. The operator always publishes a self-signed fallback and optionally replaces supported domains through ACME. |
+| `podplane.operator.config.workloadCertificates.trustBundleSync.resources` | Trust-bundle targets (`kind`, `namespace`, `name`, `key`); defaults to empty. |
+| `podplane.operator.config.workloadCertificates.trustBundleSync.createIfMissing` | Create missing targets; defaults to `false`, with a per-resource override. |
 | `podplane.operator.apiService.enabled` | Renders the Kubernetes APIService registration. |
 | `podplane.operator.apiService.group` | APIService group served by the operator. |
 | `podplane.operator.apiService.version` | APIService version served by the operator. |

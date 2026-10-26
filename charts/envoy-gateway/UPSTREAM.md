@@ -15,9 +15,13 @@ certificate projections. The Podplane changes are intentionally limited to:
 - removing the certgen Job and its RBAC;
 - projecting the Envoy Gateway serving key and certificate from the Podplane
   workload signer;
-- projecting that signer's ClusterTrustBundle as `/certs/ca.crt`; and
+- projecting that signer's ClusterTrustBundle as `/certs/ca.crt`;
 - annotating the topology injector webhook so Podplane Operator injects the
-  workload CA bundle.
+  workload CA bundle; and
+- allowing `deployment.pod.extraContainers`, keyed by container name, for Agent
+  Router's loopback TLS-origination proxy. Plain values are rendered without
+  `tpl`; image-only overrides preserve the remaining container fields. The
+  ingress controller does not use it.
 
 The goal is to find a way to have these limitations resolved upstream,
 and remove this copy and the custom changes.

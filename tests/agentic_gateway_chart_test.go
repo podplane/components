@@ -96,13 +96,37 @@ func TestAgentRouterContract(t *testing.T) {
 				t.Fatal(err)
 			}
 			controllerName, _ = chartMap(config, "gateway")["controllerName"].(string)
-			if chartMap(config, "extensionManager", "service", "fqdn")["hostname"] != "agent-router.platform-agent-router.svc.cluster.local" || chartMap(config, "extensionApis")["enableBackend"] != true {
+			wantService := map[string]any{
+				"fqdn": map[string]any{"hostname": "agent-router.platform-agent-router.svc.cluster.local", "port": 1063},
+				"tls":  map[string]any{"certificateRef": map[string]any{"kind": "Secret", "name": "workload-ca"}},
+			}
+			if !reflect.DeepEqual(chartMap(config, "extensionManager", "service"), wantService) || chartMap(config, "extensionApis")["enableBackend"] != true {
 				t.Errorf("Agent Router extension missing from its controller: %v", config)
+			}
+			if chartMap(config, "extensionApis")["enableSDSSecretRef"] != true {
+				t.Error("Agent Router's controller must resolve SDS references")
 			}
 		case "Secret":
 			secrets++
-			if chartMap(doc, "metadata")["name"] != "agent-router-mcp-session-encryption" {
+			switch chartMap(doc, "metadata")["name"] {
+			case "platform-agent-router-serving":
+				want := map[string]any{"url": "unix:///var/run/podplane-sds/sds.sock", "secretName": "serving"}
+				if doc["type"] != "gateway.envoyproxy.io/sds" || doc["data"] != nil || !reflect.DeepEqual(doc["stringData"], want) {
+					t.Fatal("serving Secret must contain only the SDS socket and resource name")
+				}
+			case "agent-router-mcp-session-encryption":
+			default:
 				t.Fatalf("unexpected Secret: %v", chartMap(doc, "metadata"))
+			}
+		case "Gateway":
+			listeners := chartMap(doc, "spec")["listeners"].([]any)
+			if len(listeners) != 1 {
+				t.Fatal("Agent Router must have exactly one HTTPS listener")
+			}
+			listener := listeners[0].(map[string]any)
+			wantTLS := map[string]any{"mode": "Terminate", "certificateRefs": []any{map[string]any{"kind": "Secret", "name": "platform-agent-router-serving"}}}
+			if listener["protocol"] != "HTTPS" || listener["port"] != 443 || !reflect.DeepEqual(listener["tls"], wantTLS) {
+				t.Errorf("Agent Router must terminate HTTPS using SDS: %v", listener)
 			}
 		case "MutatingWebhookConfiguration":
 			webhooks++
@@ -121,7 +145,7 @@ func TestAgentRouterContract(t *testing.T) {
 	}
 	// One webhook: the Envoy Gateway topology injector must stay disabled, since
 	// in GatewayNamespace mode it would intercept every Pod binding.
-	if secrets != 1 || webhooks != 1 {
+	if secrets != 2 || webhooks != 1 {
 		t.Fatalf("got %d Secrets and %d webhooks", secrets, webhooks)
 	}
 	// The ingress controller uses Envoy Gateway's default controllerName.
@@ -135,10 +159,66 @@ func TestAgentRouterContract(t *testing.T) {
 			t.Errorf("missing %q", want)
 		}
 	}
-	for _, forbidden := range []string{"envoyDaemonSet:", "hostPort:"} {
+	for _, forbidden := range []string{"envoyDaemonSet:", "hostPort:", "extension-tls", "extension-trust"} {
 		if strings.Contains(rendered, forbidden) {
 			t.Errorf("unexpected %q", forbidden)
 		}
+	}
+}
+
+// TestAgentRouterServingIdentity checks the proxy's Service identity, projection,
+// and SDS wiring in both the platform namespace and an alternate namespace.
+func TestAgentRouterServingIdentity(t *testing.T) {
+	for _, namespace := range []string{"platform-agent-router", "alternate-router"} {
+		t.Run(namespace, func(t *testing.T) {
+			for _, doc := range chartDocuments(t, render(t, "../charts/agent-router", "--namespace", namespace)) {
+				if doc["kind"] != "EnvoyProxy" {
+					continue
+				}
+				provider := chartMap(doc, "spec", "provider", "kubernetes")
+				service := chartMap(provider, "envoyService")
+				if service["name"] != "platform-agent-router-gateway" || service["type"] != "ClusterIP" {
+					t.Fatal("proxy must have a stable internal Service identity")
+				}
+				template := chartMap(provider, "envoyDeployment", "patch", "value", "spec", "template")
+				if chartMap(template, "metadata", "annotations")["dev.gvisor.spec.mount.podplane-sds.share"] != "pod" {
+					t.Error("SDS socket must be shared between gVisor containers")
+				}
+				pod := chartMap(template, "spec")
+				var projection, sidecar map[string]any
+				for _, raw := range pod["volumes"].([]any) {
+					volume := raw.(map[string]any)
+					if volume["name"] == "serving-certificate" {
+						projection = chartMap(volume, "projected")
+					}
+				}
+				wantSources := []any{map[string]any{"podCertificate": map[string]any{
+					"signerName": "certificates.podplane.dev/workload", "keyType": "ECDSAP256", "credentialBundlePath": "serving",
+					"userAnnotations": map[string]any{"certificates.podplane.dev/mode": "service", "certificates.podplane.dev/service": service["name"]},
+				}}}
+				if !reflect.DeepEqual(projection["sources"], wantSources) {
+					t.Errorf("incorrect serving projection: %v", projection)
+				}
+				for _, raw := range pod["containers"].([]any) {
+					container := raw.(map[string]any)
+					if container["name"] == "podplane-sds" {
+						sidecar = container
+					}
+				}
+				wantArgs := []any{"sds", "--socket=/var/run/podplane-sds/sds.sock", "--certificates-dir=/var/run/podplane/serving",
+					"--workload-certificate=serving=platform-agent-router-gateway." + namespace + ".svc.cluster.local"}
+				if !reflect.DeepEqual(sidecar["args"], wantArgs) {
+					t.Errorf("SDS must load the projected bundle for this Service: %v", sidecar["args"])
+				}
+				wantMounts := []any{
+					map[string]any{"name": "podplane-sds", "mountPath": "/var/run/podplane-sds"},
+					map[string]any{"name": "serving-certificate", "mountPath": "/var/run/podplane/serving", "readOnly": true},
+				}
+				if !reflect.DeepEqual(sidecar["volumeMounts"], wantMounts) {
+					t.Error("SDS must mount the entire certificate directory so projection rotation remains visible")
+				}
+			}
+		})
 	}
 }
 
@@ -209,8 +289,20 @@ func TestAgenticGatewayPlatformContract(t *testing.T) {
 					t.Errorf("agent mirror %v", values)
 				}
 			}
+			for _, path := range [][]string{
+				{"values", "platform", "agentRouter", "envoyProxy"},
+				{"values", "ai-gateway-helm", "controller", "extraContainers", "controller-tls"},
+				{"values", "gateway-helm", "global", "images", "envoyProxy"},
+			} {
+				if image := chartMap(spec, path...)["image"]; image != "registry.example/mirror/docker.io/envoyproxy/envoy:distroless-v1.39.1" {
+					t.Errorf("agent Envoy proxy mirror at %v: %v", path, image)
+				}
+			}
 			if image := chartMap(spec, "values", "gateway-helm", "global", "images", "envoyGateway")["image"]; image != "registry.example/mirror/docker.io/envoyproxy/gateway:v1.9.2" {
 				t.Errorf("agent Envoy Gateway mirror %v", image)
+			}
+			if image := chartMap(spec, "values", "platform", "agentRouter", "sdsSidecar", "image")["repository"]; image != "registry.example/mirror/ghcr.io/podplane/operator" {
+				t.Errorf("agent SDS mirror %v", image)
 			}
 			for _, dep := range spec["dependsOn"].([]any) {
 				if dep.(map[string]any)["name"] == "envoy-gateway" {
@@ -240,5 +332,185 @@ func TestAgenticGatewayPlatformContract(t *testing.T) {
 	without := render(t, "../charts/platform-components", "-f", "values/platform-components.yaml", "--set", "platform.components.apps.envoy-gateway.enabled=true")
 	if strings.Contains(without, "extensionManager") || strings.Contains(without, "name: agent-router") {
 		t.Fatal("platform without Agent Router must not depend on its extension")
+	}
+}
+
+// TestAgentRouterTrustSyncWiring verifies startup ordering and preserves explicit
+// sync targets while selecting the CA Secret used by the extension client.
+func TestAgentRouterTrustSyncWiring(t *testing.T) {
+	const syncPath = "platform.components.values.podplane-operator.podplane.operator.config.workloadCertificates.trustBundleSync"
+	for _, tc := range []struct {
+		name              string
+		enabled           bool
+		args              []string
+		namespace, secret string
+		preconfigured     bool
+	}{
+		{name: "disabled"},
+		{name: "enabled", enabled: true, namespace: "platform-agent-router", secret: "workload-ca"},
+		{name: "custom reference", enabled: true, namespace: "custom-trust", secret: "custom-ca", args: []string{
+			"--set", "platform.components.apps.agent-router.namespace=custom-router",
+			"--set", "platform.components.values.agent-router.gateway-helm.config.envoyGateway.extensionManager.service.tls.certificateRef.name=custom-ca",
+			"--set", "platform.components.values.agent-router.gateway-helm.config.envoyGateway.extensionManager.service.tls.certificateRef.namespace=custom-trust",
+		}},
+		{name: "existing target", enabled: true, namespace: "platform-agent-router", secret: "workload-ca", preconfigured: true, args: []string{
+			"--set-json", syncPath + `={"createIfMissing":true,"resources":[{"kind":"ConfigMap","namespace":"other","name":"roots","key":"ca.crt"},{"kind":"Secret","namespace":"platform-agent-router","name":"workload-ca","key":"tls.crt","createIfMissing":false}]}`,
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			args := []string{"-f", "values/platform-components.yaml"}
+			if tc.enabled {
+				args = append(args, "--set", "platform.components.apps.agent-router.enabled=true")
+			}
+			args = append(args, tc.args...)
+			found := false
+			for _, doc := range chartDocuments(t, render(t, "../charts/platform-components", args...)) {
+				if doc["kind"] != "HelmRelease" {
+					continue
+				}
+				if chartMap(doc, "metadata")["name"] == "agent-router" {
+					depends := false
+					for _, entry := range chartMap(doc, "spec")["dependsOn"].([]any) {
+						if entry.(map[string]any)["name"] == "podplane-operator" {
+							depends = true
+						}
+					}
+					if !depends {
+						t.Fatal("Agent Router must wait for the operator to populate its CA")
+					}
+				}
+				if chartMap(doc, "metadata")["name"] != "podplane-operator" {
+					continue
+				}
+				found = true
+				sync := chartMap(doc, "spec", "values", "podplane", "operator", "config", "workloadCertificates", "trustBundleSync")
+				if !tc.enabled {
+					if len(sync) != 0 {
+						t.Fatalf("disabled Agent Router added sync configuration: %v", sync)
+					}
+					continue
+				}
+				want := []any{}
+				if tc.preconfigured {
+					want = append(want, map[string]any{"kind": "ConfigMap", "namespace": "other", "name": "roots", "key": "ca.crt"})
+					if sync["createIfMissing"] != true {
+						t.Fatal("global creation policy was overwritten")
+					}
+				}
+				want = append(want, map[string]any{"kind": "Secret", "namespace": tc.namespace, "name": tc.secret, "key": "tls.crt", "createIfMissing": !tc.preconfigured})
+				if !reflect.DeepEqual(sync["resources"], want) {
+					t.Fatalf("sync targets = %v, want %v", sync["resources"], want)
+				}
+			}
+			if !found {
+				t.Fatal("operator HelmRelease not found")
+			}
+		})
+	}
+}
+
+// TestAgentRouterControllerTLS verifies native extension TLS and the remaining
+// termination sidecar without breaking probes or ordinary value overrides.
+func TestAgentRouterControllerTLS(t *testing.T) {
+	for _, name := range []string{"agent-router", "custom-router"} {
+		t.Run(name, func(t *testing.T) {
+			const namespace = "alternate-router"
+			const image = "registry.example/mirror/envoy:test"
+			hostname := name + "." + namespace + ".svc.cluster.local"
+			rendered := render(t, "../charts/agent-router", "--namespace", namespace, "--set",
+				"ai-gateway-helm.controller.fullnameOverride="+name+
+					",platform.agentRouter.envoyProxy.image="+image+"-fleet"+
+					",ai-gateway-helm.controller.extraContainers.controller-tls.image="+image+"-controller-tls"+
+					",gateway-helm.config.envoyGateway.extensionManager.service.fqdn.hostname="+hostname+
+					",gateway-helm.config.envoyGateway.extensionManager.service.tls.certificateRef.name=custom-ca")
+			proxies, configs, services, fleets := 0, 0, 0, 0
+			if strings.Contains(rendered, "extension-tls") || strings.Contains(rendered, "extension-trust") {
+				t.Fatal("native extension TLS must not deploy the origination sidecar or its volumes")
+			}
+			for _, doc := range chartDocuments(t, rendered) {
+				switch doc["kind"] {
+				case "EnvoyProxy":
+					fleets++
+					if chartMap(doc, "spec", "provider", "kubernetes", "envoyDeployment", "container")["image"] != image+"-fleet" {
+						t.Fatal("fleet must use its own image override")
+					}
+				case "Service":
+					if chartMap(doc, "metadata")["name"] != name {
+						continue
+					}
+					services++
+					want := map[int]int{1063: 1163, 18002: 18003, 9443: 9443, 8080: 8080}
+					for _, raw := range chartMap(doc, "spec")["ports"].([]any) {
+						port := raw.(map[string]any)
+						if target, ok := want[port["port"].(int)]; !ok || port["targetPort"] != target {
+							t.Fatalf("unexpected controller Service port: %v", port)
+						}
+						delete(want, port["port"].(int))
+					}
+					if len(want) != 0 {
+						t.Fatalf("missing controller Service ports: %v", want)
+					}
+				case "Deployment":
+					pod := chartMap(doc, "spec", "template", "spec")
+					for _, raw := range pod["containers"].([]any) {
+						container := raw.(map[string]any)
+						switch container["name"] {
+						case "ai-gateway-helm":
+							for _, probe := range []string{"startupProbe", "livenessProbe", "readinessProbe"} {
+								if chartMap(container, probe, "grpc")["port"] != 1063 {
+									t.Fatalf("native gRPC probe changed: %v", container[probe])
+								}
+							}
+						case "controller-tls":
+							proxies++
+							if container["image"] != image+"-"+container["name"].(string) {
+								t.Fatalf("TLS proxy must use its own image override: %v", container["image"])
+							}
+							wantArgs := []any{"-c", "/etc/podplane-tls/envoy.yaml", "--concurrency", "1", "--log-level", "warning"}
+							if !reflect.DeepEqual(container["args"], wantArgs) || len(container["volumeMounts"].([]any)) != 2 || chartMap(container, "securityContext")["runAsNonRoot"] != true {
+								t.Fatal("image-only override lost TLS proxy arguments, mounts or security context")
+							}
+							for _, raw := range container["volumeMounts"].([]any) {
+								mount := raw.(map[string]any)
+								if mount["readOnly"] != true || mount["subPath"] != nil {
+									t.Fatalf("TLS proxy must mount rotating directories read-only: %v", mount)
+								}
+							}
+						}
+					}
+				case "ConfigMap":
+					if chartMap(doc, "metadata")["name"] == "envoy-gateway-config" {
+						var config map[string]any
+						if err := yaml.Unmarshal([]byte(chartMap(doc, "data")["envoy-gateway.yaml"].(string)), &config); err != nil {
+							t.Fatal(err)
+						}
+						service := chartMap(config, "extensionManager", "service")
+						if chartMap(service, "fqdn")["hostname"] != hostname || chartMap(service, "tls", "certificateRef")["name"] != "custom-ca" {
+							t.Fatalf("extension TLS overrides lost: %v", service)
+						}
+					}
+					var want []string
+					switch chartMap(doc, "metadata")["name"] {
+					case "agent-router-controller-tls":
+						want = []string{"DownstreamTlsContext", "port_value: 1163", "port_value: 18003", "address: 127.0.0.1, port_value: 1063", "address: 127.0.0.1, port_value: 18002", "watched_directory: {path: /certs}", "filename: /certs/tls.crt", "filename: /certs/tls.key"}
+					default:
+						continue
+					}
+					configs++
+					text := ""
+					for _, value := range chartMap(doc, "data") {
+						text += value.(string)
+					}
+					for _, part := range append(want, "TLSv1_2", "alpn_protocols: [h2]", "path_config_source:") {
+						if !strings.Contains(text, part) {
+							t.Errorf("TLS configuration missing %q", part)
+						}
+					}
+				}
+			}
+			if proxies != 1 || configs != 1 || services != 1 || fleets != 1 {
+				t.Fatalf("got %d proxies, %d configs, %d Services, %d fleets", proxies, configs, services, fleets)
+			}
+		})
 	}
 }

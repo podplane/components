@@ -16,6 +16,8 @@ spec:
     type: Kubernetes
     kubernetes:
       envoyService:
+        # Stable DNS identity for clients and the workload certificate signer.
+        name: platform-agent-router-gateway
         type: ClusterIP
       envoyDeployment:
         # Replace discards Envoy Gateway's default image, so set the
@@ -27,12 +29,47 @@ spec:
           value:
             spec:
               template:
+                metadata:
+                  annotations:
+                    dev.gvisor.spec.mount.podplane-sds.share: pod
+                    dev.gvisor.spec.mount.podplane-sds.type: tmpfs
+                    dev.gvisor.spec.mount.podplane-sds.options: rw,rprivate
                 spec:
                   securityContext:
                     runAsNonRoot: true
                     fsGroup: 65532
                     seccompProfile:
                       type: RuntimeDefault
+                  containers:
+                    - name: envoy
+                      volumeMounts:
+                        - name: podplane-sds
+                          mountPath: /var/run/podplane-sds
+                          readOnly: true
+                    - name: podplane-sds
+                      image: {{ printf "%s:%s" .Values.platform.agentRouter.sdsSidecar.image.repository .Values.platform.agentRouter.sdsSidecar.image.tag | quote }}
+                      imagePullPolicy: {{ .Values.platform.agentRouter.sdsSidecar.image.pullPolicy }}
+                      args:
+                        - sds
+                        - --socket=/var/run/podplane-sds/sds.sock
+                        - --certificates-dir=/var/run/podplane/serving
+                        - {{ printf "--workload-certificate=serving=platform-agent-router-gateway.%s.svc.cluster.local" .Release.Namespace | quote }}
+                      securityContext:
+                        allowPrivilegeEscalation: false
+                        capabilities:
+                          drop: ["ALL"]
+                        readOnlyRootFilesystem: true
+                        runAsNonRoot: true
+                        runAsUser: 65532
+                        runAsGroup: 65532
+                        seccompProfile:
+                          type: RuntimeDefault
+                      volumeMounts:
+                        - name: podplane-sds
+                          mountPath: /var/run/podplane-sds
+                        - name: serving-certificate
+                          mountPath: /var/run/podplane/serving
+                          readOnly: true
                   volumes:
                     # Envoy Gateway's xDS CA is the Podplane workload signer
                     # (see charts/envoy-gateway/UPSTREAM.md).
@@ -43,3 +80,16 @@ spec:
                           - clusterTrustBundle:
                               name: certificates.podplane.dev:workload:roots
                               path: ca.crt
+                    - name: podplane-sds
+                      emptyDir:
+                        medium: Memory
+                    - name: serving-certificate
+                      projected:
+                        sources:
+                          - podCertificate:
+                              signerName: certificates.podplane.dev/workload
+                              keyType: ECDSAP256
+                              credentialBundlePath: serving
+                              userAnnotations:
+                                certificates.podplane.dev/mode: service
+                                certificates.podplane.dev/service: platform-agent-router-gateway

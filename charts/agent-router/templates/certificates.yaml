@@ -1,0 +1,14 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+# Envoy Gateway requires a Secret reference, but this contains only SDS config.
+# The certificate and private key stay in the Pod's projected volume and SDS.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: platform-agent-router-serving
+type: gateway.envoyproxy.io/sds
+stringData:
+  url: unix:///var/run/podplane-sds/sds.sock
+  secretName: serving

@@ -7,7 +7,7 @@ podplane:
     namePrefix: platform-podplane-operator
     image:
       repository: ghcr.io/podplane/operator
-      tag: "v0.14.1"
+      tag: "v0.16.0"
       pullPolicy: IfNotPresent
     serviceAccountName: platform-podplane-operator
     googleWorkloadIdentity:
@@ -47,6 +47,9 @@ podplane:
         domains: {}
       workloadCertificates:
         caPath: /var/run/podplane/certificates/workload-ca-key
+        trustBundleSync:
+          createIfMissing: false
+          resources: []
       rbac:
         namespaceGroupBindings: true
     # Additional environment variables for the operator container. Useful for

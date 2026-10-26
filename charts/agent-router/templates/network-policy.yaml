@@ -1,0 +1,42 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Application gRPC remains available inside the controller Pod for the TLS
+# proxies and native kubelet probes. Only the TLS frontends are reachable from
+# other Pods. NetworkPolicy does not restrict same-Pod or local-node traffic.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: platform-agent-router-controller
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "ai-gateway-helm.controller.selectorLabels" (index .Subcharts "ai-gateway-helm") | nindent 6 }}
+  policyTypes: [Ingress]
+  ingress:
+    - ports:
+        - {protocol: TCP, port: 1163} # Extension TLS frontend
+        - {protocol: TCP, port: 18003} # Config streaming TLS frontend
+        - {protocol: TCP, port: 9443} # Admission webhook TLS
+        - {protocol: TCP, port: 8080} # Controller metrics (HTTP)
+---
+# Keep proxy metrics and health available without exposing raw MCP or HTTP.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: platform-agent-router-proxy
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      gateway.envoyproxy.io/owning-gateway-name: platform-agent-router-gateway
+      gateway.envoyproxy.io/owning-gateway-namespace: {{ .Release.Namespace | quote }}
+  policyTypes: [Ingress]
+  ingress:
+    - ports:
+        - {protocol: TCP, port: 10443} # Gateway HTTPS listener
+        - {protocol: TCP, port: 1064} # Extproc metrics and health
+        - {protocol: TCP, port: 19001} # Envoy metrics
+        - {protocol: TCP, port: 19003} # Envoy readiness

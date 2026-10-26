@@ -112,6 +112,12 @@ spec:
         {{- with .Values.deployment.pod.extraVolumeMounts }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+      {{/* BEGIN temporary extension TLS workaround: remove this hook when Envoy Gateway supports ClusterTrustBundle trust for extension servers and the sidecar is removed. */}}
+      {{- range $name, $container := .Values.deployment.pod.extraContainers }}
+      - name: {{ $name | quote }}
+        {{- toYaml $container | nindent 8 }}
+      {{- end }}
+      {{/* END temporary extension TLS workaround. */}}
       {{- include "eg.image.pullSecrets" . | nindent 6 }}
       {{- with .Values.deployment.priorityClassName }}
       priorityClassName: {{ . | quote }}

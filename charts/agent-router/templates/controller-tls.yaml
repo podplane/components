@@ -1,0 +1,63 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+# TLS termination in the Agent Router Pod. The application binaries and their
+# gRPC probes remain unchanged; NetworkPolicy blocks remote plaintext access.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-router-controller-tls
+data:
+  envoy.yaml: |
+    node: {id: agent-router-controller-tls, cluster: agent-router}
+    static_resources:
+      listeners:
+{{- range $port := list (dict "name" "extension" "tls" 1163 "backend" 1063) (dict "name" "ratelimit-xds" "tls" 18003 "backend" 18002) }}
+        - name: {{ $port.name }}
+          address:
+            socket_address: {address: "::", ipv4_compat: true, port_value: {{ $port.tls }}}
+          filter_chains:
+            - transport_socket:
+                name: envoy.transport_sockets.tls
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+                  common_tls_context:
+                    alpn_protocols: [h2]
+                    tls_params:
+                      tls_minimum_protocol_version: TLSv1_2
+                    tls_certificate_sds_secret_configs:
+                      - name: serving
+                        sds_config:
+                          resource_api_version: V3
+                          path_config_source:
+                            path: /etc/podplane-tls/serving.yaml
+              filters:
+                - name: envoy.filters.network.tcp_proxy
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+                    stat_prefix: {{ $port.name }}
+                    cluster: {{ $port.name }}
+                    idle_timeout: 0s
+{{- end }}
+      clusters:
+{{- range $port := list (dict "name" "extension" "backend" 1063) (dict "name" "ratelimit-xds" "backend" 18002) }}
+        - name: {{ $port.name }}
+          type: STATIC
+          connect_timeout: 5s
+          load_assignment:
+            cluster_name: {{ $port.name }}
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address: {address: 127.0.0.1, port_value: {{ $port.backend }}}
+{{- end }}
+  serving.yaml: |
+    resources:
+      - "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.Secret
+        name: serving
+        tls_certificate:
+          certificate_chain: {filename: /certs/tls.crt}
+          private_key: {filename: /certs/tls.key}
+          watched_directory: {path: /certs}

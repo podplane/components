@@ -1,0 +1,63 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+{{- $sync := include "podplane-operator.trustBundleSync" . | fromJson -}}
+{{- $namespaces := dict -}}
+{{- range $resource := $sync.resources -}}
+{{- if not (hasKey $namespaces $resource.namespace) -}}
+{{- $_ := set $namespaces $resource.namespace dict -}}
+{{- end -}}
+{{- $kinds := get $namespaces $resource.namespace -}}
+{{- $kind := ternary "secrets" "configmaps" (eq $resource.kind "Secret") -}}
+{{- if not (hasKey $kinds $kind) -}}
+{{- $_ := set $kinds $kind (dict "names" list "create" false) -}}
+{{- end -}}
+{{- $rule := get $kinds $kind -}}
+{{- $_ := set $rule "names" (append $rule.names $resource.name | uniq) -}}
+{{- $create := $sync.create_if_missing -}}
+{{- if hasKey $resource "create_if_missing" -}}
+{{- $create = $resource.create_if_missing -}}
+{{- end -}}
+{{- if $create -}}
+{{- $_ := set $rule "create" true -}}
+{{- end -}}
+{{- end -}}
+{{- range $namespace, $kinds := $namespaces }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "podplane-operator.namePrefix" $ }}-trust-bundle-sync
+  namespace: {{ $namespace | quote }}
+  labels:
+{{ include "podplane-operator.labels" $ | indent 4 }}
+rules:
+{{- range $kind, $rule := $kinds }}
+  - apiGroups: [""]
+    resources: [{{ $kind | quote }}]
+    resourceNames: {{ $rule.names | sortAlpha | toJson }}
+    verbs: ["get", "patch"]
+{{- if $rule.create }}
+  # Kubernetes cannot constrain create requests by resourceNames.
+  - apiGroups: [""]
+    resources: [{{ $kind | quote }}]
+    verbs: ["create"]
+{{- end }}
+{{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "podplane-operator.namePrefix" $ }}-trust-bundle-sync
+  namespace: {{ $namespace | quote }}
+  labels:
+{{ include "podplane-operator.labels" $ | indent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "podplane-operator.namePrefix" $ }}-trust-bundle-sync
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "podplane-operator.serviceAccountName" $ }}
+    namespace: {{ $.Release.Namespace }}
+{{- end }}

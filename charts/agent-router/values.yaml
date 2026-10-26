@@ -10,14 +10,74 @@ platform:
         bufferLimit: 50Mi
     envoyProxy:
       # Keep in sync with envoy-gateway's gateway-helm.global.images.envoyProxy
-      # so both Envoy fleets share one cached image.
+      # and the controller TLS sidecar below, so both share one cached image.
       image: docker.io/envoyproxy/envoy:distroless-v1.39.1
+    sdsSidecar:
+      image:
+        repository: ghcr.io/podplane/operator
+        tag: "v0.16.0"
+        pullPolicy: IfNotPresent
 ai-gateway-helm:
   envoyGateway:
     # This chart's own Envoy Gateway controller (gateway-helm below).
     namespace: platform-agent-router
   controller:
     fullnameOverride: agent-router
+    service:
+      ports:
+        - name: mutating-webhook
+          protocol: TCP
+          port: 9443
+          appProtocol: https
+          targetPort: 9443
+        - name: grpc
+          protocol: TCP
+          port: 1063
+          appProtocol: https
+          targetPort: 1163
+        - name: http-metrics
+          protocol: TCP
+          port: 8080
+          appProtocol: http
+          targetPort: 8080
+        - name: ratelimit-xds
+          protocol: TCP
+          port: 18002
+          appProtocol: https
+          targetPort: 18003
+    # Upstream gRPC listeners and probes stay unchanged inside the Pod.
+    # NetworkPolicy prevents peers bypassing these TLS listeners.
+    volumes:
+      - name: controller-tls-config
+        mountPath: /etc/podplane-tls
+        configmap:
+          name: agent-router-controller-tls
+          defaultMode: 420
+    # Named entries let image-only overrides preserve arguments and mounts.
+    extraContainers:
+      controller-tls:
+        image: docker.io/envoyproxy/envoy:distroless-v1.39.1
+        args: ["-c", "/etc/podplane-tls/envoy.yaml", "--concurrency", "1", "--log-level", "warning"]
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65532
+          runAsGroup: 65532
+          seccompProfile:
+            type: RuntimeDefault
+        readinessProbe:
+          tcpSocket:
+            port: 1163
+        volumeMounts:
+          - name: certs
+            mountPath: /certs
+            readOnly: true
+          - name: controller-tls-config
+            mountPath: /etc/podplane-tls
+            readOnly: true
     mutatingWebhook:
       # The webhook fails closed, so scope it to Agent Router's own proxy fleet.
       # Matching every Envoy Gateway Pod would block the ingress Envoy until
@@ -51,6 +111,8 @@ gateway-helm:
         # Keep in sync with envoy-gateway's chart so both controllers share one
         # cached image.
         image: docker.io/envoyproxy/gateway:v1.9.2
+      envoyProxy:
+        image: docker.io/envoyproxy/envoy:distroless-v1.39.1
   # In GatewayNamespace mode the topology webhook matches every Pod binding in
   # the cluster. The ingress controller already provides it.
   topologyInjector:
@@ -61,6 +123,7 @@ gateway-helm:
         controllerName: gateway.envoyproxy.io/platform-agent-router
       extensionApis:
         enableBackend: true
+        enableSDSSecretRef: true
       provider:
         type: Kubernetes
         kubernetes:
@@ -76,6 +139,12 @@ gateway-helm:
               secret: {includeAll: true}
             post: [Translation, Cluster, Route]
         service:
+          # Update the hostname when overriding the controller name or namespace.
           fqdn:
             hostname: agent-router.platform-agent-router.svc.cluster.local
             port: 1063
+          # Public CA bundle only, synced by Podplane Operator before this release.
+          tls:
+            certificateRef:
+              kind: Secret
+              name: workload-ca
