@@ -8,6 +8,25 @@ platform:
         # Envoy Gateway's 32Ki default is too small for AI requests. This matches
         # upstream AI Gateway's example; tune per-connection buffering for available memory.
         bufferLimit: 50Mi
+    # SPIFFE trust domain of agent client certificates. platform-components sets
+    # it from podplane-operator's cluster.spiffe.trustDomain.
+    spiffeTrustDomain: ""
+    # Client certificate (mTLS) authentication of agents connecting to the
+    # Gateway, verified against the workload CA that Podplane Operator syncs
+    # into the workload-ca ConfigMap. Agents present a Podplane workload
+    # certificate (podCertificate projection in the default spiffe mode).
+    clientAuthentication:
+      # VerifyIfGiven (verify presented certificates but accept clients without
+      # one; routes can require one by matching x-forwarded-client-cert),
+      # RequireAndVerify or Disabled.
+      mode: VerifyIfGiven
+      # Workload identities allowed to connect; requires RequireAndVerify. Empty
+      # allows any valid Podplane workload certificate. Omit serviceAccount to
+      # allow every ServiceAccount in the namespace. For example:
+      #   - namespace: team-a
+      #     serviceAccount: research-agent
+      #   - namespace: team-b
+      allowedClients: []
     envoyProxy:
       # Keep in sync with envoy-gateway's gateway-helm.global.images.envoyProxy
       # and the controller TLS sidecar below, so both share one cached image.

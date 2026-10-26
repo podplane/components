@@ -1,0 +1,41 @@
+# Podplane <https://podplane.dev>
+# Copyright The Podplane Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: platform-agent-router-routes-vap
+spec:
+  # Only administrators grant or revoke permission to attach routes to the Agent
+  # Router Gateway, so namespace write access granted for other reasons cannot
+  # intercept other agents' traffic. Flux's helm-controller manages the label on
+  # the platform namespaces it installs. Patches and server-side apply arrive as
+  # UPDATE requests.
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["namespaces", "namespaces/status", "namespaces/finalize"]
+  matchConditions:
+    - name: route-permission-changed
+      expression: >
+        object.metadata.?labels[?"agent-router.podplane.dev/routes"] !=
+        (request.operation == "CREATE" ? optional.none() : oldObject.metadata.?labels[?"agent-router.podplane.dev/routes"])
+  validations:
+    - expression: >
+        request.userInfo.groups.exists(g, g == "podplane:admins" || g == "system:masters") ||
+        (request.userInfo.username == "system:serviceaccount:platform-fluxcd:helm-controller" &&
+          (object.metadata.name.startsWith("kube-") || object.metadata.name.startsWith("platform-")))
+      message: "Only cluster administrators may change the agent-router.podplane.dev/routes namespace label."
+      reason: Forbidden
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: platform-agent-router-routes-vapb
+spec:
+  policyName: platform-agent-router-routes-vap
+  validationActions: ["Deny", "Audit"]

@@ -17,29 +17,39 @@ Each HelmRelease pulls its chart from the podplane-components GitRepository.
 {{- if hasKey $mirror "prefix" -}}{{- $mirrorPrefix = trimAll "/" $mirror.prefix -}}{{- end -}}
 {{- $sourceNs := .Release.Namespace -}}
 
-{{/* Agent Router needs its public CA Secret before its HelmRelease can start.
-The operator creates it, avoiding a dependency on resources in that release.
-Keep user-supplied sync targets and honor an explicit policy for this target. */}}
+{{/* Agent Router needs its public CA Secret (extension client) and ConfigMap
+(agent client certificate validation) before its HelmRelease can start.
+The operator creates them, avoiding a dependency on resources in that release.
+Keep user-supplied sync targets and honor an explicit policy for these targets. */}}
 {{- $agent := index $components.apps "agent-router" | default dict -}}
 {{- if $agent.enabled -}}
 {{- $agentValues := index $values "agent-router" | default dict -}}
 {{- $ref := dig "gateway-helm" "config" "envoyGateway" "extensionManager" "service" "tls" "certificateRef" dict $agentValues -}}
-{{- $targetName := get $ref "name" | default "workload-ca" -}}
-{{- $targetNamespace := get $ref "namespace" | default $agent.namespace -}}
 {{- $operatorValues := index $values "podplane-operator" | default dict -}}
 {{- $sync := dig "podplane" "operator" "config" "workloadCertificates" "trustBundleSync" dict $operatorValues -}}
 {{- $resources := get $sync "resources" | default list -}}
+{{- $targets := list
+  (dict "kind" "Secret" "namespace" (get $ref "namespace" | default $agent.namespace) "name" (get $ref "name" | default "workload-ca") "key" "tls.crt")
+  (dict "kind" "ConfigMap" "namespace" $agent.namespace "name" "workload-ca" "key" "ca.crt")
+-}}
+{{- range $target := $targets -}}
 {{- $found := false -}}
 {{- range $resources -}}
-{{- if and (eq .kind "Secret") (eq .namespace $targetNamespace) (eq .name $targetName) (eq .key "tls.crt") -}}
+{{- if and (eq .kind $target.kind) (eq .namespace $target.namespace) (eq .name $target.name) (eq .key $target.key) -}}
 {{- $found = true -}}
 {{- end -}}
 {{- end -}}
 {{- if not $found -}}
-{{- $resources = append $resources (dict "kind" "Secret" "namespace" $targetNamespace "name" $targetName "key" "tls.crt" "createIfMissing" true) -}}
+{{- $resources = append $resources (set $target "createIfMissing" true) -}}
+{{- end -}}
 {{- end -}}
 {{- $_ := set $sync "resources" $resources -}}
 {{- $_ := set $values "podplane-operator" (mergeOverwrite $operatorValues (dict "podplane" (dict "operator" (dict "config" (dict "workloadCertificates" (dict "trustBundleSync" $sync)))))) -}}
+{{- /* Client certificate SAN matchers use the operator's SPIFFE trust domain. */ -}}
+{{- $trustDomain := dig "podplane" "operator" "config" "cluster" "spiffe" "trustDomain" "" $operatorValues -}}
+{{- if and $trustDomain (not (dig "platform" "agentRouter" "spiffeTrustDomain" "" $agentValues)) -}}
+{{- $_ := set $values "agent-router" (mergeOverwrite $agentValues (dict "platform" (dict "agentRouter" (dict "spiffeTrustDomain" $trustDomain)))) -}}
+{{- end -}}
 {{- end -}}
 
 {{ range $name, $entry := $components.apps }}

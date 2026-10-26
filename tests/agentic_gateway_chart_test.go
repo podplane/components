@@ -6,6 +6,7 @@ package tests
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -127,6 +128,12 @@ func TestAgentRouterContract(t *testing.T) {
 			wantTLS := map[string]any{"mode": "Terminate", "certificateRefs": []any{map[string]any{"kind": "Secret", "name": "platform-agent-router-serving"}}}
 			if listener["protocol"] != "HTTPS" || listener["port"] != 443 || !reflect.DeepEqual(listener["tls"], wantTLS) {
 				t.Errorf("Agent Router must terminate HTTPS using SDS: %v", listener)
+			}
+			// Routes see every agent's requests, so only administrator-labelled
+			// namespaces (guarded by platform-agent-router-routes-vap) may attach.
+			wantRoutes := map[string]any{"namespaces": map[string]any{"from": "Selector", "selector": map[string]any{"matchLabels": map[string]any{"agent-router.podplane.dev/routes": "allowed"}}}}
+			if !reflect.DeepEqual(listener["allowedRoutes"], wantRoutes) {
+				t.Errorf("routes must be limited to labelled namespaces: %v", listener["allowedRoutes"])
 			}
 		case "MutatingWebhookConfiguration":
 			webhooks++
@@ -250,6 +257,111 @@ func TestAgentRouterConnectionBuffer(t *testing.T) {
 	}
 }
 
+// TestAgentRouterClientAuthentication checks agent client certificate validation:
+// verified when given by default, required or off when configured, and exact or
+// namespace-wide SPIFFE URI matching for allowed clients.
+func TestAgentRouterClientAuthentication(t *testing.T) {
+	const auth = "platform.agentRouter.clientAuthentication."
+	xfcc := map[string]any{"xForwardedClientCert": map[string]any{"mode": "SanitizeSet", "certDetailsToAdd": []any{"URI"}}}
+	ca := []any{map[string]any{"kind": "ConfigMap", "name": "workload-ca"}}
+	for _, tc := range []struct {
+		name    string
+		args    []string
+		tls     any
+		headers any
+	}{
+		{name: "verified when given by default",
+			tls:     map[string]any{"clientValidation": map[string]any{"mode": "VerifyIfGiven", "caCertificateRefs": ca}},
+			headers: xfcc},
+		{name: "disabled", args: []string{"--set", auth + "mode=Disabled"}},
+		{name: "required", args: []string{"--set", auth + "mode=RequireAndVerify"},
+			tls:     map[string]any{"clientValidation": map[string]any{"mode": "RequireAndVerify", "caCertificateRefs": ca}},
+			headers: xfcc},
+		{name: "allowed clients", args: []string{
+			"--set", auth + "mode=RequireAndVerify", "--set", "platform.agentRouter.spiffeTrustDomain=td.example",
+			"--set-json", auth + `allowedClients=[{"namespace":"team-a","serviceAccount":"research-agent"},{"namespace":"team-b"}]`,
+		},
+			tls: map[string]any{"clientValidation": map[string]any{"mode": "RequireAndVerify", "caCertificateRefs": ca,
+				"subjectAltNames": map[string]any{"uris": []any{
+					map[string]any{"type": "Exact", "value": "spiffe://td.example/ns/team-a/sa/research-agent"},
+					map[string]any{"type": "Prefix", "value": "spiffe://td.example/ns/team-b/sa/"},
+				}}}},
+			headers: xfcc},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			args := append([]string{"--namespace", "platform-agent-router"}, tc.args...)
+			for _, doc := range chartDocuments(t, render(t, "../charts/agent-router", args...)) {
+				if doc["kind"] != "ClientTrafficPolicy" {
+					continue
+				}
+				spec := chartMap(doc, "spec")
+				if !reflect.DeepEqual(spec["tls"], tc.tls) || !reflect.DeepEqual(spec["headers"], tc.headers) {
+					t.Errorf("tls = %v, headers = %v", spec["tls"], spec["headers"])
+				}
+			}
+		})
+	}
+	for _, tc := range []struct{ name, set, want string }{
+		{"unknown mode", auth + "mode=Optional", "mode must be"},
+		{"clients while disabled", auth + "mode=Disabled," + auth + "allowedClients[0].namespace=team-a", "requires mode RequireAndVerify"},
+		{"clients by default", "platform.agentRouter.spiffeTrustDomain=td.example," + auth + "allowedClients[0].namespace=team-a", "requires mode RequireAndVerify"},
+		{"clients without trust domain", auth + "mode=RequireAndVerify," + auth + "allowedClients[0].namespace=team-a", "spiffeTrustDomain is required"},
+		{"namespace with path", auth + "mode=RequireAndVerify,platform.agentRouter.spiffeTrustDomain=td.example," + auth + "allowedClients[0].namespace=team-a/sa/x", "must be a DNS label"},
+		{"serviceAccount with path", auth + "mode=RequireAndVerify,platform.agentRouter.spiffeTrustDomain=td.example," + auth + "allowedClients[0].namespace=team-a," + auth + "allowedClients[0].serviceAccount=x/y", "must be a DNS subdomain"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			out, err := exec.Command("helm", "template", "test", "../charts/agent-router", "--kube-version", "1.37.0", "--set", tc.set).CombinedOutput()
+			if err == nil || !strings.Contains(string(out), tc.want) {
+				t.Fatalf("expected %q render failure, got %v:\n%s", tc.want, err, out)
+			}
+		})
+	}
+}
+
+// TestAgentRouterRoutePermissionPolicy checks that only administrators, or Flux
+// for platform namespaces, may change which namespaces can attach routes.
+func TestAgentRouterRoutePermissionPolicy(t *testing.T) {
+	policy := renderValidatingPolicy(t, "../charts/agent-router", "platform-agent-router-routes-vap", "--namespace", "platform-agent-router")
+	namespace := func(name string, labels map[string]any) map[string]any {
+		return map[string]any{"metadata": map[string]any{"name": name, "labels": labels}}
+	}
+	granted := map[string]any{"agent-router.podplane.dev/routes": "allowed"}
+	unrelated := map[string]any{"owner": "team-a"}
+	flux := "system:serviceaccount:platform-fluxcd:helm-controller"
+	for _, test := range []struct {
+		name, operation, namespace string
+		old, new                   map[string]any
+		username, group            string
+		want                       bool
+	}{
+		{"manager grants", "UPDATE", "team-a", unrelated, granted, "bob", "podplane:managers", false},
+		{"manager creates granted namespace", "CREATE", "team-a", nil, granted, "bob", "podplane:managers", false},
+		{"manager revokes", "UPDATE", "team-a", granted, unrelated, "bob", "podplane:managers", false},
+		{"manager edits unrelated label", "UPDATE", "team-a", granted, map[string]any{"agent-router.podplane.dev/routes": "allowed", "owner": "team-a"}, "bob", "podplane:managers", true},
+		{"admin grants", "UPDATE", "team-a", unrelated, granted, "alice", "podplane:admins", true},
+		{"flux grants platform namespace", "CREATE", "platform-agent-router", nil, granted, flux, "system:serviceaccounts", true},
+		{"flux cannot grant tenant namespace", "UPDATE", "team-a", unrelated, granted, flux, "system:serviceaccounts", false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var old any
+			if test.operation == "UPDATE" {
+				old = namespace(test.namespace, test.old)
+			}
+			allowed := policy.admits(t, map[string]any{
+				"object":    namespace(test.namespace, test.new),
+				"oldObject": old,
+				"request": map[string]any{
+					"operation": test.operation,
+					"userInfo":  map[string]any{"username": test.username, "groups": []string{test.group}},
+				},
+			})
+			if allowed != test.want {
+				t.Fatalf("allowed = %v, want %v", allowed, test.want)
+			}
+		})
+	}
+}
+
 // TestAgenticGatewayPlatformContract checks gateway release wiring and image
 // mirrors, and that the ingress Envoy Gateway never depends on Agent Router.
 func TestAgenticGatewayPlatformContract(t *testing.T) {
@@ -336,7 +448,8 @@ func TestAgenticGatewayPlatformContract(t *testing.T) {
 }
 
 // TestAgentRouterTrustSyncWiring verifies startup ordering and preserves explicit
-// sync targets while selecting the CA Secret used by the extension client.
+// sync targets while selecting the CA Secret used by the extension client and
+// the CA ConfigMap and trust domain used for agent client certificates.
 func TestAgentRouterTrustSyncWiring(t *testing.T) {
 	const syncPath = "platform.components.values.podplane-operator.podplane.operator.config.workloadCertificates.trustBundleSync"
 	for _, tc := range []struct {
@@ -344,16 +457,17 @@ func TestAgentRouterTrustSyncWiring(t *testing.T) {
 		enabled           bool
 		args              []string
 		namespace, secret string
+		configMapNS       string
 		preconfigured     bool
 	}{
 		{name: "disabled"},
-		{name: "enabled", enabled: true, namespace: "platform-agent-router", secret: "workload-ca"},
-		{name: "custom reference", enabled: true, namespace: "custom-trust", secret: "custom-ca", args: []string{
+		{name: "enabled", enabled: true, namespace: "platform-agent-router", secret: "workload-ca", configMapNS: "platform-agent-router"},
+		{name: "custom reference", enabled: true, namespace: "custom-trust", secret: "custom-ca", configMapNS: "custom-router", args: []string{
 			"--set", "platform.components.apps.agent-router.namespace=custom-router",
 			"--set", "platform.components.values.agent-router.gateway-helm.config.envoyGateway.extensionManager.service.tls.certificateRef.name=custom-ca",
 			"--set", "platform.components.values.agent-router.gateway-helm.config.envoyGateway.extensionManager.service.tls.certificateRef.namespace=custom-trust",
 		}},
-		{name: "existing target", enabled: true, namespace: "platform-agent-router", secret: "workload-ca", preconfigured: true, args: []string{
+		{name: "existing target", enabled: true, namespace: "platform-agent-router", secret: "workload-ca", configMapNS: "platform-agent-router", preconfigured: true, args: []string{
 			"--set-json", syncPath + `={"createIfMissing":true,"resources":[{"kind":"ConfigMap","namespace":"other","name":"roots","key":"ca.crt"},{"kind":"Secret","namespace":"platform-agent-router","name":"workload-ca","key":"tls.crt","createIfMissing":false}]}`,
 		}},
 	} {
@@ -378,6 +492,9 @@ func TestAgentRouterTrustSyncWiring(t *testing.T) {
 					if !depends {
 						t.Fatal("Agent Router must wait for the operator to populate its CA")
 					}
+					if domain := chartMap(doc, "spec", "values", "platform", "agentRouter")["spiffeTrustDomain"]; domain != "test-cluster.example" {
+						t.Errorf("Agent Router trust domain = %v, want the operator's", domain)
+					}
 				}
 				if chartMap(doc, "metadata")["name"] != "podplane-operator" {
 					continue
@@ -397,7 +514,9 @@ func TestAgentRouterTrustSyncWiring(t *testing.T) {
 						t.Fatal("global creation policy was overwritten")
 					}
 				}
-				want = append(want, map[string]any{"kind": "Secret", "namespace": tc.namespace, "name": tc.secret, "key": "tls.crt", "createIfMissing": !tc.preconfigured})
+				want = append(want,
+					map[string]any{"kind": "Secret", "namespace": tc.namespace, "name": tc.secret, "key": "tls.crt", "createIfMissing": !tc.preconfigured},
+					map[string]any{"kind": "ConfigMap", "namespace": tc.configMapNS, "name": "workload-ca", "key": "ca.crt", "createIfMissing": true})
 				if !reflect.DeepEqual(sync["resources"], want) {
 					t.Fatalf("sync targets = %v, want %v", sync["resources"], want)
 				}

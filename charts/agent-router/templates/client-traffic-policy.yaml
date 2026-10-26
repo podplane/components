@@ -1,6 +1,15 @@
 # Podplane <https://podplane.dev>
 # Copyright The Podplane Authors
 # SPDX-License-Identifier: Apache-2.0
+{{- $agentRouter := .Values.platform.agentRouter }}
+{{- $auth := $agentRouter.clientAuthentication }}
+{{- if not (has $auth.mode (list "Disabled" "VerifyIfGiven" "RequireAndVerify")) }}
+{{- fail (printf "platform.agentRouter.clientAuthentication.mode must be Disabled, VerifyIfGiven or RequireAndVerify, got %q" $auth.mode) }}
+{{- end }}
+{{- /* Other modes admit clients without a certificate, bypassing the list. */}}
+{{- if and $auth.allowedClients (ne $auth.mode "RequireAndVerify") }}
+{{- fail "platform.agentRouter.clientAuthentication.allowedClients requires mode RequireAndVerify" }}
+{{- end }}
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: ClientTrafficPolicy
@@ -12,4 +21,44 @@ spec:
       kind: Gateway
       name: platform-agent-router-gateway
   connection:
-    bufferLimit: {{ .Values.platform.agentRouter.clientTrafficPolicy.connection.bufferLimit | quote }}
+    bufferLimit: {{ $agentRouter.clientTrafficPolicy.connection.bufferLimit | quote }}
+{{- if ne $auth.mode "Disabled" }}
+  tls:
+    clientValidation:
+      mode: {{ $auth.mode }}
+      # Public workload CA bundle, kept current by Podplane Operator's trust
+      # bundle sync (configured by platform-components).
+      caCertificateRefs:
+        - kind: ConfigMap
+          name: workload-ca
+{{- with $auth.allowedClients }}
+{{- $domain := required "platform.agentRouter.spiffeTrustDomain is required for clientAuthentication.allowedClients" $agentRouter.spiffeTrustDomain }}
+      subjectAltNames:
+        uris:
+{{- range . }}
+{{- if not (regexMatch "^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$" (.namespace | default "")) }}
+{{- fail (printf "platform.agentRouter.clientAuthentication.allowedClients namespace %q must be a DNS label" .namespace) }}
+{{- end }}
+{{- $prefix := printf "spiffe://%s/ns/%s/sa/" $domain .namespace }}
+{{- if .serviceAccount }}
+{{- if not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" .serviceAccount) }}
+{{- fail (printf "platform.agentRouter.clientAuthentication.allowedClients serviceAccount %q must be a DNS subdomain" .serviceAccount) }}
+{{- end }}
+          - type: Exact
+            value: {{ printf "%s%s" $prefix .serviceAccount | quote }}
+{{- else }}
+          # Any ServiceAccount in the namespace; the trailing slash keeps
+          # namespaces that merely share this prefix out.
+          - type: Prefix
+            value: {{ $prefix | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
+  headers:
+    # Replace any client-supplied header with the verified certificate's URI
+    # SAN, so routes and quotas can match agent identities. Requests without a
+    # client certificate carry no header.
+    xForwardedClientCert:
+      mode: SanitizeSet
+      certDetailsToAdd: [URI]
+{{- end }}

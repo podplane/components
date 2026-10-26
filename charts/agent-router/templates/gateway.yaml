@@ -30,4 +30,9 @@ spec:
             name: platform-agent-router-serving
       allowedRoutes:
         namespaces:
-          from: All
+          # Routes receive any connecting agent's requests, so only namespaces
+          # a cluster administrator labels may attach (see route-namespace-vap.yaml).
+          from: Selector
+          selector:
+            matchLabels:
+              agent-router.podplane.dev/routes: allowed

@@ -40,6 +40,17 @@ remain unchanged.
 
 Operator `v0.16.0` supplies workload SDS and public trust-bundle sync.
 
+## Agent client certificates
+
+`platform.agentRouter.clientAuthentication` enables mTLS against the workload CA
+in the `workload-ca` ConfigMap, which `platform-components` has the operator
+sync. With `RequireAndVerify`, `allowedClients` limits accepted SPIFFE identities
+(empty allows any). Unless disabled, Envoy sets `x-forwarded-client-cert` to the
+verified URI SAN, so routes and quotas can match or require it.
+
+Only namespaces labelled `agent-router.podplane.dev/routes=allowed`, which only
+cluster administrators may set, can attach routes to the gateway.
+
 ## Controller transport and plaintext isolation
 
 Envoy Gateway uses native TLS to reach Agent Router; only the Agent Router Pod
